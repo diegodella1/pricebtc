@@ -1,0 +1,9 @@
+{
+  "name": "PRICEB.TC",
+  "short_name": "PRICEB.TC",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b0d0f",
+  "theme_color": "#f7931a",
+  "icons": [{ "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}
