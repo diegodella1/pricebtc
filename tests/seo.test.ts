@@ -25,7 +25,7 @@ async function frontend(snapshot: MarketSnapshot | null, state: "live" | "degrad
   const app = buildApp({
     market: { getSnapshot: () => snapshot, getState: () => state },
     fx: { supportsCurrency: () => true, convertUsd: p => p, getCurrencies: () => [], getStatus: () => ({ state: "live", updatedAt: null }) },
-    history: { getHistory: async range => ({ range, points: [], cachedAt: "", source: "coinbase" }) },
+    history: { getHistory: async range => ({ range, points: [], cachedAt: "", source: "coinbase", high24h: null, low24h: null, volume24h: null }) },
     streams: { open: () => undefined, getClientCount: () => 0 }, logger: false,
   });
   cleanup.push(() => app.close());
@@ -49,7 +49,7 @@ describe("crawlable price documents", () => {
   });
   it("delivers the same timestamped observation to browsers and crawlers without caching the quote", async () => {
     const receivedAt = new Date().toISOString();
-    const app = await frontend({ priceUsd: "91023.45", change24h: 2.5, receivedAt, marketTimestamp: receivedAt, sequence: 1 });
+    const app = await frontend({ priceUsd: "91023.45", change24h: 2.5, receivedAt, marketTimestamp: receivedAt, sequence: 1, high24h: null, low24h: null, volume24h: null });
     const browser = await app.inject("/");
     const crawler = await app.inject({ url: "/", headers: { "user-agent": "OAI-SearchBot" } });
     expect(browser.body).toBe(crawler.body);
@@ -59,7 +59,7 @@ describe("crawlable price documents", () => {
     expect(browser.headers["cache-control"]).toBe("no-store");
   });
   it("labels an old snapshot as delayed and preserves its observation time", async () => {
-    const app = await frontend({ priceUsd: "90000", change24h: -1, receivedAt: "2020-01-01T00:00:00Z", marketTimestamp: "2020-01-01T00:00:00Z", sequence: 1 });
+    const app = await frontend({ priceUsd: "90000", change24h: -1, receivedAt: "2020-01-01T00:00:00Z", marketTimestamp: "2020-01-01T00:00:00Z", sequence: 1, high24h: null, low24h: null, volume24h: null });
     const response = await app.inject("/");
     expect(response.body).toContain("Data delayed");
     expect(response.body).toContain('datetime="2020-01-01T00:00:00Z"');
@@ -81,7 +81,7 @@ describe("crawlable price documents", () => {
   });
   it("keeps API compatibility and uses the same observation for HTML and Markdown", async () => {
     const timestamp = new Date().toISOString();
-    const snapshot = { priceUsd: "91234.56789", change24h: -2.5, marketTimestamp: timestamp, receivedAt: timestamp, sequence: 1 };
+    const snapshot = { priceUsd: "91234.56789", change24h: -2.5, marketTimestamp: timestamp, receivedAt: timestamp, sequence: 1, high24h: null, low24h: null, volume24h: null };
     const app = await frontend(snapshot);
     const json = (await app.inject("/api/price?currency=USD")).json();
     expect(json).toMatchObject({ asset: "Bitcoin", symbol: "BTC", currency: "USD", price: "91234.56789", change24h: -2.5, source: "coinbase", sourceDetails: { name: "Coinbase Exchange", market: "BTC-USD" }, provider: { name: "PRICEB.TC", url: "https://priceb.tc/" } });
@@ -104,7 +104,7 @@ describe("crawlable price documents", () => {
     expect(md.body).toContain("Status: unavailable");
     expect((await app.inject("/api/price")).json().code).toBe("PRICE_UNAVAILABLE");
     const timestamp = new Date().toISOString();
-    const degraded = await frontend({ priceUsd: "1", change24h: 0, marketTimestamp: timestamp, receivedAt: timestamp, sequence: 1 }, "degraded");
+    const degraded = await frontend({ priceUsd: "1", change24h: 0, marketTimestamp: timestamp, receivedAt: timestamp, sequence: 1, high24h: null, low24h: null, volume24h: null }, "degraded");
     expect((await degraded.inject("/api/price")).json().status).toBe("stale");
     expect((await degraded.inject("/bitcoin-price.md")).body).toContain("Status: stale");
     expect((await degraded.inject("/")).body).toContain("Data delayed");
@@ -118,7 +118,7 @@ describe("crawlable price documents", () => {
     }
   });
   it("escapes untrusted strings in HTML and bootstrap data", () => {
-    const output = renderPriceSnapshot({ currency: "USD", price: "1", priceUsd: "1", change24h: 0, marketTimestamp: '"><script>alert(1)</script>', receivedAt: "", fxUpdatedAt: null, source: "coinbase", status: "stale" });
+    const output = renderPriceSnapshot({ currency: "USD", price: "1", priceUsd: "1", change24h: 0, high24h: null, low24h: null, volume24h: null, marketTimestamp: '"><script>alert(1)</script>', receivedAt: "", fxUpdatedAt: null, source: "coinbase", status: "stale" });
     expect(output).not.toContain("<script>");
     expect(output).toContain("&lt;script&gt;");
   });

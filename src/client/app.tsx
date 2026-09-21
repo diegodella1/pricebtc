@@ -1,6 +1,7 @@
 import { HomePage } from "./pages/home-page.js";
 import { RendererPage } from "./pages/renderer-page.js";
 import { PlaceholderPage } from "./pages/placeholder-page.js";
+import { PricingPage } from "./pages/pricing-page.js";
 
 import { lazy, Suspense } from "react";
 import { IS_STATIC_BUILD } from "./lib/api.js";
@@ -20,7 +21,7 @@ export function App() {
   if (path === "/studio") return <Suspense fallback={<main aria-busy="true">Loading Widget Studio…</main>}><StudioPage /></Suspense>;
   if (path === "/embed") return <RendererPage mode="embed" />;
   if (path === "/overlay") return <RendererPage mode="overlay" />;
-  if (path === "/pricing") return <PlaceholderPage title="Pricing" eyebrow="PRICING" description="Bitcoin price tools that scale with your business." />;
+  if (path === "/pricing") return <PricingPage />;
   if (path === "/sponsors") return <PlaceholderPage title="Sponsor" eyebrow="SPONSOR" description="Support honest Bitcoin price infrastructure." />;
   if (path === "/status") return <PlaceholderPage title="Status" eyebrow="STATUS" description="System health and uptime monitoring." />;
   if (path === "/terms") return <PlaceholderPage title="Terms of Service" eyebrow="LEGAL" />;

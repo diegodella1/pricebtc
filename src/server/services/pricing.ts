@@ -30,10 +30,16 @@ export function createPricePayload(options: CreatePricePayloadOptions): PriceObs
     price: options.convertUsd(options.snapshot.priceUsd),
     priceUsd: options.snapshot.priceUsd,
     change24h: options.snapshot.change24h,
+<<<<<<< HEAD
     high24h,
     low24h,
     volume24h,
     volume24hUsd: options.currency === "USD" ? volume24hUsd : null,
+=======
+    high24h: options.snapshot.high24h ? options.convertUsd(options.snapshot.high24h) : null,
+    low24h: options.snapshot.low24h ? options.convertUsd(options.snapshot.low24h) : null,
+    volume24h: options.snapshot.volume24h,
+>>>>>>> 51e77e2 (Add 24h high/low/volume to market data)
     marketTimestamp: options.snapshot.marketTimestamp,
     receivedAt: options.snapshot.receivedAt,
     fxUpdatedAt: options.fxUpdatedAt,
