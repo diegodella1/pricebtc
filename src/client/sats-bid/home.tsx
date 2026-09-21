@@ -72,6 +72,8 @@ export default function BidHome() {
     );
   }
   
+  if (!round) return null;
+  
   return (
     <section
       className="bid-home"
