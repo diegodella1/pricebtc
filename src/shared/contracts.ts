@@ -6,6 +6,9 @@ export type DataFreshness = "live" | "stale" | "unavailable";
 export interface MarketSnapshot {
   priceUsd: string;
   change24h: number;
+  high24h: string | null;
+  low24h: string | null;
+  volume24h: string | null;
   marketTimestamp: string;
   receivedAt: string;
   sequence: number | null;
@@ -16,6 +19,10 @@ export interface PricePayload {
   price: string;
   priceUsd: string;
   change24h: number;
+  high24h: string | null;
+  low24h: string | null;
+  volume24h: string | null;
+  volume24hUsd: string | null;
   marketTimestamp: string;
   receivedAt: string;
   fxUpdatedAt: string | null;
@@ -33,6 +40,7 @@ export interface PriceObservation extends PricePayload {
 export interface HistoryPoint {
   timestamp: string;
   price: string;
+  volume: string;
 }
 
 export interface HistoryPayload {

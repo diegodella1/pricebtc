@@ -19,6 +19,9 @@ describe("parseTickerMessage", () => {
     expect(snapshot).toEqual({
       priceUsd: "105000.50",
       change24h: 5.0005,
+      high24h: null,
+      low24h: null,
+      volume24h: null,
       marketTimestamp: "2026-08-24T17:00:00.000Z",
       receivedAt: "2026-08-24T17:00:00.100Z",
       sequence: 42,

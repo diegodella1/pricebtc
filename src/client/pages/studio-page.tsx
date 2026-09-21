@@ -200,8 +200,20 @@ export function StudioPage() {
                 />
                 <span aria-hidden="true" /> CHART
               </label>
+              <label className={chartSupported && historyEnabled && config.currency === "USD" ? "" : "is-disabled"}>
+                <input
+                  name="studio-show-volume"
+                  type="checkbox"
+                  checked={config.showVolume}
+                  disabled={!chartSupported || !historyEnabled || config.currency !== "USD"}
+                  aria-describedby={!chartSupported || !historyEnabled || config.currency !== "USD" ? "volume-capability-note" : undefined}
+                  onChange={(event) => updateConfig("showVolume", event.target.checked)}
+                />
+                <span aria-hidden="true" /> VOLUME
+              </label>
             </div>
             {!chartSupported ? <p className="control-hint" id="chart-capability-note">NOT AVAILABLE IN THIS LAYOUT</p> : null}
+            {chartSupported && config.currency !== "USD" ? <p className="control-hint" id="volume-capability-note">VOLUME AVAILABLE FOR USD ONLY</p> : null}
           </fieldset>
 
           <fieldset className="control-group">

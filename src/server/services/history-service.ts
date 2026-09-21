@@ -92,6 +92,7 @@ export class HistoryService {
       .map((candle) => ({
         timestamp: new Date(candle[0] * 1_000).toISOString(),
         price: String(candle[4]),
+        volume: String(candle[5]),
       }))
       .sort((left, right) => left.timestamp.localeCompare(right.timestamp));
 

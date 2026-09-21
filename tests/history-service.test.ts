@@ -17,8 +17,8 @@ describe("HistoryService", () => {
     const result = await service.getHistory("1h", (price) => String(Number(price) * 2));
 
     expect(result.points).toEqual([
-      { timestamp: "2023-11-14T22:13:20.000Z", price: "180" },
-      { timestamp: "2023-11-14T22:14:20.000Z", price: "200" },
+      { timestamp: "2023-11-14T22:13:20.000Z", price: "180", volume: "2" },
+      { timestamp: "2023-11-14T22:14:20.000Z", price: "200", volume: "1" },
     ]);
     expect(fetcher).toHaveBeenCalledOnce();
   });

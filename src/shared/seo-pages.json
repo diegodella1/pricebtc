@@ -19,7 +19,7 @@
       "sections": [
         [
           "Where the price comes from",
-          "PRICEB.TC displays BTC/USD market data from Coinbase Exchange. It is a price from one exchange, not a global average or a guaranteed execution price. Different exchanges can quote different prices because their orders and trades differ."
+          "PRICEB.TC displays BTC/USD market data from Coinbase Exchange, including the current price, 24-hour high/low, and trading volume. These metrics reflect activity on the Coinbase BTC-USD market only—not aggregated global exchange data. Different exchanges can quote different prices and volumes because their order books and trades are independent."
         ],
         [
           "Updates and timestamps",
@@ -31,7 +31,7 @@
         ],
         [
           "Currencies and chart windows",
-          "USD is the direct market quote. Other supported currencies use indicative daily ExchangeRate-API conversions, so they can differ from local exchange prices. The 1h, 24h and 7d chart windows describe historical observations. The headline 24h change and a selected chart window change can differ."
+          "USD is the direct market quote. Other supported currencies use indicative daily ExchangeRate-API conversions, so they can differ from local exchange prices. The 1h, 24h and 7d chart windows display historical price and volume data (BTC base volume) from Coinbase Exchange. Volume bars are shown for USD; converted currency views display price only. The headline 24h change and a selected chart window change can differ."
         ],
         [
           "Reading prices with an agent",

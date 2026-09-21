@@ -48,6 +48,7 @@ export interface WidgetConfig {
   background: WidgetBackground;
   showChange: boolean;
   showChart: boolean;
+  showVolume: boolean;
   range: HistoryRange;
   motion: MotionLevel;
 }
@@ -65,6 +66,7 @@ export const DEFAULT_EMBED_CONFIG: WidgetConfig = Object.freeze({
   background: "solid",
   showChange: true,
   showChart: true,
+  showVolume: true,
   range: "24h",
   motion: "full",
 });
@@ -73,6 +75,7 @@ export const DEFAULT_OVERLAY_CONFIG: WidgetConfig = Object.freeze({
   ...DEFAULT_EMBED_CONFIG,
   layout: "lower-third",
   background: "transparent",
+  showVolume: false,
 });
 
 const HEX_COLOR = /^[0-9A-F]{6}$/;
@@ -117,6 +120,7 @@ export function parseWidgetConfig(params: URLSearchParams, mode: WidgetMode): Wi
     background: enumValue(params.get("background"), WIDGET_BACKGROUNDS, defaults.background),
     showChange: booleanValue(params.get("change"), defaults.showChange),
     showChart: booleanValue(params.get("chart"), defaults.showChart),
+    showVolume: booleanValue(params.get("volume"), defaults.showVolume),
     range: enumValue(params.get("range"), HISTORY_RANGES, defaults.range),
     motion: enumValue(params.get("motion"), MOTION_LEVELS, defaults.motion),
   };
@@ -136,6 +140,7 @@ export function serializeWidgetConfig(config: WidgetConfig): URLSearchParams {
     ["background", config.background],
     ["change", config.showChange ? "1" : "0"],
     ["chart", config.showChart ? "1" : "0"],
+    ["volume", config.showVolume ? "1" : "0"],
     ["range", config.range],
     ["motion", config.motion],
   ]);
