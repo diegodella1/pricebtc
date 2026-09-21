@@ -1,6 +1,8 @@
 import { HomePage } from "./pages/home-page.js";
 import { RendererPage } from "./pages/renderer-page.js";
 import { PlaceholderPage } from "./pages/placeholder-page.js";
+import { TermsPage } from "./pages/terms-page.js";
+import { PrivacyPage } from "./pages/privacy-page.js";
 
 import { lazy, Suspense } from "react";
 import { IS_STATIC_BUILD } from "./lib/api.js";
@@ -23,8 +25,8 @@ export function App() {
   if (path === "/pricing") return <PlaceholderPage title="Pricing" eyebrow="PRICING" description="Bitcoin price tools that scale with your business." />;
   if (path === "/sponsors") return <PlaceholderPage title="Sponsor" eyebrow="SPONSOR" description="Bid from 1,000 sats. Rank beside Bitcoin." />;
   if (path === "/status") return <PlaceholderPage title="Status" eyebrow="STATUS" description="System health and uptime monitoring." />;
-  if (path === "/terms") return <PlaceholderPage title="Terms of Service" eyebrow="LEGAL" />;
-  if (path === "/privacy") return <PlaceholderPage title="Privacy Policy" eyebrow="LEGAL" />;
+  if (path === "/terms") return <TermsPage />;
+  if (path === "/privacy") return <PrivacyPage />;
 
   return (
     <main className="not-found">
