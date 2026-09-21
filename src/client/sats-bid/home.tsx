@@ -47,18 +47,31 @@ export default function BidHome() {
       document.removeEventListener("visibilitychange", refresh);
     };
   }, []);
-  if (error && (!round?.enabled || !board)) {
-    const target = document.getElementById("bid-top-slot");
-    const notice = <p className="public-notice" role="status">Sponsor information is temporarily unavailable. Please try again shortly.</p>;
-    return <section id="sats-bid" className="public-section">{target && createPortal(notice, target)}{notice}</section>;
-  }
   if (!round && !error) return <div className="sponsor-presentation-loading" role="status">Loading sponsor information…</div>;
   if (round?.coming_soon) return <ComingSoonHome />;
-  if (!round?.enabled) {
-    const target = document.getElementById("bid-top-slot");
-    return round && target ? createPortal(<p className="public-notice">Sponsorship is currently unavailable.</p>, target) : null;
-  }
+  
   const slot = document.getElementById("bid-top-slot");
+  const enabled = round?.enabled ?? false;
+  const showEmptySlot = !enabled || error || !board;
+  
+  if (showEmptySlot) {
+    return (
+      <section id="sats-bid" className="public-section">
+        {slot && createPortal(<TopSpot leader={null} />, slot)}
+        {error && (!enabled || !board) && (
+          <p className="public-notice" role="status">
+            Sponsor information is temporarily unavailable. Please try again shortly.
+          </p>
+        )}
+        {!error && !enabled && (
+          <p className="public-notice" role="status">
+            Sponsorship is currently unavailable.
+          </p>
+        )}
+      </section>
+    );
+  }
+  
   return (
     <section
       className="bid-home"
