@@ -281,7 +281,7 @@ function registerFrontend(app: FastifyInstance, options: BuildAppOptions): void 
 
   for (const [route, filename] of documents) {
     app.get(route, async (request, reply) => {
-      if (route === "/" || route === "/api") {
+      if (route === "/") {
         let template = templates.get(filename);
         if (!template) { template = readFile(join(frontendRoot, filename), "utf8"); templates.set(filename, template); }
         
@@ -291,14 +291,8 @@ function registerFrontend(app: FastifyInstance, options: BuildAppOptions): void 
         const price = readObservation(options, currency);
         reply.header("Cache-Control", "no-store").type("text/html; charset=utf-8");
         let html = await template;
-        
-        if (route === "/") {
-          html = html.replace("<!--PRICE_SNAPSHOT-->", renderPriceSnapshot(price));
-          html = injectOgMeta(html, price, currency);
-        } else {
-          html = html.replace("<!--API_OBSERVATION-->", price ? `<pre><code>${escapeHtml(JSON.stringify(price, null, 2))}</code></pre>` : '<p role="status">Price unavailable. The endpoint returns HTTP 503 until an observation is available.</p>');
-        }
-        
+        html = html.replace("<!--PRICE_SNAPSHOT-->", renderPriceSnapshot(price));
+        html = injectOgMeta(html, price, currency);
         return html;
       }
       if (["/leaderboard", "/history"].includes(route)) reply.header("X-Robots-Tag", "noindex, follow");
@@ -310,6 +304,11 @@ function registerFrontend(app: FastifyInstance, options: BuildAppOptions): void 
       return reply.sendFile(filename, { cacheControl: false });
     });
   }
+  app.get("/api", async (request, reply) => {
+    reply.header("Cache-Control", "no-cache");
+    return reply.sendFile("index.html", { cacheControl: false });
+  });
+
   app.get("/day/:date", (request, reply) => {
     reply.header("X-Robots-Tag", "noindex, follow");
     const date = (request.params as { date: string }).date;
