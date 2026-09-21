@@ -49,7 +49,7 @@ describe("crawlable price documents", () => {
   });
   it("delivers the same timestamped observation to browsers and crawlers without caching the quote", async () => {
     const receivedAt = new Date().toISOString();
-    const app = await frontend({ priceUsd: "91023.45", change24h: 2.5, receivedAt, marketTimestamp: receivedAt, sequence: 1, high24h: null, low24h: null, volume24h: null });
+    const app = await frontend({ priceUsd: "91023.45", change24h: 2.5, receivedAt, marketTimestamp: receivedAt, sequence: 1, high24h: "92000", low24h: "90000", volume24h: "12345" });
     const browser = await app.inject("/");
     const crawler = await app.inject({ url: "/", headers: { "user-agent": "OAI-SearchBot" } });
     expect(browser.body).toBe(crawler.body);
@@ -57,6 +57,12 @@ describe("crawlable price documents", () => {
     expect(browser.body).toContain(`title="${receivedAt}"`);
     expect(browser.body).toContain("Coinbase Exchange");
     expect(browser.body).toContain("High 24h");
+    expect(browser.body).toContain("$92,000");
+    expect(browser.body).toContain("$90,000");
+    expect(browser.body).toContain("12,345 BTC");
+    expect(browser.body).toContain('<strong class="kpi-value">$92,000</strong>');
+    expect(browser.body).toContain('<strong class="kpi-value">$90,000</strong>');
+    expect(browser.body).toContain('<strong class="kpi-value">12,345 BTC</strong>');
     expect(browser.headers["cache-control"]).toBe("no-store");
   });
   it("labels an old snapshot as stale and preserves its observation time", async () => {

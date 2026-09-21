@@ -97,9 +97,9 @@ export default function BidHome() {
       <SponsorInventory />
       <div className="bid-home-grid bid-home-grid--ranking">
         {slot && board ? (
-          createPortal(<TopSpot leader={board.leader} delayed={error} />, slot)
+          createPortal(board.leader ? <TopSpot leader={board.leader} delayed={error} /> : <EmptySponsorCTA />, slot)
         ) : !slot && board ? (
-          <TopSpot leader={board.leader} delayed={error} />
+          board.leader ? <TopSpot leader={board.leader} delayed={error} /> : <EmptySponsorCTA />
         ) : null}
         <div className="bid-board">
           <header className="bid-board-heading">

@@ -46,7 +46,7 @@ export function SponsorExplanation() {
 function LaunchNotice() {
   return (
     <p className="bid-launch-notice">
-      <strong>LIGHTNING PAYMENTS · COMING SOON</strong>
+      <strong>LIGHTNING PAYMENTS</strong>
       <span>
         We are preparing Lightning payments. No payments or sponsorship
         reservations are being accepted yet.
@@ -102,7 +102,7 @@ export function ComingSoonPage({ archive = false }: { archive?: boolean }) {
   return (
     <BidShell
       title={archive ? "The story starts soon." : "Your project. This spot."}
-      eyebrow="SATS BID / COMING SOON"
+      eyebrow="SATS BID / SPONSOR THE SIGNAL"
     >
       <LaunchNotice />
       {archive ? (

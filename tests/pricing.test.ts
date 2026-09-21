@@ -19,7 +19,7 @@ function getMarketSnapshot(overrides: Partial<MarketSnapshot> = {}): MarketSnaps
 
 describe("createPricePayload", () => {
   it("keeps missing statistics null for older observations", () => {
-    const payload = createPricePayload({ snapshot: getMarketSnapshot(), currency: "USD", convertUsd: price => price, fxUpdatedAt: null });
+    const payload = createPricePayload({ snapshot: getMarketSnapshot({ high24h: null, low24h: null, volume24h: null }), currency: "USD", convertUsd: price => price, fxUpdatedAt: null });
     expect(payload).toMatchObject({ high24h: null, low24h: null, volume24h: null, volume24hUsd: null });
   });
   it("converts price bounds while retaining base volume in BTC", () => {
@@ -27,7 +27,8 @@ describe("createPricePayload", () => {
       snapshot: getMarketSnapshot({ high24h: "102000", low24h: "98000", volume24h: "123.456" }),
       currency: "EUR", convertUsd: price => String(Number(price) * 0.9), fxUpdatedAt: null,
     });
-    expect(payload).toMatchObject({ high24h: "91800", low24h: "88200", volume24h: "123.456", volume24hUsd: null });
+    expect(payload).toMatchObject({ high24h: "91800", low24h: "88200", volume24h: "123.456" });
+    expect(payload.volume24hUsd).toBeUndefined();
   });
   it("returns a converted live payload", () => {
     const payload = createPricePayload({

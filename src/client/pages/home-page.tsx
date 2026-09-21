@@ -5,7 +5,7 @@ import { PriceChart } from "../components/price-chart.js";
 import { WidgetDemo } from "../components/widget-demo.js";
 import { useCurrencies, useLivePrice, usePriceHistory } from "../hooks/use-market.js";
 import { IS_STATIC_BUILD } from "../lib/api.js";
-import { formatPercent, formatPrice, formatPriceVariants, formatRelativeTime } from "../lib/format.js";
+import { formatPercent, formatPrice, formatPriceVariants, formatRelativeTime, formatVolume } from "../lib/format.js";
 import { formatUtcDate, formatUtcTime, getMarketTelemetry } from "../lib/market-telemetry.js";
 import { HISTORY_RANGES, type HistoryRange } from "../../shared/widget-config.js";
 import siteContent from "../../shared/site-content.json";
@@ -69,12 +69,12 @@ export function HomePage() {
             <CurrencySelect currencies={currencies} value={currency} onChange={setCurrency} id="home-currency" />
             {error && <p className="public-notice" role="status">{error}</p>}
           </div>
-          {!IS_STATIC_BUILD ? <aside id="bid-top-slot" aria-label="Sponsor space"><div className="sponsor-loading" role="status">Sponsor space<br /><span>Checking availability…</span></div></aside> : <aside aria-label="Sponsor space"><a href="/sponsors" className="sponsor-empty-cta"><h3 className="sponsor-empty-cta__title">Sponsor space</h3><p className="sponsor-empty-cta__desc">Rank beside Bitcoin</p><span className="sponsor-empty-cta__button">Bid from 1,000 sats</span></a></aside>}
+          <aside id="bid-top-slot" aria-label="Sponsor space"><a href="/sponsors" className="sponsor-empty-cta"><h3 className="sponsor-empty-cta__title">Sponsor space</h3><p className="sponsor-empty-cta__desc">Rank beside Bitcoin</p><span className="sponsor-empty-cta__button">Bid from 1,000 sats</span></a></aside>
         </div>
         <div className="kpi-strip">
           <div className="kpi-item"><span className="kpi-label">High 24h</span><strong className="kpi-value">{price?.high24h ? formatPrice(price.high24h, currency) : "—"}</strong></div>
           <div className="kpi-item"><span className="kpi-label">Low 24h</span><strong className="kpi-value">{price?.low24h ? formatPrice(price.low24h, currency) : "—"}</strong></div>
-          <div className="kpi-item"><span className="kpi-label">Volume 24h</span><strong className="kpi-value">{price?.volume24h ? `${Number(price.volume24h).toLocaleString("en-US", { maximumFractionDigits: 0 })} BTC` : "—"}</strong></div>
+          <div className="kpi-item"><span className="kpi-label">Volume 24h</span><strong className="kpi-value">{formatVolume(price?.volume24h ?? null)}</strong></div>
         </div>
         <p className="observation-description">{siteContent.home.observationDescription} <a href="/api">Bitcoin Price API</a> · <a href="/bitcoin-price-updates">Price source and methodology</a></p>
         <div className="market-ctas">
