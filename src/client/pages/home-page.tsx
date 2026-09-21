@@ -1,6 +1,7 @@
-import { lazy, Suspense, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { SiteHeader } from "../components/site-header.js";
 import { CurrencySelect } from "../components/currency-select.js";
+import { CurrencyChips } from "../components/currency-chips.js";
 import { PriceChart } from "../components/price-chart.js";
 import { WidgetDemo } from "../components/widget-demo.js";
 import { useCurrencies, useLivePrice, usePriceHistory } from "../hooks/use-market.js";
@@ -12,7 +13,13 @@ import siteContent from "../../shared/site-content.json";
 
 const BidHome = lazy(() => import("../sats-bid/home.js"));
 const CURRENCY_STORAGE_KEY = "pricebtc:preferences:v1";
-function getInitialCurrency() {
+
+function getInitialCurrency(): string {
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlCurrency = urlParams.get("currency");
+  if (urlCurrency && /^[A-Z]{3}$/.test(urlCurrency.toUpperCase())) {
+    return urlCurrency.toUpperCase();
+  }
   try {
     const stored = JSON.parse(localStorage.getItem(CURRENCY_STORAGE_KEY) ?? "null") as { currency?: unknown } | null;
     return typeof stored?.currency === "string" && /^[A-Z]{3}$/.test(stored.currency) ? stored.currency : "USD";
@@ -42,10 +49,28 @@ export function HomePage() {
   const satsPerDollar = price && Number(price.priceUsd) > 0 ? Math.round(100_000_000 / Number(price.priceUsd)).toLocaleString("en-US") : "—";
   const volume24hDisplay = price?.volume24h ? `${Number(price.volume24h).toFixed(2)} BTC` : "—";
   const volume24hUsdDisplay = price?.volume24hUsd ? `$${Number(price.volume24hUsd).toLocaleString("en-US", { maximumFractionDigits: 0 })}` : null;
+  
+  const isIndicative = currencies.find((c) => c.code === currency)?.indicative ?? false;
+
   function setCurrency(value: string) {
     setCurrencyState(value);
+    const url = new URL(window.location.href);
+    url.searchParams.set("currency", value);
+    window.history.replaceState({}, "", url.toString());
     try { localStorage.setItem(CURRENCY_STORAGE_KEY, JSON.stringify({ currency: value })); } catch { /* Optional preference. */ }
   }
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlCurrency = urlParams.get("currency");
+      if (urlCurrency && /^[A-Z]{3}$/.test(urlCurrency.toUpperCase())) {
+        setCurrencyState(urlCurrency.toUpperCase());
+      }
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
   return <div className="public-site">
     <a className="skip-link" href="#main-content">Skip to content</a>
     <SiteHeader />
@@ -59,6 +84,12 @@ export function HomePage() {
           </div>
         </div>
         <p className="market-subtitle">One exchange observation, not a global index. <a href="/bitcoin-price-updates">Source and methodology</a></p>
+        <CurrencyChips value={currency} onChange={setCurrency} currencies={currencies} />
+        {isIndicative && (
+          <p className="currency-disclaimer" role="note">
+            {currency} prices use indicative exchange rates from USD. Not financial advice.
+          </p>
+        )}
         <div className="price-module">
           <div className="price-sponsor-grid">
             <div className="price-primary">

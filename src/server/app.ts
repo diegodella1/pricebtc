@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import seoPages from "../shared/seo-pages.json";
-import { renderPriceSnapshot, renderPriceMarkdown, escapeHtml } from "./seo.js";
+import { renderPriceSnapshot, renderPriceMarkdown, escapeHtml, injectOgMeta } from "./seo.js";
+import { generateOgImage } from "./og-image.js";
 import { join } from "node:path";
 
 import helmet from "@fastify/helmet";
@@ -157,6 +158,22 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     return options.fx.getCurrencies();
   });
 
+  app.get("/og-image.png", async (request, reply) => {
+    const query = request.query as Record<string, unknown>;
+    const currency = typeof query.currency === "string" ? query.currency.toUpperCase() : "USD";
+    
+    if (!options.fx.supportsCurrency(currency)) {
+      return reply.code(400).send({ code: "INVALID_CURRENCY", message: "Unsupported currency" });
+    }
+
+    const observation = readObservation(options, currency);
+    const imageBuffer = await generateOgImage({ price: observation, currency });
+    
+    reply.header("Content-Type", "image/png");
+    reply.header("Cache-Control", "public, max-age=60");
+    return imageBuffer;
+  });
+
   app.get("/api/stream", { config: { rateLimit: { max: 20, timeWindow: "1 minute" } } }, (request, reply) => {
     const currency = parseCurrency(request.query, options.fx, reply);
     if (!currency) return;
@@ -260,12 +277,22 @@ function registerFrontend(app: FastifyInstance, options: BuildAppOptions): void 
       if (route === "/" || route === "/api") {
         let template = templates.get(filename);
         if (!template) { template = readFile(join(frontendRoot, filename), "utf8"); templates.set(filename, template); }
-        const price = readObservation(options, "USD");
+        
+        const query = request.query as Record<string, unknown>;
+        const currency = typeof query.currency === "string" && /^[A-Z]{3}$/.test(query.currency.toUpperCase()) && options.fx.supportsCurrency(query.currency.toUpperCase()) ? query.currency.toUpperCase() : "USD";
+        
+        const price = readObservation(options, currency);
         reply.header("Cache-Control", "no-store").type("text/html; charset=utf-8");
-        const html = await template;
-        return route === "/"
-          ? html.replace("<!--PRICE_SNAPSHOT-->", renderPriceSnapshot(price))
-          : html.replace("<!--API_OBSERVATION-->", price ? `<pre><code>${escapeHtml(JSON.stringify(price, null, 2))}</code></pre>` : '<p role="status">Price unavailable. The endpoint returns HTTP 503 until an observation is available.</p>');
+        let html = await template;
+        
+        if (route === "/") {
+          html = html.replace("<!--PRICE_SNAPSHOT-->", renderPriceSnapshot(price));
+          html = injectOgMeta(html, price, currency);
+        } else {
+          html = html.replace("<!--API_OBSERVATION-->", price ? `<pre><code>${escapeHtml(JSON.stringify(price, null, 2))}</code></pre>` : '<p role="status">Price unavailable. The endpoint returns HTTP 503 until an observation is available.</p>');
+        }
+        
+        return html;
       }
       if (["/leaderboard", "/history"].includes(route)) reply.header("X-Robots-Tag", "noindex, follow");
       reply.header("Cache-Control", route === "/bid" || route === "/admin" ? "no-store" : "no-cache");
