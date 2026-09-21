@@ -1,4 +1,4 @@
-import { widgetExport, writeClipboard } from "../lib/widget-export.js";
+import { widgetExport, getWidgetDimensions, writeClipboard } from "../lib/widget-export.js";
 import { type CSSProperties, useEffect, useRef, useState } from "react";
 
 import type { WidgetConfig, WidgetMode } from "../../shared/widget-config.js";
@@ -27,7 +27,7 @@ interface StudioState {
   drafts: Record<WidgetMode, WidgetConfig>;
 }
 
-type CopyState = "iframe" | "obs-url" | "direct-url" | "error" | null;
+type CopyState = "iframe" | "obs-url" | "direct-url" | "markdown" | "error" | null;
 type ColorKey = "accent" | "text" | "surface";
 
 const COLOR_KEYS: ColorKey[] = ["accent", "text", "surface"];
@@ -83,7 +83,8 @@ export function StudioPage() {
   const textContrast = getContrastResult(effectiveColors.text, effectiveColors.surface);
   const accentContrast = getContrastResult(effectiveColors.accent, effectiveColors.surface);
 
-  const { query: rendererQuery, url: rendererUrl, code: iframeCode } = widgetExport(config, mode);
+  const { query: rendererQuery, url: rendererUrl, code: iframeCode, markdown: markdownCode } = widgetExport(config, mode);
+  const dimensions = getWidgetDimensions(config);
   const previewStyle: CSSProperties | undefined = mode === "embed"
     ? { aspectRatio: layoutMeta.aspectRatio }
     : undefined;
@@ -359,6 +360,22 @@ export function StudioPage() {
                   </label>
                   </details>
                 </fieldset>
+
+                <fieldset className="control-group">
+                  <legend>Branding</legend>
+                  <div className="pro-teaser">
+                    <div className="pro-teaser-icon">
+                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                        <path d="M10 2L12.5 7.5L18 8L14 12.5L15 18L10 15L5 18L6 12.5L2 8L7.5 7.5L10 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                    <div className="pro-teaser-content">
+                      <h4>Custom watermark</h4>
+                      <p>Add your logo or text branding to widgets. Perfect for streams and embeds.</p>
+                    </div>
+                    <a href="/pricing" className="pro-teaser-link">View pricing →</a>
+                  </div>
+                </fieldset>
               </div>
             </details>
           </section>
@@ -403,14 +420,33 @@ export function StudioPage() {
               <h2>OBS Browser Source</h2>
               <span className="free-badge">Free · No account</span>
             </div>
-            <div className="obs-instructions">
-              <span translate="no">OBS</span>
-              <p>Add a <strong>Browser Source</strong>, paste the URL below, then set the canvas to 1920 × 1080. Keep "Shutdown source when not visible" off.</p>
+            <div className="obs-steps">
+              <div className="obs-step">
+                <span className="obs-step-number">1</span>
+                <div className="obs-step-content">
+                  <h3>Add Browser Source</h3>
+                  <p>In OBS Studio, click the + icon in Sources and select <strong>Browser</strong>.</p>
+                </div>
+              </div>
+              <div className="obs-step">
+                <span className="obs-step-number">2</span>
+                <div className="obs-step-content">
+                  <h3>Paste URL below</h3>
+                  <p>Copy the Browser Source URL and paste it into the URL field in OBS.</p>
+                </div>
+              </div>
+              <div className="obs-step">
+                <span className="obs-step-number">3</span>
+                <div className="obs-step-content">
+                  <h3>Configure canvas</h3>
+                  <p>Set Width to <strong>1920</strong> and Height to <strong>1080</strong>. Turn off "Shutdown source when not visible".</p>
+                </div>
+              </div>
             </div>
             <div className="export-field-full">
               <label htmlFor="obs-url">BROWSER SOURCE URL</label>
               <textarea id="obs-url" name="obs-url" autoComplete="off" spellCheck={false} readOnly value={rendererUrl} rows={4} />
-              <button type="button" className="studio-copy-primary" onClick={() => void copy(rendererUrl, "obs-url")}>{copied === "obs-url" ? "COPIED ✓" : "COPY"}</button>
+              <button type="button" className="studio-copy-primary" onClick={() => void copy(rendererUrl, "obs-url")}>{copied === "obs-url" ? "COPIED ✓" : "COPY URL"}</button>
             </div>
             {copied === "error" && <p className="copy-status is-error" role="status">COPY FAILED // SELECT FIELD & COPY MANUALLY</p>}
           </div>
@@ -428,12 +464,38 @@ export function StudioPage() {
               <h2>Share widget</h2>
               <span className="free-badge">Free · No account</span>
             </div>
-            <p className="export-description">Share this direct link to your customized Bitcoin price widget.</p>
+            <p className="export-description">Share your customized Bitcoin price widget using a direct link or markdown embed.</p>
+            
             <div className="export-field-full">
               <label htmlFor="share-url">WIDGET URL</label>
               <input id="share-url" name="share-url" autoComplete="off" spellCheck={false} readOnly value={rendererUrl} />
-              <button type="button" className="studio-copy-primary" onClick={() => void copy(rendererUrl, "direct-url")}>{copied === "direct-url" ? "COPIED ✓" : "COPY"}</button>
+              <button type="button" className="studio-copy-primary" onClick={() => void copy(rendererUrl, "direct-url")}>{copied === "direct-url" ? "COPIED ✓" : "COPY URL"}</button>
             </div>
+
+            <div className="export-field-full">
+              <label htmlFor="share-markdown">MARKDOWN EMBED</label>
+              <textarea id="share-markdown" name="share-markdown" autoComplete="off" spellCheck={false} readOnly value={markdownCode} rows={2} />
+              <button type="button" className="studio-copy-secondary" onClick={() => void copy(markdownCode, "markdown")}>{copied === "markdown" ? "COPIED ✓" : "COPY MARKDOWN"}</button>
+            </div>
+
+            <div className="share-dimensions">
+              <h3>Widget dimensions</h3>
+              <div className="dimension-grid">
+                <div className="dimension-item">
+                  <span className="dimension-label">ASPECT RATIO</span>
+                  <span className="dimension-value">{dimensions.aspectLabel}</span>
+                </div>
+                <div className="dimension-item">
+                  <span className="dimension-label">MIN WIDTH</span>
+                  <span className="dimension-value">{dimensions.minWidth}px</span>
+                </div>
+                <div className="dimension-item">
+                  <span className="dimension-label">MIN HEIGHT</span>
+                  <span className="dimension-value">{dimensions.minHeight}px</span>
+                </div>
+              </div>
+            </div>
+
             {copied === "error" && <p className="copy-status is-error" role="status">COPY FAILED // SELECT FIELD & COPY MANUALLY</p>}
           </div>
         </div>

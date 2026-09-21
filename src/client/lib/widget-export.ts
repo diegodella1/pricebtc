@@ -6,7 +6,18 @@ export function widgetExport(config: WidgetConfig, mode: WidgetMode, origin = wi
   const safeUrl = url.replaceAll("&", "&amp;").replaceAll('"', "&quot;");
   const meta = WIDGET_LAYOUT_META[config.layout];
   const code = `<iframe src="${safeUrl}" title="Live Bitcoin price — ${meta.label}" loading="lazy" sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox" style="border:0;display:block;width:100%;max-width:100%;min-height:${meta.minHeight}px;aspect-ratio:${meta.aspectRatio}" data-pricebtc-layout="${config.layout}"></iframe>`;
-  return { query, url, code };
+  const markdown = `[![Bitcoin Price](${url})](${origin}/studio)`;
+  return { query, url, code, markdown };
+}
+
+export function getWidgetDimensions(config: WidgetConfig) {
+  const meta = WIDGET_LAYOUT_META[config.layout];
+  return {
+    minWidth: meta.minWidth,
+    minHeight: meta.minHeight,
+    aspectRatio: meta.aspectRatio,
+    aspectLabel: meta.aspectLabel,
+  };
 }
 
 export async function writeClipboard(value: string): Promise<void> {
