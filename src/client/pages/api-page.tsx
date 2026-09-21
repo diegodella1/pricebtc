@@ -247,13 +247,18 @@ print(f"BTC/{selectedCurrency}: {data['price']}")`;
           <h2>Rate limits & fair use</h2>
           <p>
             The free API allows <strong>120 requests per minute</strong> from each IP address. 
-            For real-time updates, use the SSE endpoint at <code>/api/stream?currency=USD</code> instead 
-            of polling. Responses include standard cache headers; respect them.
+            Rate limit state is returned in response headers:
           </p>
+          <ul className="header-list">
+            <li><code>X-RateLimit-Limit</code> — Maximum requests allowed per window</li>
+            <li><code>X-RateLimit-Remaining</code> — Requests remaining in current window</li>
+            <li><code>X-RateLimit-Reset</code> — Unix timestamp when the window resets</li>
+            <li><code>Retry-After</code> — Seconds to wait before retrying (on HTTP 429)</li>
+          </ul>
           <p>
-            This service is provided as-is for personal and commercial use. Excessive traffic 
-            may be rate-limited. For high-volume integrations or SLA guarantees, 
-            <a href="/pricing">contact us about Pro plans</a>.
+            For real-time updates, use the SSE endpoint at <code>/api/stream?currency=USD</code> instead 
+            of polling. This service is provided as-is for personal and commercial use. 
+            For high-volume integrations or SLA guarantees, <a href="/pricing">contact us about Pro plans</a>.
           </p>
         </section>
 
@@ -297,12 +302,14 @@ print(f"BTC/{selectedCurrency}: {data['price']}")`;
         </section>
 
         <section className="api-cta">
-          <h2>Need more?</h2>
+          <h2>Start building</h2>
           <p>
-            Looking for higher limits, custom endpoints, or dedicated support? 
-            <a href="/pricing" className="button button--primary">Explore Pro plans</a> or contact us at{" "}
-            <a href={`mailto:${siteContent.contactEmail}`}>{siteContent.contactEmail}</a>
+            Free for personal and commercial use. No API key required.
           </p>
+          <div className="cta-buttons">
+            <a href="/api/price?currency=USD" className="button button--primary">Get started free →</a>
+            <a href={`mailto:${siteContent.contactEmail}`} className="button button--secondary">Contact for Pro plans</a>
+          </div>
         </section>
       </main>
       <footer className="public-footer">
