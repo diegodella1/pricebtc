@@ -28,6 +28,14 @@ export function HomePage() {
   const live = connectionState === "live" && price?.status === "live";
   const displayedPoints = useMemo(() => !price || !points.length ? points : [...points, { timestamp: price.marketTimestamp, price: price.price }], [points, price]);
   const telemetry = useMemo(() => getMarketTelemetry(displayedPoints), [displayedPoints]);
+  const recordedVolume = useMemo(() => {
+    const recorded = points.filter(point => point.buyVolume != null && point.sellVolume != null);
+    if (!recorded.length) return null;
+    return {
+      buy: recorded.reduce((sum, point) => sum + Number(point.buyVolume), 0).toLocaleString("en-US", { maximumFractionDigits: 4 }),
+      sell: recorded.reduce((sum, point) => sum + Number(point.sellVolume), 0).toLocaleString("en-US", { maximumFractionDigits: 4 }),
+    };
+  }, [points]);
   const formatted = price ? formatPriceVariants(price.price, currency) : null;
   const status = live ? "Live price" : connectionState === "connecting" ? "Connecting" : price ? "Data delayed" : "Price unavailable";
   const satsPerDollar = price && Number(price.priceUsd) > 0 ? Math.round(100_000_000 / Number(price.priceUsd)).toLocaleString("en-US") : "—";
@@ -67,6 +75,10 @@ export function HomePage() {
             </div>
           )}
           <div className="hero__chart"><PriceChart points={displayedPoints} positive={(telemetry?.changePercent ?? 0) >= 0} showVolume={currency === "USD"} loading={historyLoading} error={historyError} /></div>
+          {currency === "USD" && <div className="volume-legend" aria-label="Volume legend">
+            <span className="volume-legend__buy">Recorded buys: {recordedVolume ? `${recordedVolume.buy} BTC` : "—"}</span><span className="volume-legend__sell">Recorded sells: {recordedVolume ? `${recordedVolume.sell} BTC` : "—"}</span><span className="volume-legend__unknown">Unclassified</span>
+            <p>BTC volume by initiating side on Coinbase. Grey volume has no recorded split; older intervals and gaps may be incomplete. <a href="/bitcoin-price-updates">How it works</a></p>
+          </div>}
           {historyError && points.length > 0 && <p className="public-notice" role="status">History updates delayed.</p>}
           <div className="history-summary"><span>{range.toUpperCase()} WINDOW</span><span>High <strong>{telemetry ? formatPrice(String(telemetry.high), currency) : "—"}</strong></span><span>Low <strong>{telemetry ? formatPrice(String(telemetry.low), currency) : "—"}</strong></span><span>Change <strong>{telemetry?.changePercent == null ? "—" : formatPercent(telemetry.changePercent)}</strong></span></div>
           <details className="feed-details"><summary>About this price</summary><p>{siteContent.home.priceExplanation}</p><dl><div><dt>Connection</dt><dd>{connectionState}</dd></div><div><dt>Market update</dt><dd>{formatUtcTime(price?.marketTimestamp ?? null)}</dd></div><div><dt>Received</dt><dd>{formatUtcTime(price?.receivedAt ?? null)}</dd></div><div><dt>FX updated</dt><dd>{currency === "USD" ? "Direct USD price" : formatUtcDate(price?.fxUpdatedAt ?? null)}</dd></div></dl></details>

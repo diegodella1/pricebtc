@@ -629,9 +629,11 @@ a {
 }
 
 .price-chart__volume {
-  fill: var(--solar-cyan);
+  fill: var(--text-muted, #737b85);
   opacity: 0.4;
 }
+.price-chart__buy-volume { fill: var(--positive, #34d399); }
+.price-chart__sell-volume { fill: var(--negative, #fb7185); }
 
 .chart-placeholder {
   height: 100%;

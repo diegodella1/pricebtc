@@ -14,13 +14,18 @@ interface PriceChartProps {
 interface ChartGeometry {
   line: string;
   area: string;
-  volumes: Array<{ x: number; height: number; width: number }>;
+  volumes: Array<{ x: number; height: number; width: number; buyHeight: number; sellHeight: number; label: string }>;
 }
 
 const WIDTH = 600;
 const HEIGHT = 180;
 const PADDING = 8;
 const VOLUME_HEIGHT_RATIO = 0.25;
+
+function volumeAmount(value: string | null | undefined): number {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+}
 
 function getGeometry(points: HistoryPoint[], showVolume: boolean): ChartGeometry | null {
   const validPoints = points.filter(({ price }) => Number.isFinite(Number(price)));
@@ -47,24 +52,29 @@ function getGeometry(points: HistoryPoint[], showVolume: boolean): ChartGeometry
   const line = coordinates.map(([x, y], index) => `${index === 0 ? "M" : "L"}${x.toFixed(2)},${y.toFixed(2)}`).join(" ");
   const area = `${line} L${(WIDTH - PADDING).toFixed(2)},${priceHeight} L${PADDING},${priceHeight} Z`;
 
-  let volumes: Array<{ x: number; height: number; width: number }> = [];
+  let volumes: ChartGeometry["volumes"] = [];
   if (showVolume && points.length > 0) {
-    const volumeValues = validPoints.map(({ volume }) => {
-      const value = Number(volume);
-      return Number.isFinite(value) && value >= 0 ? value : 0;
+    const volumeValues = validPoints.map(point => {
+      const buy = volumeAmount(point.buyVolume);
+      const sell = volumeAmount(point.sellVolume);
+      return { buy, sell, total: Math.max(volumeAmount(point.volume), buy + sell) };
     });
-    const maxVolume = Math.max(...volumeValues, 1);
+    const maxVolume = Math.max(...volumeValues.map(volume => volume.total), Number.EPSILON);
     const volumeTop = priceHeight + PADDING;
     const volumeBottom = HEIGHT - PADDING;
     const usableVolumeHeight = volumeBottom - volumeTop;
     const barWidth = usableWidth / values.length;
 
     volumes = volumeValues.map((vol, index) => {
-      const normalizedHeight = (vol / maxVolume) * usableVolumeHeight;
+      const point = validPoints[index]!;
+      const split = point.buyVolume != null && point.sellVolume != null;
       return {
         x: PADDING + (index / values.length) * usableWidth,
-        height: normalizedHeight,
+        height: (vol.total / maxVolume) * usableVolumeHeight,
+        buyHeight: (vol.buy / maxVolume) * usableVolumeHeight,
+        sellHeight: (vol.sell / maxVolume) * usableVolumeHeight,
         width: barWidth * 0.8,
+        label: `${point.timestamp} · Candle volume: ${point.volume ?? "unavailable"} BTC. ${split ? `Recorded buys: ${point.buyVolume} BTC; recorded sells: ${point.sellVolume} BTC. Split may be partial.` : "Buy/sell split unavailable."}`,
       };
     });
   }
@@ -104,15 +114,12 @@ export function PriceChart({ points, positive = true, compact = false, showVolum
         <path className="price-chart__area" d={geometry.area} fill={`url(#${gradientId})`} />
         <path className="price-chart__line" d={geometry.line} vectorEffect="non-scaling-stroke" />
         {showVolume && geometry.volumes.map((vol, index) => (
-          <rect
-            key={index}
-            className="price-chart__volume"
-            x={vol.x}
-            y={HEIGHT - PADDING - vol.height}
-            width={vol.width}
-            height={vol.height}
-            opacity="0.5"
-          />
+          <g key={index}>
+            <title>{vol.label}</title>
+            <rect className="price-chart__volume" x={vol.x} y={HEIGHT - PADDING - vol.height} width={vol.width} height={vol.height} />
+            {vol.buyHeight > 0 && <rect className="price-chart__buy-volume" x={vol.x} y={HEIGHT - PADDING - vol.buyHeight} width={vol.width} height={vol.buyHeight} />}
+            {vol.sellHeight > 0 && <rect className="price-chart__sell-volume" x={vol.x} y={HEIGHT - PADDING - vol.buyHeight - vol.sellHeight} width={vol.width} height={vol.sellHeight} />}
+          </g>
         ))}
       </svg>
     </div>

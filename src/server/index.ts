@@ -2,6 +2,7 @@ import { buildApp } from "./app.js";
 import { parseEnvironment } from "./config.js";
 import { FxService } from "./services/fx-service.js";
 import { HistoryService } from "./services/history-service.js";
+import { TradeVolumeService } from "./services/trade-volume.js";
 import { MarketService } from "./services/market-service.js";
 import { SseHub } from "./services/sse-hub.js";
 import { createBidRuntime } from "./sats-bid/runtime.js";
@@ -12,7 +13,8 @@ const market = new MarketService({
   wsUrl: environment.COINBASE_WS_URL,
   apiUrl: environment.COINBASE_API_URL,
 });
-const history = new HistoryService({ apiUrl: environment.COINBASE_API_URL });
+const tradeVolume = new TradeVolumeService({ dataDir: environment.PRICEBTC_DATA_DIR, apiUrl: environment.COINBASE_API_URL });
+const history = new HistoryService({ apiUrl: environment.COINBASE_API_URL, tradeVolume });
 const streams = new SseHub({
   market,
   fx,
@@ -33,11 +35,12 @@ async function shutdown(signal: string): Promise<void> {
   market.stop();
   fx.stop();
   await app.close();
+  await tradeVolume.stop();
   await bidding?.pool.end();
 }
 
 async function main(): Promise<void> {
-  await Promise.all([fx.start(), market.start()]);
+  await Promise.all([fx.start(), market.start(), tradeVolume.start()]);
   streams.start();
   await app.listen({ host: environment.HOST, port: environment.PORT });
 }

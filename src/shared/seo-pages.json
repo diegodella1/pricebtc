@@ -34,6 +34,10 @@
           "USD is the direct market quote. Other supported currencies use indicative daily ExchangeRate-API conversions, so they can differ from local exchange prices. The 1h, 24h and 7d chart windows display historical price and volume data (BTC base volume) from Coinbase Exchange. Volume bars are shown for USD; converted currency views display price only. The headline 24h change and a selected chart window change can differ."
         ],
         [
+          "Buy and sell volume",
+          "Green and red volume segments show recorded buyer-initiated and seller-initiated BTC trades on Coinbase Exchange. Each trade has both a buyer and a seller; the classification identifies the side taking liquidity. Coinbase reports the maker side, which PRICEB.TC reverses to identify the initiating side. This is not inferred from whether the price rose or fell. The service checks recent trades every 10 seconds and retains minute aggregates for eight days; the chart refreshes every 30 seconds. Only retrieved trades are classified. Grey volume has no recorded split, and older intervals or gaps may be incomplete. Candle totals and recorded trades can update at different times."
+        ],
+        [
           "Reading prices with an agent",
           "Use the public JSON endpoints described below for a timestamped observation. Keep the source, currency and status with the number. Do not describe stale data as live or treat the page request time as the market time."
         ]

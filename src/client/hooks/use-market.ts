@@ -95,20 +95,25 @@ export function usePriceHistory(
     setPoints([]);
     setLoading(true);
     setError(null);
-    void getHistory(currency, range, controller.signal)
-      .then((history) => {
+    let pending = false;
+    const refresh = async () => {
+      if (pending || controller.signal.aborted) return;
+      pending = true;
+      try {
+        const history = await getHistory(currency, range, controller.signal);
+        if (controller.signal.aborted) return;
         setPoints(history.points);
         setError(null);
-      })
-      .catch((requestError: unknown) => {
-        if (controller.signal.aborted) return;
-        setPoints([]);
-        setError(requestError instanceof Error ? requestError.message : "History unavailable");
-      })
-      .finally(() => {
+      } catch (requestError) {
+        if (!controller.signal.aborted) setError(requestError instanceof Error ? requestError.message : "History unavailable");
+      } finally {
+        pending = false;
         if (!controller.signal.aborted) setLoading(false);
-      });
-    return () => controller.abort();
+      }
+    };
+    void refresh();
+    const timer = window.setInterval(() => { void refresh(); }, 30_000);
+    return () => { controller.abort(); window.clearInterval(timer); };
   }, [currency, enabled, range]);
 
   return { points, loading, error };

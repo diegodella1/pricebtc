@@ -57,6 +57,22 @@ Git-ignored `.env` for administrative operations only.
 
 ## Runtime
 
+### Recorded buy/sell volume
+
+`trade-volume.json` in `PRICEBTC_DATA_DIR` stores eight days of minute aggregates
+and the last processed Coinbase trade ID. The app polls BTC-USD trades every ten
+seconds, paginating up to five pages of 1,000 trades to catch up. It reverses the
+reported maker side to classify the taker (initiating) side. Polls are serialized;
+trade IDs are deduplicated and state is written with an atomic rename. Keep this
+file when replacing releases and include it in runtime-data backups.
+
+Older intervals, initial collection and gaps beyond the bounded catch-up window
+can lack a complete split. Green/red segments represent only retrieved trades;
+grey is the remaining candle volume without a recorded split. Missing data is
+never classified from candle direction. On upstream failure, existing aggregates
+remain available and the collector retries on the next poll. No database or
+payment configuration is required. The homepage refreshes history every 30 seconds.
+
 - App: `pricebtc.service`, user `diego`, `127.0.0.1:3466`.
 - Runtime data: `/var/lib/pricebtc/fx-rates.json`.
 - Public edge: existing Cloudflare Tunnel `55ecc138-2b04-4678-b3cf-5460da1aa1ff`.

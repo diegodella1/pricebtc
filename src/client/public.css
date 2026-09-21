@@ -73,8 +73,15 @@ body:has(.public-site)::before, body:has(.public-site)::after, body:has(.studio-
 .pill-controls button[aria-pressed="true"] { background: var(--text); color: #0d1012; }
 .public-site .hero__chart { height: 180px; min-height: 0; margin: 20px 0; padding: 0; border: 0; background: transparent; }
 .public-site .hero__chart .price-chart { position: relative; inset: auto; height: 100%; }
-.public-site .price-chart__volume { fill: var(--solar-cyan, #2aa198); opacity: 0.4; }
+.public-site .price-chart__volume { fill: var(--text-muted); opacity: 0.4; }
 .public-site .price-chart--with-volume .price-chart__volume { opacity: 0.5; }
+.volume-legend { display: flex; gap: 8px 20px; flex-wrap: wrap; margin: 0 0 20px; font: 12px/1.6 var(--font-mono); }
+.volume-legend > span::before { content: ""; display: inline-block; width: 9px; height: 9px; margin-right: 7px; background: currentColor; }
+.volume-legend__buy { color: var(--positive); }
+.volume-legend__sell { color: var(--negative); }
+.volume-legend__unknown, .volume-legend p { color: var(--text-muted); }
+.volume-legend p { flex-basis: 100%; margin: 0; }
+.volume-legend a { color: var(--accent); }
 .history-summary { display: flex; gap: 16px 32px; flex-wrap: wrap; color: var(--text-muted); font: 12px var(--font-mono); }
 .history-summary strong { color: var(--text); font-weight: 400; }
 .feed-details { margin-top: 16px; color: var(--text-muted); font-size: 14px; }

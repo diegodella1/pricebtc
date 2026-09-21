@@ -6,7 +6,7 @@ test("price history and volume remain inside the chart at every viewport and ran
     source: "coinbase", cachedAt: new Date().toISOString(),
     points: [
       { timestamp: "2026-09-21T10:00:00Z", price: "80000", volume: "10" },
-      { timestamp: "2026-09-21T10:05:00Z", price: "81000", volume: "100" },
+      { timestamp: "2026-09-21T10:05:00Z", price: "81000", volume: "100", buyVolume: "20", sellVolume: "30" },
       { timestamp: "2026-09-21T10:10:00Z", price: "80500", volume: "50" },
     ],
   } }));
@@ -25,6 +25,30 @@ test("price history and volume remain inside the chart at every viewport and ran
       const volume = (await page.locator(".hero__chart .price-chart__volume").nth(1).boundingBox())!;
       expect(volume.height).toBeGreaterThan(10);
       expect(volume.y + volume.height).toBeLessThanOrEqual(frame.y + frame.height);
+      const buy = page.locator(".hero__chart .price-chart__buy-volume");
+      const sell = page.locator(".hero__chart .price-chart__sell-volume");
+      await expect(buy).toHaveCount(1);
+      await expect(sell).toHaveCount(1);
+      expect(await buy.evaluate(element => getComputedStyle(element).fill)).not.toBe(await sell.evaluate(element => getComputedStyle(element).fill));
+      await expect(page.getByLabel("Volume legend")).toContainText("Recorded buys: 20 BTC");
+      await expect(page.getByLabel("Volume legend")).toContainText("Recorded sells: 30 BTC");
     }
   }
+});
+
+test("recorded volume refreshes without clearing the chart", async ({ page }) => {
+  await page.clock.install();
+  let requests = 0;
+  await page.route("**/api/history?**", route => {
+    requests++;
+    return route.fulfill({ json: { currency: "USD", range: "24h", source: "coinbase", cachedAt: new Date().toISOString(), points: [
+      { timestamp: "2026-09-21T10:00:00Z", price: "80000", volume: "10", buyVolume: String(requests), sellVolume: "1" },
+      { timestamp: "2026-09-21T10:05:00Z", price: "81000", volume: "10" },
+    ] } });
+  });
+  await page.goto("/");
+  await expect(page.getByLabel("Volume legend")).toContainText("Recorded buys: 1 BTC");
+  await page.clock.fastForward(30_000);
+  await expect(page.getByLabel("Volume legend")).toContainText("Recorded buys: 2 BTC");
+  await expect(page.locator(".hero__chart .price-chart__line")).toBeVisible();
 });

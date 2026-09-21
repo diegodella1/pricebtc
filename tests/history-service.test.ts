@@ -3,6 +3,17 @@ import { describe, expect, it, vi } from "vitest";
 import { HistoryService } from "../src/server/services/history-service.js";
 
 describe("HistoryService", () => {
+  it("adds recorded BTC sides to cached candles without converting volumes or inventing missing splits", async () => {
+    const volumes = new Map([["2023-11-14T22:13:20.000Z", { buyVolume: "0.2", sellVolume: "0.3" }]]);
+    const fetcher = vi.fn(async () => new Response(JSON.stringify([[1_700_000_000, 1, 2, 1, 2, 3], [1_700_000_060, 1, 2, 1, 2, 3]])));
+    const service = new HistoryService({ fetcher, tradeVolume: { getVolumes: () => volumes } });
+    const result = await service.getHistory("1h", price => String(Number(price) * 2));
+    expect(result.points[0]).toMatchObject({ price: "4", volume: "3", buyVolume: "0.2", sellVolume: "0.3" });
+    expect(result.points[1]).toMatchObject({ buyVolume: null, sellVolume: null });
+    volumes.set("2023-11-14T22:13:20.000Z", { buyVolume: "0.4", sellVolume: "0.5" });
+    expect((await service.getHistory("1h", price => price)).points[0]?.buyVolume).toBe("0.4");
+    expect(fetcher).toHaveBeenCalledOnce();
+  });
   it("normalizes ascending candles and converts selected currency", async () => {
     const fetcher = vi.fn(async () =>
       new Response(

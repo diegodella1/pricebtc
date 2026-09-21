@@ -41,6 +41,8 @@ export interface HistoryPoint {
   timestamp: string;
   price: string;
   volume?: string;
+  buyVolume?: string | null;
+  sellVolume?: string | null;
 }
 
 export interface HistoryPayload {

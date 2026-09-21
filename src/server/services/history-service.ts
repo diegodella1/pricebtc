@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import type { HistoryPayload, HistoryPoint } from "../../shared/contracts.js";
 import type { HistoryRange } from "../../shared/widget-config.js";
+import type { TradeVolumeService } from "./trade-volume.js";
 
 const CANDLE_SCHEMA = z.tuple([
   z.number().int().positive(),
@@ -28,18 +29,21 @@ interface CachedHistory {
 }
 
 interface HistoryServiceOptions {
+  tradeVolume?: Pick<TradeVolumeService, "getVolumes">;
   apiUrl?: string;
   fetcher?: Fetcher;
   now?: () => number;
 }
 
 export class HistoryService {
+  private readonly tradeVolume?: Pick<TradeVolumeService, "getVolumes">;
   private readonly apiUrl: string;
   private readonly fetcher: Fetcher;
   private readonly now: () => number;
   private readonly cache = new Map<HistoryRange, CachedHistory>();
 
   constructor(options: HistoryServiceOptions = {}) {
+    this.tradeVolume = options.tradeVolume;
     this.apiUrl = options.apiUrl ?? "https://api.exchange.coinbase.com";
     this.fetcher = options.fetcher ?? fetch;
     this.now = options.now ?? Date.now;
@@ -47,9 +51,13 @@ export class HistoryService {
 
   async getHistory(range: HistoryRange, convertPrice: ConvertPrice): Promise<Omit<HistoryPayload, "currency">> {
     const usdHistory = await this.getUsdHistory(range);
+    const volumes = this.tradeVolume?.getVolumes(RANGE_CONFIG[range].granularity);
     return {
       range,
-      points: usdHistory.points.map((point) => ({ ...point, price: convertPrice(point.price) })),
+      points: usdHistory.points.map((point) => ({
+        ...point, price: convertPrice(point.price),
+        ...(volumes ? volumes.get(point.timestamp) ?? { buyVolume: null, sellVolume: null } : {}),
+      })),
       cachedAt: new Date(usdHistory.fetchedAt).toISOString(),
       source: "coinbase",
     };
