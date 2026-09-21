@@ -22,7 +22,7 @@ type WidgetStyles = CSSProperties & Record<`--${string}`, string>;
 function getWidgetStyles(config: WidgetConfig): WidgetStyles {
   const isLight = config.theme === "light";
   const text = config.theme === "custom" ? config.text : isLight ? "002B36" : "FDF6E3";
-  const surface = config.theme === "custom" ? config.surface : isLight ? "FDF6E3" : "002B36";
+  const surface = config.theme === "custom" ? config.surface : isLight ? "FDF6E3" : "0D1012";
   const readableAccent = config.theme === "custom"
     ? getContrastResult(config.accent, surface).passesAa ? config.accent : text
     : isLight ? "A63C10" : "E66B35";

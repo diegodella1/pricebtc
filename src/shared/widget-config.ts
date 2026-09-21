@@ -60,7 +60,7 @@ export const DEFAULT_EMBED_CONFIG: WidgetConfig = Object.freeze({
   theme: "dark",
   accent: "CB4B16",
   text: "FDF6E3",
-  surface: "002B36",
+  surface: "0D1012",
   font: "mono",
   scale: 100,
   background: "solid",
