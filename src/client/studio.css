@@ -133,7 +133,7 @@
 
 .studio-above-fold {
   padding: 2rem 1.5rem;
-  background: rgba(0, 31, 39, 0.3);
+  background: rgba(13, 16, 18, 0.65);
 }
 
 .above-fold-content {
@@ -197,7 +197,7 @@
 .preview-stage {
   position: relative;
   display: grid;
-  min-height: min(48vw, 38rem);
+  min-height: 25rem;
   place-items: center;
   padding: clamp(1.5rem, 4vw, 3.5rem);
   overflow: hidden;
