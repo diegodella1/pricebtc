@@ -6,7 +6,7 @@ export function widgetExport(config: WidgetConfig, mode: WidgetMode, origin = wi
   const safeUrl = url.replaceAll("&", "&amp;").replaceAll('"', "&quot;");
   const meta = WIDGET_LAYOUT_META[config.layout];
   const code = `<iframe src="${safeUrl}" title="Live Bitcoin price — ${meta.label}" loading="lazy" sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox" style="border:0;display:block;width:100%;max-width:100%;min-height:${meta.minHeight}px;aspect-ratio:${meta.aspectRatio}" data-pricebtc-layout="${config.layout}"></iframe>`;
-  const markdown = `[![Bitcoin Price](${url})](${origin}/studio)`;
+  const markdown = `[Bitcoin price](${url})`;
   return { query, url, code, markdown };
 }
 

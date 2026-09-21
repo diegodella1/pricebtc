@@ -370,8 +370,7 @@ export function StudioPage() {
                       </svg>
                     </div>
                     <div className="pro-teaser-content">
-                      <h4>Custom watermark</h4>
-                      <p>Add your logo or text branding to widgets. Perfect for streams and embeds.</p>
+                      <p>Includes PRICEB.TC mark · Pro removes it</p>
                     </div>
                     <a href="/pricing" className="pro-teaser-link">View pricing →</a>
                   </div>
