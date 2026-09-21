@@ -72,7 +72,7 @@ body:has(.public-site)::before, body:has(.public-site)::after, body:has(.studio-
 .pill-controls button { min-height: 44px; padding: 8px 18px; border: 0; border-radius: 24px; background: transparent; color: var(--text-muted); cursor: pointer; font-size: 14px; }
 .pill-controls button[aria-pressed="true"] { background: var(--text); color: #0d1012; }
 .public-site .hero__chart { height: 180px; min-height: 0; margin: 20px 0; padding: 0; border: 0; background: transparent; }
-.public-site .hero__chart .price-chart { height: 100%; }
+.public-site .hero__chart .price-chart { position: relative; inset: auto; height: 100%; }
 .public-site .price-chart__volume { fill: var(--solar-cyan, #2aa198); opacity: 0.4; }
 .public-site .price-chart--with-volume .price-chart__volume { opacity: 0.5; }
 .history-summary { display: flex; gap: 16px 32px; flex-wrap: wrap; color: var(--text-muted); font: 12px var(--font-mono); }
