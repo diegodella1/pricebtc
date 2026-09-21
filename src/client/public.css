@@ -253,6 +253,22 @@ body:has(.public-site)::before, body:has(.public-site)::after, body:has(.studio-
 .guide-content a { color: #ffb66b; text-underline-offset: .2em; }
 .guide-content pre { white-space: pre-wrap; overflow-wrap: anywhere; padding: 1rem; border: 1px solid #34383f; border-radius: .75rem; }
 
+/* Legal document pages */
+.legal-document { max-width: 76ch; padding: 48px 32px 64px; }
+.legal-document h1 { font: 500 clamp(36px, 5vw, 52px)/1.12 var(--font-display); letter-spacing: -.04em; margin: 16px 0 8px; }
+.legal-document .effective-date { font: 12px var(--font-mono); color: var(--text-muted); margin-bottom: 40px; }
+.legal-document section { margin: 32px 0; }
+.legal-document h2 { font: 500 24px/1.3 var(--font-display); letter-spacing: -.02em; margin: 32px 0 16px; color: var(--text); }
+.legal-document h3 { font: 500 18px/1.4 var(--font-display); letter-spacing: -.01em; margin: 24px 0 12px; color: var(--text); }
+.legal-document p { color: var(--text-muted); font-size: 15px; line-height: 1.7; margin: 12px 0; }
+.legal-document ul { margin: 12px 0; padding-left: 24px; color: var(--text-muted); }
+.legal-document li { margin: 8px 0; line-height: 1.7; }
+.legal-document a { color: var(--link); text-decoration: underline; text-underline-offset: .2em; }
+.legal-document strong { color: var(--text); font-weight: 600; }
+@media (max-width: 640px) {
+  .legal-document { padding: 32px 20px 48px; }
+}
+
 
 .sponsor-presentation-loading { min-height: 700px; margin-top: 40px; padding-top: 48px; color: var(--text-muted); border-top: 1px solid var(--line-soft); }
 @media (min-width: 851px) { .price-sponsor-grid { min-height: 365px; } .sponsor-loading { height: 100%; } }
