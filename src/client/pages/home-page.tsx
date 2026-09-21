@@ -20,10 +20,7 @@ function getInitialCurrency(): string {
   if (urlCurrency && /^[A-Z]{3}$/.test(urlCurrency.toUpperCase())) {
     return urlCurrency.toUpperCase();
   }
-  try {
-    const stored = JSON.parse(localStorage.getItem(CURRENCY_STORAGE_KEY) ?? "null") as { currency?: unknown } | null;
-    return typeof stored?.currency === "string" && /^[A-Z]{3}$/.test(stored.currency) ? stored.currency : "USD";
-  } catch { return "USD"; }
+  return "USD";
 }
 
 export function HomePage() {
@@ -56,7 +53,7 @@ export function HomePage() {
     setCurrencyState(value);
     const url = new URL(window.location.href);
     url.searchParams.set("currency", value);
-    window.history.replaceState({}, "", url.toString());
+    window.history.pushState({}, "", url.toString());
     try { localStorage.setItem(CURRENCY_STORAGE_KEY, JSON.stringify({ currency: value })); } catch { /* Optional preference. */ }
   }
 
@@ -66,6 +63,8 @@ export function HomePage() {
       const urlCurrency = urlParams.get("currency");
       if (urlCurrency && /^[A-Z]{3}$/.test(urlCurrency.toUpperCase())) {
         setCurrencyState(urlCurrency.toUpperCase());
+      } else {
+        setCurrencyState("USD");
       }
     };
     window.addEventListener("popstate", handlePopState);
