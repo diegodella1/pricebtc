@@ -121,6 +121,10 @@ export class MarketService {
     if (this.state !== "stopped") return;
     this.stopping = false;
     this.setState("connecting");
+    // Fetch initial stats before first price
+    await this.refreshStats().catch((error: unknown) => {
+      this.logger.warn("Initial stats refresh failed", error);
+    });
     await this.refreshFromRest().catch((error: unknown) => {
       this.logger.warn("Initial Coinbase snapshot failed", error);
     });

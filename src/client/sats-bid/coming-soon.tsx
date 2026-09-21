@@ -1,6 +1,6 @@
 import { SponsorInventory } from "./inventory.js";
 import { createPortal } from "react-dom";
-import { BidShell, TopSpot } from "./components.js";
+import { BidShell, EmptySponsorCTA } from "./components.js";
 
 export function SponsorExplanation() {
   return (
@@ -46,7 +46,7 @@ export function SponsorExplanation() {
 function LaunchNotice() {
   return (
     <p className="bid-launch-notice">
-      <strong>PAYMENTS · PRÓXIMAMENTE / COMING SOON</strong>
+      <strong>LIGHTNING PAYMENTS · COMING SOON</strong>
       <span>
         We are preparing Lightning payments. No payments or sponsorship
         reservations are being accepted yet.
@@ -78,14 +78,12 @@ function EmptyLaunchRanking() {
 }
 
 export function ComingSoonHome() {
-  const slot = document.getElementById("bid-top-slot");
   return (
     <section
       className="bid-home"
       id="sats-bid"
       aria-labelledby="sats-bid-heading"
     >
-      {slot && createPortal(<TopSpot leader={null} comingSoon />, slot)}
       <div className="bid-home-heading">
         <div>
           <p className="bid-eyebrow">SATS BID / SPONSOR THE SIGNAL</p>

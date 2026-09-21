@@ -79,7 +79,7 @@ describe("public API", () => {
     const response = await createTestApp().inject({ method: "GET", url: "/api/price?currency=EUR" });
 
     expect(response.statusCode).toBe(200);
-    expect(response.json()).toMatchObject({ currency: "EUR", price: "90000", source: "coinbase", high24h: null, low24h: null, volume24h: null });
+    expect(response.json()).toMatchObject({ currency: "EUR", price: "90000", source: "coinbase", high24h: "90900", low24h: "89100", volume24h: "10000" });
     expect(response.headers["cache-control"]).toBe("no-store");
   });
 

@@ -54,15 +54,16 @@ describe("crawlable price documents", () => {
     const crawler = await app.inject({ url: "/", headers: { "user-agent": "OAI-SearchBot" } });
     expect(browser.body).toBe(crawler.body);
     expect(browser.body).toContain("$91,023.45");
-    expect(browser.body).toContain(`datetime="${receivedAt}"`);
+    expect(browser.body).toContain(`title="${receivedAt}"`);
     expect(browser.body).toContain("Coinbase Exchange");
+    expect(browser.body).toContain("High 24h");
     expect(browser.headers["cache-control"]).toBe("no-store");
   });
-  it("labels an old snapshot as delayed and preserves its observation time", async () => {
+  it("labels an old snapshot as stale and preserves its observation time", async () => {
     const app = await frontend({ priceUsd: "90000", change24h: -1, receivedAt: "2020-01-01T00:00:00Z", marketTimestamp: "2020-01-01T00:00:00Z", sequence: 1, high24h: null, low24h: null, volume24h: null });
     const response = await app.inject("/");
-    expect(response.body).toContain("Data delayed");
-    expect(response.body).toContain('datetime="2020-01-01T00:00:00Z"');
+    expect(response.body).toContain("Stale");
+    expect(response.body).toContain('title="2020-01-01T00:00:00Z"');
   });
   it("does not invent a quote while waiting for data", async () => {
     const response = await (await frontend(null)).inject("/");
@@ -107,7 +108,7 @@ describe("crawlable price documents", () => {
     const degraded = await frontend({ priceUsd: "1", change24h: 0, marketTimestamp: timestamp, receivedAt: timestamp, sequence: 1, high24h: null, low24h: null, volume24h: null }, "degraded");
     expect((await degraded.inject("/api/price")).json().status).toBe("stale");
     expect((await degraded.inject("/bitcoin-price.md")).body).toContain("Status: stale");
-    expect((await degraded.inject("/")).body).toContain("Data delayed");
+    expect((await degraded.inject("/")).body).toContain("Stale");
   });
   it("consolidates HTML and trailing-slash aliases without losing query parameters", async () => {
     const app = await frontend(null);

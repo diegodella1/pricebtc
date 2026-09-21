@@ -8,7 +8,7 @@ import {
   recordEvent,
   sats,
 } from "./api.js";
-import { Countdown, Ranking, TopSpot } from "./components.js";
+import { Countdown, Ranking, TopSpot, EmptySponsorCTA } from "./components.js";
 import { ComingSoonHome } from "./coming-soon.js";
 export default function BidHome() {
   const [round, setRound] = useState<CurrentRound | null>(null);
@@ -53,10 +53,18 @@ export default function BidHome() {
     return <section id="sats-bid" className="public-section">{target && createPortal(notice, target)}{notice}</section>;
   }
   if (!round && !error) return <div className="sponsor-presentation-loading" role="status">Loading sponsor information…</div>;
-  if (round?.coming_soon) return <ComingSoonHome />;
+  if (round?.coming_soon) {
+    const slot = document.getElementById("bid-top-slot");
+    return (
+      <>
+        {slot && createPortal(<EmptySponsorCTA />, slot)}
+        <ComingSoonHome />
+      </>
+    );
+  }
   if (!round?.enabled) {
     const target = document.getElementById("bid-top-slot");
-    return round && target ? createPortal(<p className="public-notice">Sponsorship is currently unavailable.</p>, target) : null;
+    return round && target ? createPortal(<EmptySponsorCTA />, target) : null;
   }
   const slot = document.getElementById("bid-top-slot");
   return (

@@ -38,7 +38,7 @@ describe("createPricePayload", () => {
       now: () => Date.parse("2026-08-24T17:00:05.000Z"),
     });
 
-    expect(payload).toMatchObject({ currency: "EUR", price: "90000", status: "live", source: "coinbase", high24h: null, low24h: null, volume24h: null });
+    expect(payload).toMatchObject({ currency: "EUR", price: "90000", status: "live", source: "coinbase", high24h: "90900", low24h: "89100", volume24h: "10000" });
   });
 
   it("marks old market data stale", () => {
