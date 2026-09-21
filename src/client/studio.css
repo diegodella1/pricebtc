@@ -596,10 +596,27 @@
 
 /* Studio resilience & accessibility hardening */
 .studio-shell {
-  --studio-action: #a63c10;
-  --solar-orange: #e66b35;
-  --solar-base00: #93a1a1;
+  --background: #0d1012;
+  --surface: #14181c;
+  --text: #f2f2f3;
+  --text-muted: #a4a9b1;
+  --line: #343a42;
+  --line-soft: #262b31;
   --accent: #cb4b16;
+  --studio-action: #a63c10;
+  --solar-orange: #cb4b16;
+  --solar-base00: #93a1a1;
+  --solar-base01: #737b85;
+  --solar-base0: #a4a9b1;
+  --solar-base1: #a4a9b1;
+  --solar-base2: #e3e4e6;
+  --solar-base3: #f2f2f3;
+  --solar-base03: #0d1012;
+  --solar-base02: #14181c;
+  --solar-cyan: #2aa198;
+  --solar-yellow: #b58900;
+  --positive: #34d399;
+  --negative: #fb7185;
   scroll-padding-top: 4.5rem;
 }
 

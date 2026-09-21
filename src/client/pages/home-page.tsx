@@ -31,6 +31,8 @@ export function HomePage() {
   const formatted = price ? formatPriceVariants(price.price, currency) : null;
   const status = live ? "Live price" : connectionState === "connecting" ? "Connecting" : price ? "Data delayed" : "Price unavailable";
   const satsPerDollar = price && Number(price.priceUsd) > 0 ? Math.round(100_000_000 / Number(price.priceUsd)).toLocaleString("en-US") : "—";
+  const volume24hDisplay = price?.volume24h ? `${Number(price.volume24h).toFixed(2)} BTC` : "—";
+  const volume24hUsdDisplay = price?.volume24hUsd ? `$${Number(price.volume24hUsd).toLocaleString("en-US", { maximumFractionDigits: 0 })}` : null;
   function setCurrency(value: string) {
     setCurrencyState(value);
     try { localStorage.setItem(CURRENCY_STORAGE_KEY, JSON.stringify({ currency: value })); } catch { /* Optional preference. */ }
@@ -57,14 +59,21 @@ export function HomePage() {
         <p className="observation-description">{siteContent.home.observationDescription} <a href="/api">Bitcoin Price API</a> · <a href="/bitcoin-price-updates">Price source and methodology</a></p>
         <div className="market-history">
           <div className="history-toolbar"><h2>Price history</h2><div className="pill-controls" role="group" aria-label="Chart range">{HISTORY_RANGES.map(value => <button key={value} type="button" aria-pressed={range === value} onClick={() => setRange(value)}>{value.toUpperCase()}</button>)}</div></div>
-          <div className="hero__chart"><PriceChart points={displayedPoints} positive={(telemetry?.changePercent ?? 0) >= 0} loading={historyLoading} error={historyError} /></div>
+          {price && currency === "USD" && (price.high24h || price.low24h || price.volume24h) && (
+            <div className="market-stats-24h">
+              {price.high24h && <span>High <strong>{formatPrice(price.high24h, currency)}</strong></span>}
+              {price.low24h && <span>Low <strong>{formatPrice(price.low24h, currency)}</strong></span>}
+              {price.volume24h && <span>Vol (24h) <strong title={volume24hUsdDisplay ?? undefined}>{volume24hDisplay}</strong></span>}
+            </div>
+          )}
+          <div className="hero__chart"><PriceChart points={displayedPoints} positive={(telemetry?.changePercent ?? 0) >= 0} showVolume={currency === "USD"} loading={historyLoading} error={historyError} /></div>
           {historyError && points.length > 0 && <p className="public-notice" role="status">History updates delayed.</p>}
           <div className="history-summary"><span>{range.toUpperCase()} WINDOW</span><span>High <strong>{telemetry ? formatPrice(String(telemetry.high), currency) : "—"}</strong></span><span>Low <strong>{telemetry ? formatPrice(String(telemetry.low), currency) : "—"}</strong></span><span>Change <strong>{telemetry?.changePercent == null ? "—" : formatPercent(telemetry.changePercent)}</strong></span></div>
           <details className="feed-details"><summary>About this price</summary><p>{siteContent.home.priceExplanation}</p><dl><div><dt>Connection</dt><dd>{connectionState}</dd></div><div><dt>Market update</dt><dd>{formatUtcTime(price?.marketTimestamp ?? null)}</dd></div><div><dt>Received</dt><dd>{formatUtcTime(price?.receivedAt ?? null)}</dd></div><div><dt>FX updated</dt><dd>{currency === "USD" ? "Direct USD price" : formatUtcDate(price?.fxUpdatedAt ?? null)}</dd></div></dl></details>
         </div>
       </section>
-      {!IS_STATIC_BUILD && <Suspense fallback={<div className="sponsor-presentation-loading" role="status">Loading sponsor information…</div>}><BidHome /></Suspense>}
       <WidgetDemo price={price} history={displayedPoints} connectionState={connectionState} currency={currency} range={range} loading={historyLoading} error={historyError} />
+      {!IS_STATIC_BUILD && <Suspense fallback={<div className="sponsor-presentation-loading" role="status">Loading sponsor information…</div>}><BidHome /></Suspense>}
       <section className="public-section faq-section" id="data" aria-labelledby="faq-title"><div className="section-intro"><div><p className="section-kicker">Good to know</p><h2 id="faq-title">Simple tools. Clear sources.</h2></div><p>Live Bitcoin prices for the people watching, building and broadcasting.</p></div>
         <details><summary>Is PRICEB.TC free?</summary><p>Yes. Create and publish widgets without an account. Sponsorship is optional and separate.</p></details>
         <details><summary>Does it work with OBS and Streamlabs?</summary><p>Use the overlay URL as a Browser Source with a transparent background. Customize it in the Studio.</p></details>

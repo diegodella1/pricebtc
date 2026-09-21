@@ -114,6 +114,7 @@ export function WidgetRenderer({
             points={history}
             positive={positive}
             compact={compactChart}
+            showVolume={config.showVolume && config.currency === "USD"}
             loading={historyLoading}
             error={historyError}
           />

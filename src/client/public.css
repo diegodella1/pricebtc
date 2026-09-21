@@ -66,11 +66,15 @@ body:has(.public-site)::before, body:has(.public-site)::after, body:has(.studio-
 .public-site .bid-top-total { font: 500 24px var(--font-mono); }
 .market-history { margin-top: 32px; border-top: 1px solid var(--line-soft); padding-top: 24px; }
 .public-site .history-toolbar h2 { margin: 0; font-size: 18px; }
+.market-stats-24h { display: flex; gap: 24px; flex-wrap: wrap; margin: 16px 0; color: var(--text-muted); font: 12px var(--font-mono); }
+.market-stats-24h strong { color: var(--accent); font-weight: 400; font-size: 16px; }
 .pill-controls { display: inline-flex; padding: 3px; gap: 3px; border: 1px solid var(--line-soft); border-radius: 28px; background: var(--surface); }
 .pill-controls button { min-height: 44px; padding: 8px 18px; border: 0; border-radius: 24px; background: transparent; color: var(--text-muted); cursor: pointer; font-size: 14px; }
 .pill-controls button[aria-pressed="true"] { background: var(--text); color: #0d1012; }
 .public-site .hero__chart { height: 180px; min-height: 0; margin: 20px 0; padding: 0; border: 0; background: transparent; }
 .public-site .hero__chart .price-chart { height: 100%; }
+.public-site .price-chart__volume { fill: var(--solar-cyan, #2aa198); opacity: 0.4; }
+.public-site .price-chart--with-volume .price-chart__volume { opacity: 0.5; }
 .history-summary { display: flex; gap: 16px 32px; flex-wrap: wrap; color: var(--text-muted); font: 12px var(--font-mono); }
 .history-summary strong { color: var(--text); font-weight: 400; }
 .feed-details { margin-top: 16px; color: var(--text-muted); font-size: 14px; }

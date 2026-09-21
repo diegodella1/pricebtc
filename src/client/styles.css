@@ -628,6 +628,11 @@ a {
   stroke: none;
 }
 
+.price-chart__volume {
+  fill: var(--solar-cyan);
+  opacity: 0.4;
+}
+
 .chart-placeholder {
   height: 100%;
   min-height: 5rem;

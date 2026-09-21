@@ -27,6 +27,9 @@ const REST_TICKER_SCHEMA = z
 const REST_STATS_SCHEMA = z
   .object({
     open: z.string().regex(/^\d+(?:\.\d+)?$/),
+    high: z.string().regex(/^\d+(?:\.\d+)?$/),
+    low: z.string().regex(/^\d+(?:\.\d+)?$/),
+    volume: z.string().regex(/^\d+(?:\.\d+)?$/),
   })
   .passthrough();
 
@@ -67,6 +70,9 @@ export function parseTickerMessage(rawMessage: string, receivedAt: string): Mark
   return {
     priceUsd: parsed.data.price,
     change24h: price.minus(open).div(open).mul(100).toNumber(),
+    high24h: null,
+    low24h: null,
+    volume24h: null,
     marketTimestamp: parsed.data.time,
     receivedAt,
     sequence: parsed.data.sequence ?? null,
@@ -270,6 +276,9 @@ export class MarketService {
       this.snapshot = {
         priceUsd: ticker.price,
         change24h: open.isZero() ? 0 : price.minus(open).div(open).mul(100).toNumber(),
+        high24h: stats.high,
+        low24h: stats.low,
+        volume24h: stats.volume,
         marketTimestamp: ticker.time,
         receivedAt,
         sequence: null,
