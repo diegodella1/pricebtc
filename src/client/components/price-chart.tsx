@@ -6,6 +6,8 @@ interface PriceChartProps {
   points: HistoryPoint[];
   positive?: boolean;
   compact?: boolean;
+  loading?: boolean;
+  error?: string | null;
 }
 
 interface ChartGeometry {
@@ -41,13 +43,24 @@ function getGeometry(points: HistoryPoint[]): ChartGeometry | null {
   return { line, area };
 }
 
-export function PriceChart({ points, positive = true, compact = false }: PriceChartProps) {
+export function PriceChart({ points, positive = true, compact = false, loading = false, error = null }: PriceChartProps) {
   const rawId = useId();
   const gradientId = `chart-${rawId.replaceAll(":", "")}`;
   const geometry = useMemo(() => getGeometry(points), [points]);
 
   if (!geometry) {
-    return <div className={`chart-placeholder${compact ? " chart-placeholder--compact" : ""}`} aria-hidden="true" />;
+    if (loading) {
+      return (
+        <div className={`chart-placeholder${compact ? " chart-placeholder--compact" : ""}`} role="status">
+          <span className="chart-placeholder__label">Loading Bitcoin price history…</span>
+        </div>
+      );
+    }
+    return (
+      <div className={`chart-empty${compact ? " chart-empty--compact" : ""}`} role="status" title={error ?? undefined}>
+        HISTORY UNAVAILABLE
+      </div>
+    );
   }
 
   return (

@@ -1,0 +1,13 @@
+[Unit]
+Description=PRICEB.TC database and logo backup
+After=docker.service
+
+[Service]
+Type=oneshot
+User=diego
+Group=diego
+WorkingDirectory=/home/diego/Documents/pricebtc
+EnvironmentFile=/etc/pricebtc/pricebtc.env
+ExecStart=/bin/bash scripts/backup-sats.sh
+UMask=0077
+LogNamespace=pricebtc

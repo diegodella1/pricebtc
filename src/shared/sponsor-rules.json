@@ -1,0 +1,45 @@
+[
+  {
+    "heading": "01 / One daily paid spot",
+    "paragraphs": [
+      "Each confirmed, eligible Lightning payment adds to your participation total for one UTC day. The highest visible total takes the Top Spot. Another participant can take it at any time. This is paid placement, not an endorsement by priceb.tc."
+    ]
+  },
+  {
+    "heading": "02 / Amounts & ties",
+    "paragraphs": [
+      "The default minimum is 1,000 sats per payment, including top-ups; the maximum is 1,000,000 sats per invoice. Current limits appear before payment. Every valid payment counts, even when it is not enough to lead. Wallet routing fees do not count. A tie goes to the participant whose total was credited first by our server, then participant ID. Opening a wallet does not reserve a position."
+    ]
+  },
+  {
+    "heading": "03 / Midnight means midnight UTC",
+    "paragraphs": [
+      "Rounds run from 00:00 UTC until the next 00:00 UTC. New invoices stop during the final two minutes. Invoices expire after at most ten minutes and before the round ends. A verified payment made on time counts toward its original round, even if confirmation arrives later. Payments made outside their deadline are recorded for review without automatic competitive credit or transfer to the next day. Results can remain provisional or be corrected with a visible revision."
+    ]
+  },
+  {
+    "heading": "04 / What your payment buys",
+    "paragraphs": [
+      "Your payment buys participation and competitive exposure during that round. It guarantees neither position nor display time. Payments are final under our commercial policy; being outbid, the end of a round or moderation does not trigger an automatic refund. Operational errors and anomalous payments are handled manually. This policy does not remove applicable obligations. There are no prizes, investment returns, user balances or withdrawals."
+    ]
+  },
+  {
+    "heading": "05 / Content & moderation",
+    "paragraphs": [
+      "Use a truthful name, plain-text description and public HTTPS link. No explicit sexual content, malware, phishing, scams, impersonation or illegal content. Suspicious entries may require review before payment. We can reject or hide content, including in historical results, and block domains. Payments remain recorded. After your first invoice, content changes require operator review."
+    ]
+  },
+  {
+    "heading": "06 / Your browser is your access",
+    "paragraphs": [
+      "A secure browser cookie identifies one participation per round for up to 30 days, renewed with activity. Clearing cookies or changing devices creates another identity. No account recovery or merging is provided. Your previous profile may become a draft next day; sats never carry over."
+    ]
+  },
+  {
+    "heading": "07 / Privacy & support",
+    "paragraphs": [
+      "Public profiles and totals are visible. Session tokens, invoices and payment evidence are private. Technical logs and processed webhook records are retained for 30 days; client analytics for 90 days. Payments, minimal accounting evidence and audit records have no automatic deletion in this MVP. Expired session credentials are removed while pseudonymous accounting links remain.",
+      "Contact contact@foreign.rodeo for operational problems or content reports. Never send wallet seeds or private keys."
+    ]
+  }
+]

@@ -3,7 +3,9 @@ import { chromium } from "@playwright/test";
 const baseUrl = process.env.VISUAL_BASE_URL ?? "http://127.0.0.1:3466";
 const captures = [
   { name: "home", path: "/", width: 1440, height: 1000, fullPage: true },
+  { name: "home-mobile", path: "/", width: 390, height: 844, fullPage: true },
   { name: "studio", path: "/studio?mode=embed", width: 1440, height: 1100, fullPage: true },
+  { name: "studio-mobile", path: "/studio?mode=embed", width: 390, height: 844, fullPage: true },
   {
     name: "embed",
     path: "/embed?v=1&currency=USD&layout=card&theme=dark&chart=1&range=24h",

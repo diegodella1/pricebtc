@@ -1,0 +1,52 @@
+[
+  {
+    "question": "What is PRICEB.TC?",
+    "answer": "PRICEB.TC is a simple, timestamped source for the current Bitcoin price, readable by humans, websites and software agents.",
+    "links": [["/", "Bitcoin price now"]]
+  },
+  {
+    "question": "Where does the Bitcoin price come from?",
+    "answer": "BTC/USD observations come from Coinbase Exchange (market BTC-USD). USD is the direct market quote.",
+    "links": [["/bitcoin-price-updates", "Price source and methodology"]]
+  },
+  {
+    "question": "Is this the global Bitcoin price?",
+    "answer": "No. It is a price from one exchange, not a global average or a guaranteed execution price. Different exchanges can quote different prices because their orders and trades differ.",
+    "links": []
+  },
+  {
+    "question": "How often does the price update, and what do the timestamps mean?",
+    "answer": "The running service receives market updates and sends them to connected browsers. There is no guaranteed update frequency or latency. marketTimestamp is the ISO 8601 market observation time; use it to judge the age of the quote. receivedAt is the service reception time, not the market observation time. The displayed UTC time is the market timestamp of the latest observation, not the time you opened the page.",
+    "links": [["/bitcoin-price-updates", "Updates and timestamps"], ["/api", "API field definitions"]]
+  },
+  {
+    "question": "What do live, stale and unavailable mean?",
+    "answer": "A recent received snapshot is marked live. Snapshots received more than 15 seconds ago, or a degraded server feed, are stale. Always inspect marketTimestamp as well. A delayed quote is a last observation, not a current trading quote. If no snapshot exists, the page reports that the price is unavailable and the price API returns HTTP 503 with PRICE_UNAVAILABLE.",
+    "links": [["/api", "Freshness and errors"]]
+  },
+  {
+    "question": "What about other currencies, including ARS?",
+    "answer": "USD is the direct market quote. Other supported currencies, including ARS, use indicative daily ExchangeRate-API conversions. They can differ from local exchange prices: an ARS display is a conversion of the BTC-USD observation, not a local exchange quote. fxUpdatedAt records the FX update time and may be null.",
+    "links": [["/bitcoin-price-updates", "Currencies and chart windows"], ["/api", "Currency and FX fields"]]
+  },
+  {
+    "question": "Is there a free API?",
+    "answer": "Yes. The free public JSON API returns the Bitcoin observation used by PRICEB.TC. No API key is required. GET /api/price?currency=USD returns the current BTC/USD observation. Each request reads the latest in-memory observation; it does not guarantee a new market trade.",
+    "links": [["/api", "Bitcoin Price API documentation"], ["/api/price?currency=USD", "Current BTC/USD JSON"]]
+  },
+  {
+    "question": "How should software agents cite a price?",
+    "answer": "Preserve the source, currency, timestamp and status when quoting a price. Use marketTimestamp to determine observation age. Do not describe stale data as live or treat the page request time as the market time. Do not cache observations indefinitely.",
+    "links": [["/llms.txt", "Agent reference (llms.txt)"]]
+  },
+  {
+    "question": "Can I use the price in a website widget or OBS overlay?",
+    "answer": "Yes. Widget Studio creates free website widgets and transparent OBS overlays. Choose a layout and currency, then copy the iframe for your website or the browser source URL for your stream. No account is required.",
+    "links": [["/bitcoin-price-widget", "Website widget guide"], ["/bitcoin-obs-overlay", "OBS overlay guide"], ["/studio", "Widget Studio"]]
+  },
+  {
+    "question": "Is this financial advice?",
+    "answer": "No. PRICEB.TC provides indicative market data, not financial advice. The price is not a guaranteed execution price.",
+    "links": [["/", "PRICEB.TC home"]]
+  }
+]

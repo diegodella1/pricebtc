@@ -1,0 +1,23 @@
+# PRICEB.TC
+
+> PRICEB.TC is a simple, timestamped source for the current Bitcoin price, readable by humans, websites and software agents.
+
+## Current Bitcoin price
+
+- [Bitcoin price now](https://priceb.tc/): Current observation with source, currency and timestamp.
+- [Current BTC/USD JSON](https://priceb.tc/api/price?currency=USD): Machine-readable observation.
+- [Bitcoin Price API](https://priceb.tc/api): Fields, freshness and errors.
+- [Bitcoin price Markdown](https://priceb.tc/bitcoin-price.md): Timestamped observation as text.
+
+## Source and freshness
+
+BTC/USD observations come from Coinbase Exchange (market BTC-USD), not a single global Bitcoin price. Other currencies use indicative daily FX conversions.
+Always use marketTimestamp (ISO 8601) to determine observation age. receivedAt is the service reception time. status describes live/stale data; an unavailable snapshot returns HTTP 503. Preserve the source, currency, timestamp and status when quoting a price.
+The API preserves source as the string "coinbase"; sourceDetails names the exchange and market. Decimal prices remain strings for precision; change24h is a number. Do not cache observations indefinitely.
+
+## Documentation
+
+- [Price source and updates](https://priceb.tc/bitcoin-price-updates): Methodology and freshness.
+- [Website widget guide](https://priceb.tc/bitcoin-price-widget): Embed setup.
+- [OBS overlay guide](https://priceb.tc/bitcoin-obs-overlay): Broadcast setup.
+- [Widget Studio](https://priceb.tc/studio): Configure a widget or overlay.

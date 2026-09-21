@@ -4,6 +4,7 @@ import { FxService } from "./services/fx-service.js";
 import { HistoryService } from "./services/history-service.js";
 import { MarketService } from "./services/market-service.js";
 import { SseHub } from "./services/sse-hub.js";
+import { createBidRuntime } from "./sats-bid/runtime.js";
 
 const environment = parseEnvironment();
 const fx = new FxService({ dataDir: environment.PRICEBTC_DATA_DIR, apiUrl: environment.FX_API_URL });
@@ -18,7 +19,9 @@ const streams = new SseHub({
   maxClients: environment.MAX_SSE_CLIENTS,
   maxClientsPerIp: environment.MAX_SSE_CLIENTS_PER_IP,
 });
-const app = buildApp({ market, fx, history, streams, logger: { level: environment.LOG_LEVEL } });
+let bidding: ReturnType<typeof createBidRuntime> = null;
+try { bidding = createBidRuntime(); } catch { process.stderr.write("Sats Bid disabled: invalid configuration\n"); }
+const app = buildApp({ market, fx, history, streams, bidding, logger: { level: environment.LOG_LEVEL } });
 
 let shuttingDown = false;
 
@@ -30,6 +33,7 @@ async function shutdown(signal: string): Promise<void> {
   market.stop();
   fx.stop();
   await app.close();
+  await bidding?.pool.end();
 }
 
 async function main(): Promise<void> {

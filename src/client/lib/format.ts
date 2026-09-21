@@ -1,8 +1,18 @@
-const formatterCache = new Map<string, Intl.NumberFormat>();
+export type PriceLength = "short" | "medium" | "long" | "extra-long";
 
-function getCurrencyFormatter(currency: string): Intl.NumberFormat {
+export interface FormattedPrice {
+  exact: string;
+  compact: string;
+  length: PriceLength;
+}
+
+const exactFormatterCache = new Map<string, Intl.NumberFormat>();
+const compactFormatterCache = new Map<string, Intl.NumberFormat>();
+
+function getCurrencyFormatter(currency: string, compact: boolean): Intl.NumberFormat {
   const normalizedCurrency = currency.toUpperCase();
-  const cached = formatterCache.get(normalizedCurrency);
+  const cache = compact ? compactFormatterCache : exactFormatterCache;
+  const cached = cache.get(normalizedCurrency);
   if (cached) return cached;
 
   const defaultDigits = new Intl.NumberFormat("en-US", {
@@ -13,22 +23,55 @@ function getCurrencyFormatter(currency: string): Intl.NumberFormat {
   const formatter = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: normalizedCurrency,
+    currencyDisplay: "narrowSymbol",
     minimumFractionDigits: 0,
-    maximumFractionDigits: Math.min(2, defaultDigits),
+    maximumFractionDigits: defaultDigits,
+    ...(compact
+      ? {
+          notation: "compact" as const,
+          compactDisplay: "short" as const,
+          maximumSignificantDigits: 3,
+        }
+      : {}),
   });
-  formatterCache.set(normalizedCurrency, formatter);
+  cache.set(normalizedCurrency, formatter);
   return formatter;
 }
 
-export function formatPrice(value: string, currency: string): string {
-  const numericValue = Number(value);
-  if (!Number.isFinite(numericValue)) return "—";
+function classifyLength(value: string): PriceLength {
+  const length = [...value].length;
+  if (length <= 10) return "short";
+  if (length <= 14) return "medium";
+  if (length <= 18) return "long";
+  return "extra-long";
+}
 
+function fallbackFormat(value: number, currency: string, compact: boolean): string {
+  const formatted = new Intl.NumberFormat("en-US", compact
+    ? { notation: "compact", compactDisplay: "short", maximumSignificantDigits: 3 }
+    : { maximumFractionDigits: 8 }).format(value);
+  return `${currency.toUpperCase()}\u00a0${formatted}`;
+}
+
+export function formatPriceVariants(value: string, currency: string): FormattedPrice {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) return { exact: "—", compact: "—", length: "short" };
+
+  let exact: string;
+  let compact: string;
   try {
-    return getCurrencyFormatter(currency).format(numericValue);
+    exact = getCurrencyFormatter(currency, false).format(numericValue);
+    compact = getCurrencyFormatter(currency, true).format(numericValue);
   } catch {
-    return `${currency.toUpperCase()} ${numericValue.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
+    exact = fallbackFormat(numericValue, currency, false);
+    compact = fallbackFormat(numericValue, currency, true);
   }
+
+  return { exact, compact, length: classifyLength(exact) };
+}
+
+export function formatPrice(value: string, currency: string): string {
+  return formatPriceVariants(value, currency).exact;
 }
 
 export function formatPercent(value: number): string {

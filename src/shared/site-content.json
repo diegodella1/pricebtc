@@ -1,0 +1,30 @@
+{
+  "origin": "https://priceb.tc",
+  "brand": "PRICEB.TC",
+  "contactEmail": "contact@foreign.rodeo",
+  "home": {
+    "title": "Bitcoin Price Now \u2014 Live BTC Price | PRICEB.TC",
+    "description": "Current Bitcoin price with source and market timestamp. Check BTC/USD live and access the same observation through the free PRICEB.TC JSON API.",
+    "eyebrow": "01 / LIVE BITCOIN SIGNAL",
+    "headlinePrimary": "Bitcoin price now",
+    "headlineAccent": "",
+    "summary": "PRICEB.TC is a simple, timestamped source for the current Bitcoin price, readable by humans, websites and software agents.",
+    "primaryCta": "BUILD A FREE WIDGET",
+    "deploymentEyebrow": "02 / DEPLOYMENT CHANNELS",
+    "deploymentHeadingPrimary": "ONE SIGNAL.",
+    "deploymentHeadingAccent": "EVERY SCREEN.",
+    "deploymentSummary": "Configure once, then publish a responsive iframe or a transparent browser source that keeps itself current.",
+    "trustEyebrow": "03 / SOURCE + METHOD",
+    "trustHeadingPrimary": "LIVE DATA.",
+    "trustHeadingAccent": "CLEAR SOURCES.",
+    "trustSummary": "BTC/USD follows the latest public Coinbase Exchange trade. Other currencies use indicative USD conversion rates refreshed daily and timestamped in the interface.",
+    "finalHeading": "BUILD YOUR BITCOIN DISPLAY.",
+    "finalSummary": "Choose a layout, currency, color, type and motion. Copy the result to your site or stream.",
+    "priceExplanation": "BTC/USD follows Coinbase Exchange trades. Other currencies are indicative conversions, with exchange rates refreshed daily.",
+    "observationDescription": "PRICEB.TC provides a timestamped Bitcoin price sourced from Coinbase Exchange. The current observation is also available through the public JSON API."
+  },
+  "studio": {
+    "title": "Bitcoin Widget & OBS Overlay Studio | PRICEB.TC",
+    "description": "Configure a free Bitcoin price widget or transparent OBS overlay in 160+ fiat currencies. Preview it live and copy the ready-to-use URL."
+  }
+}

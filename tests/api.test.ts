@@ -52,6 +52,26 @@ function createTestApp(): FastifyInstance {
 }
 
 describe("public API", () => {
+  it("redirects the live subdomain permanently, including forwarded hostname and query parameters", async () => {
+    const app = createTestApp();
+    for (const headers of [
+      { host: "live.priceb.tc", "x-forwarded-proto": "https" },
+      { host: "www.priceb.tc", "x-forwarded-host": "live.priceb.tc", "x-forwarded-proto": "https" },
+      { host: "live.priceb.tc", "x-forwarded-proto": "http" },
+    ]) {
+      const response = await app.inject({ method: "GET", url: "/studio?mode=overlay&currency=EUR", headers });
+      expect(response.statusCode).toBe(308);
+      expect(response.headers.location).toBe("https://priceb.tc/studio?mode=overlay&currency=EUR");
+    }
+  });
+  it("shows the sponsorship presentation without exposing payment creation when no database is configured", async () => {
+    const app = createTestApp();
+    const status = await app.inject({ method: "GET", url: "/api/sats-bid/round/current" });
+    expect(status.json()).toEqual({ enabled: false, bids_open: false, coming_soon: true });
+    const invoice = await app.inject({ method: "POST", url: "/api/sats-bid/bids", payload: { amount_sats: "1000" } });
+    expect(invoice.statusCode).toBe(404);
+    expect((await app.inject({ method: "GET", url: "/api/price?currency=USD" })).statusCode).toBe(200);
+  });
   it("returns converted price snapshots", async () => {
     const response = await createTestApp().inject({ method: "GET", url: "/api/price?currency=EUR" });
 
@@ -103,6 +123,7 @@ describe("public API", () => {
     expect(embed.headers["content-security-policy"]).toContain("frame-ancestors *");
     expect(embed.headers["x-frame-options"]).toBeUndefined();
     expect(embed.headers["cross-origin-resource-policy"]).toBe("cross-origin");
+    expect(embed.headers["x-robots-tag"]).toBe("noindex, follow, noarchive");
     expect(homepage.headers["content-security-policy"]).toContain("frame-ancestors 'none'");
     expect(homepage.headers["x-frame-options"]).toBe("DENY");
   });
@@ -116,5 +137,28 @@ describe("public API", () => {
 
     expect(response.statusCode).toBe(308);
     expect(response.headers.location).toBe("https://priceb.tc/studio?mode=overlay");
+  });
+
+  it("redirects public HTTP to HTTPS while preserving the path and query", async () => {
+    const response = await createTestApp().inject({
+      method: "GET",
+      url: "/studio?mode=overlay&currency=EUR",
+      headers: { host: "priceb.tc", "x-forwarded-proto": "http" },
+    });
+
+    expect(response.statusCode).toBe(308);
+    expect(response.headers.location).toBe("https://priceb.tc/studio?mode=overlay&currency=EUR");
+  });
+
+  it("serves HTTPS forwarded through the tunnel without a redirect loop", async () => {
+    const response = await createTestApp().inject({
+      method: "GET",
+      url: "/healthz",
+      headers: { host: "priceb.tc", "x-forwarded-proto": "https" },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.headers.location).toBeUndefined();
+    expect(response.json().status).toBe("ok");
   });
 });

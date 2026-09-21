@@ -10,6 +10,7 @@ Live Bitcoin price, fiat conversion, website embeds, and OBS/Streamlabs overlays
 - Coinbase line history for 1h, 24h, and 7d.
 - Six URL-configured embed/overlay layouts; no accounts or database.
 - English UI with a permanent `PRICEB.TC` signature.
+- Pre-rendered Home and Studio documents, route-specific metadata, JSON-LD, sitemap, and `llms.txt`.
 
 ## Develop
 
@@ -29,7 +30,20 @@ rtk npm run check
 rtk npm run e2e
 ```
 
-## Public interfaces
+## Sats Bid
+
+Daily paid participation is implemented as an optional module with PostgreSQL,
+a separate verification worker, mock payments and a BTCPay adapter. It adds a Top Spot
+beside the BTC price, public rankings/history, participation and an operator console.
+UI and invoice creation are **off by default**. Real Lightning payments have not
+been verified on an operator's store; do not enable production bidding yet.
+
+See [Sats Bid setup, architecture and operations](docs/SATS-BID.md) for reproducible
+local commands, API paths, configuration, verification evidence and launch requirements.
+Use `npm run build:preview` on a running installation: ordinary `npm run build`
+replaces the active `dist` assets.
+
+## Market interfaces
 
 - `GET /api/stream?currency=USD` — SSE events named `price` and `status`.
 - `GET /api/price?currency=USD` — current converted snapshot.
@@ -71,6 +85,20 @@ rtk bash scripts/smoke-production.sh
 
 See [operations runbook](docs/OPERATIONS.md) for verification and rollback.
 
+## Static hosting / FreeHosting
+
+Build the browser-only edition with:
+
+```bash
+rtk npm run build:static
+```
+
+Upload the contents of `pricebtc-freehosting/` to the hosting document root. It contains physical
+`studio/`, `embed/`, and `overlay/` routes, a static 404, SEO/AEO discovery files, and needs no Node.js process. Market data comes directly
+from Coinbase in the browser; fiat rates come from the ExchangeRate-API open endpoint.
+
 ## Data notice
 
 BTC/USD is the latest Coinbase Exchange trade. Other currencies use indicative daily FX conversion and may differ from locally available rates. Data is informational, not financial advice. FX attribution: [ExchangeRate-API](https://www.exchangerate-api.com).
+
+Inquiries: [contact@foreign.rodeo](mailto:contact@foreign.rodeo).

@@ -4,6 +4,7 @@ After=network-online.target
 Wants=network-online.target
 
 [Service]
+LogNamespace=pricebtc
 Type=simple
 User=diego
 Group=diego

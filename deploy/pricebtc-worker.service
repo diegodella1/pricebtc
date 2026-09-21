@@ -1,0 +1,28 @@
+[Unit]
+Description=PRICEB.TC Sats Bid verification worker
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+LogNamespace=pricebtc
+Type=simple
+User=diego
+Group=diego
+WorkingDirectory=/home/diego/Documents/pricebtc
+Environment=NODE_ENV=production
+EnvironmentFile=/etc/pricebtc/pricebtc.env
+ExecStart=/usr/bin/node /home/diego/Documents/pricebtc/dist/server/sats-bid/worker-entry.js
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/var/lib/pricebtc
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+UMask=0077
+MemoryMax=256M
+
+[Install]
+WantedBy=multi-user.target

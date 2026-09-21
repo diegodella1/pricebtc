@@ -1,209 +1,77 @@
-import { useMemo, useState } from "react";
-
-import { Brand } from "../components/brand.js";
+import { lazy, Suspense, useMemo, useState } from "react";
+import { SiteHeader } from "../components/site-header.js";
 import { CurrencySelect } from "../components/currency-select.js";
 import { PriceChart } from "../components/price-chart.js";
+import { WidgetDemo } from "../components/widget-demo.js";
 import { useCurrencies, useLivePrice, usePriceHistory } from "../hooks/use-market.js";
-import { formatPercent, formatPrice } from "../lib/format.js";
+import { IS_STATIC_BUILD } from "../lib/api.js";
+import { formatPercent, formatPrice, formatPriceVariants } from "../lib/format.js";
+import { formatUtcDate, formatUtcTime, getMarketTelemetry } from "../lib/market-telemetry.js";
 import { HISTORY_RANGES, type HistoryRange } from "../../shared/widget-config.js";
+import siteContent from "../../shared/site-content.json";
 
+const BidHome = lazy(() => import("../sats-bid/home.js"));
 const CURRENCY_STORAGE_KEY = "pricebtc:preferences:v1";
-
-function getInitialCurrency(): string {
+function getInitialCurrency() {
   try {
     const stored = JSON.parse(localStorage.getItem(CURRENCY_STORAGE_KEY) ?? "null") as { currency?: unknown } | null;
     return typeof stored?.currency === "string" && /^[A-Z]{3}$/.test(stored.currency) ? stored.currency : "USD";
-  } catch {
-    return "USD";
-  }
+  } catch { return "USD"; }
 }
 
 export function HomePage() {
   const [currency, setCurrencyState] = useState(getInitialCurrency);
   const [range, setRange] = useState<HistoryRange>("24h");
   const { currencies } = useCurrencies();
-  const { price, connectionState } = useLivePrice(currency);
-  const { points, loading: historyLoading } = usePriceHistory(currency, range);
-  const positive = (price?.change24h ?? 0) >= 0;
+  const { price, connectionState, error } = useLivePrice(currency);
+  const { points, loading: historyLoading, error: historyError } = usePriceHistory(currency, range);
   const live = connectionState === "live" && price?.status === "live";
-  const displayedPoints = useMemo(() => {
-    if (!price || points.length === 0) return points;
-    return [...points, { timestamp: price.marketTimestamp, price: price.price }];
-  }, [points, price]);
-
-  function setCurrency(nextCurrency: string) {
-    setCurrencyState(nextCurrency);
-    localStorage.setItem(CURRENCY_STORAGE_KEY, JSON.stringify({ currency: nextCurrency }));
+  const displayedPoints = useMemo(() => !price || !points.length ? points : [...points, { timestamp: price.marketTimestamp, price: price.price }], [points, price]);
+  const telemetry = useMemo(() => getMarketTelemetry(displayedPoints), [displayedPoints]);
+  const formatted = price ? formatPriceVariants(price.price, currency) : null;
+  const status = live ? "Live price" : connectionState === "connecting" ? "Connecting" : price ? "Data delayed" : "Price unavailable";
+  const satsPerDollar = price && Number(price.priceUsd) > 0 ? Math.round(100_000_000 / Number(price.priceUsd)).toLocaleString("en-US") : "—";
+  function setCurrency(value: string) {
+    setCurrencyState(value);
+    try { localStorage.setItem(CURRENCY_STORAGE_KEY, JSON.stringify({ currency: value })); } catch { /* Optional preference. */ }
   }
-
-  return (
-    <div className="site-shell">
-      <header className="site-header">
-        <Brand />
-        <nav aria-label="Primary navigation">
-          <a href="#formats">FORMATS</a>
-          <a href="#data">DATA</a>
-          <a className="button button--small button--light" href="/studio">
-            BUILD A WIDGET <span aria-hidden="true">↗</span>
-          </a>
-        </nav>
-      </header>
-
-      <main>
-        <section className="hero" aria-labelledby="hero-title">
-          <div className="hero__intro">
-            <p className="eyebrow">
-              <span>01</span> GLOBAL BITCOIN SIGNAL
+  return <div className="public-site">
+    <a className="skip-link" href="#main-content">Skip to content</a>
+    <SiteHeader />
+    <main id="main-content" className="public-main">
+      <section id="market" className="price-section" aria-labelledby="hero-title">
+        <div className="market-toolbar"><h1 id="hero-title">Bitcoin price now</h1><span className={`feed-state${live ? " is-live" : ""}`} role="status"><i aria-hidden="true" />{status}</span></div>
+        <div className="price-sponsor-grid">
+          <div className="price-primary">
+            <div className="quote-label"><span>BTC / {currency}</span><span>Coinbase Exchange</span></div>
+            <p className={`hero__price${formatted ? ` hero__price--${formatted.length}` : ""}`} role="group" aria-label={formatted ? `Bitcoin price ${formatted.exact}` : "Bitcoin price loading"} title={formatted?.exact}>
+              {formatted ? <><span className="hero__price-exact">{formatted.exact}</span><span className="hero__price-compact" aria-hidden="true">{formatted.compact}</span></> : "—"}
             </p>
-            <h1 id="hero-title">
-              BITCOIN,
-              <br />
-              <em>RIGHT NOW.</em>
-            </h1>
-            <p className="hero__lede">
-              One clear number. Live from Coinbase. Ready for every screen, website, and stream.
-            </p>
+            <div className="quote-context"><span className={price && live ? price.change24h >= 0 ? "is-positive" : "is-negative" : ""}>{price ? formatPercent(price.change24h) : "—"} <small>24h</small></span><span>1 USD = <strong>{satsPerDollar}</strong> sats</span></div>
+            <CurrencySelect currencies={currencies} value={currency} onChange={setCurrency} id="home-currency" />
+            <p className="market-source">Market timestamp: <time dateTime={price?.marketTimestamp}>{price?.marketTimestamp ?? "—"}</time>{currency !== "USD" ? " · Indicative fiat conversion" : ""}</p>
+            {error && <p className="public-notice" role="status">{error}</p>}
           </div>
-
-          <div className="hero__market">
-            <div className="hero__market-topline">
-              <span className={`live-label${live ? " is-live" : " is-delayed"}`}>
-                <i aria-hidden="true" /> {live ? "LIVE MARKET" : "RECONNECTING"}
-              </span>
-              <span>BTC / {currency}</span>
-            </div>
-
-            <div className="hero__price-wrap">
-              <div className="hero__pulse" aria-hidden="true">
-                <span />
-              </div>
-              <p className="hero__price">
-                {price ? formatPrice(price.price, currency) : "—"}
-              </p>
-              <div className="hero__price-meta">
-                <span className={positive ? "is-positive" : "is-negative"}>
-                  {price ? formatPercent(price.change24h) : "—"} <small>24H</small>
-                </span>
-                <span>LAST COINBASE TRADE</span>
-              </div>
-            </div>
-
-            <div className="hero__controls">
-              <CurrencySelect currencies={currencies} value={currency} onChange={setCurrency} id="home-currency" />
-              <div className="range-field" aria-label="Chart range">
-                <span>RANGE</span>
-                <div>
-                  {HISTORY_RANGES.map((rangeOption) => (
-                    <button
-                      key={rangeOption}
-                      className={range === rangeOption ? "is-active" : ""}
-                      type="button"
-                      onClick={() => setRange(rangeOption)}
-                    >
-                      {rangeOption.toUpperCase()}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className={`hero__chart${historyLoading ? " is-loading" : ""}`}>
-              <PriceChart points={displayedPoints} positive={positive} />
-              <div className="chart-grid" aria-hidden="true" />
-            </div>
-          </div>
-        </section>
-
-        <section className="signal-strip" aria-label="Product capabilities">
-          <span>LIVE BTC</span>
-          <i aria-hidden="true">◆</i>
-          <span>160+ FIAT CURRENCIES</span>
-          <i aria-hidden="true">◆</i>
-          <span>WEBSITE EMBEDS</span>
-          <i aria-hidden="true">◆</i>
-          <span>OBS OVERLAYS</span>
-        </section>
-
-        <section className="formats" id="formats" aria-labelledby="formats-title">
-          <div className="section-heading">
-            <p className="eyebrow">
-              <span>02</span> TAKE THE SIGNAL
-            </p>
-            <h2 id="formats-title">BUILT TO LEAVE THIS PAGE.</h2>
-          </div>
-
-          <div className="format-grid">
-            <article className="format-card format-card--embed">
-              <div className="format-card__number">01 / WEB</div>
-              <div className="mini-widget mini-widget--card" aria-hidden="true">
-                <div><b>₿</b><span>BITCOIN<br /><small>BTC / USD</small></span></div>
-                <strong>$104,250</strong>
-                <i />
-                <small>PRICEB.TC</small>
-              </div>
-              <h3>EMBED IT.</h3>
-              <p>Responsive iframe widgets that stay current without touching your site again.</p>
-              <a href="/studio?mode=embed">CREATE AN EMBED <span>↗</span></a>
-            </article>
-
-            <article className="format-card format-card--overlay">
-              <div className="format-card__number">02 / STREAM</div>
-              <div className="stream-frame" aria-hidden="true">
-                <div className="stream-frame__person" />
-                <div className="mini-widget mini-widget--lower">
-                  <b>₿</b><span>BTC / USD<strong>$104,250</strong></span><em>+2.34%</em>
-                </div>
-              </div>
-              <h3>STREAM IT.</h3>
-              <p>Transparent browser-source overlays tuned for OBS and Streamlabs.</p>
-              <a href="/studio?mode=overlay">CREATE AN OVERLAY <span>↗</span></a>
-            </article>
-
-            <article className="format-card format-card--control">
-              <div className="format-card__number">03 / CONTROL</div>
-              <div className="control-sample" aria-hidden="true">
-                <span>ACCENT</span><i /><i /><i /><i />
-                <span>SCALE</span><b><em /></b>
-              </div>
-              <h3>MAKE IT YOURS.</h3>
-              <p>Six layouts, curated type, precise color, scale, motion, and transparent backgrounds.</p>
-              <a href="/studio">OPEN THE STUDIO <span>↗</span></a>
-            </article>
-          </div>
-        </section>
-
-        <section className="data-note" id="data">
-          <div>
-            <p className="eyebrow">
-              <span>03</span> SOURCE / METHOD
-            </p>
-            <h2>A NUMBER WITH A PROVENANCE.</h2>
-          </div>
-          <div className="data-note__copy">
-            <p>
-              BTC/USD is the latest public Coinbase Exchange trade. Other currencies use indicative USD
-              conversion rates, refreshed daily and clearly timestamped.
-            </p>
-            <dl>
-              <div><dt>MARKET</dt><dd>COINBASE EXCHANGE</dd></div>
-              <div><dt>DELIVERY</dt><dd>SERVER-SENT EVENTS</dd></div>
-              <div><dt>FX</dt><dd>EXCHANGERATE-API</dd></div>
-            </dl>
-          </div>
-        </section>
-
-        <section className="final-cta">
-          <span className="final-cta__coin" aria-hidden="true">₿</span>
-          <p>YOUR SCREEN.<br />THE LIVE SIGNAL.</p>
-          <a className="button button--dark" href="/studio">BUILD IT FREE <span>↗</span></a>
-        </section>
-      </main>
-
-      <footer className="site-footer">
-        <Brand compact inverse />
-        <p>INDICATIVE MARKET DATA · NOT FINANCIAL ADVICE</p>
-        <p>FX BY <a href="https://www.exchangerate-api.com" target="_blank" rel="noreferrer">EXCHANGERATE-API</a></p>
-      </footer>
-    </div>
-  );
+          {!IS_STATIC_BUILD && <aside id="bid-top-slot" aria-label="Sponsor space"><div className="sponsor-loading" role="status">Sponsor space<br /><span>Checking availability…</span></div></aside>}
+        </div>
+        <p className="observation-description">{siteContent.home.observationDescription} <a href="/api">Bitcoin Price API</a> · <a href="/bitcoin-price-updates">Price source and methodology</a></p>
+        <div className="market-history">
+          <div className="history-toolbar"><h2>Price history</h2><div className="pill-controls" role="group" aria-label="Chart range">{HISTORY_RANGES.map(value => <button key={value} type="button" aria-pressed={range === value} onClick={() => setRange(value)}>{value.toUpperCase()}</button>)}</div></div>
+          <div className="hero__chart"><PriceChart points={displayedPoints} positive={(telemetry?.changePercent ?? 0) >= 0} loading={historyLoading} error={historyError} /></div>
+          {historyError && points.length > 0 && <p className="public-notice" role="status">History updates delayed.</p>}
+          <div className="history-summary"><span>{range.toUpperCase()} WINDOW</span><span>High <strong>{telemetry ? formatPrice(String(telemetry.high), currency) : "—"}</strong></span><span>Low <strong>{telemetry ? formatPrice(String(telemetry.low), currency) : "—"}</strong></span><span>Change <strong>{telemetry?.changePercent == null ? "—" : formatPercent(telemetry.changePercent)}</strong></span></div>
+          <details className="feed-details"><summary>About this price</summary><p>{siteContent.home.priceExplanation}</p><dl><div><dt>Connection</dt><dd>{connectionState}</dd></div><div><dt>Market update</dt><dd>{formatUtcTime(price?.marketTimestamp ?? null)}</dd></div><div><dt>Received</dt><dd>{formatUtcTime(price?.receivedAt ?? null)}</dd></div><div><dt>FX updated</dt><dd>{currency === "USD" ? "Direct USD price" : formatUtcDate(price?.fxUpdatedAt ?? null)}</dd></div></dl></details>
+        </div>
+      </section>
+      {!IS_STATIC_BUILD && <Suspense fallback={<div className="sponsor-presentation-loading" role="status">Loading sponsor information…</div>}><BidHome /></Suspense>}
+      <WidgetDemo price={price} history={displayedPoints} connectionState={connectionState} currency={currency} range={range} loading={historyLoading} error={historyError} />
+      <section className="public-section faq-section" id="data" aria-labelledby="faq-title"><div className="section-intro"><div><p className="section-kicker">Good to know</p><h2 id="faq-title">Simple tools. Clear sources.</h2></div><p>Live Bitcoin prices for the people watching, building and broadcasting.</p></div>
+        <details><summary>Is PRICEB.TC free?</summary><p>Yes. Create and publish widgets without an account. Sponsorship is optional and separate.</p></details>
+        <details><summary>Does it work with OBS and Streamlabs?</summary><p>Use the overlay URL as a Browser Source with a transparent background. Customize it in the Studio.</p></details>
+        <details><summary>Where does the price come from?</summary><p>Coinbase Exchange supplies BTC/USD trades and historical data. ExchangeRate-API supplies daily fiat conversions. Connection status and timestamps show when data is delayed.</p></details>
+        <details><summary>How do sponsors work?</summary><p>One paid space beside the price. Once Lightning payments open, confirmed payments add to a participant’s daily total. The highest total leads until someone outbids it. Rounds reset at 00:00 UTC. <a href="/rules">Read the rules ↗</a></p></details>
+      </section>
+    </main>
+    <footer className="public-footer"><div><a href="/" className="footer-wordmark">PRICEB.TC</a><p>Bitcoin, in view.</p></div><nav aria-label="Footer navigation"><a href="/about">About</a><a href="/faq">FAQ</a><a href="/api">Bitcoin Price API</a><a href="/bitcoin-price-updates">Price updates</a><a href="/bitcoin-price-widget">Widget guide</a><a href="/bitcoin-obs-overlay">OBS guide</a><a href="/studio">Studio</a><a href="/leaderboard">Leaderboard</a><a href="/history">History</a><a href="/rules">Rules</a><a href={`mailto:${siteContent.contactEmail}`}>{siteContent.contactEmail}</a></nav><p>Indicative market data · Not financial advice · FX by <a href="https://www.exchangerate-api.com" target="_blank" rel="noreferrer">ExchangeRate-API</a></p></footer>
+  </div>;
 }

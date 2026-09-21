@@ -1,3 +1,6 @@
+import { readFile } from "node:fs/promises";
+import seoPages from "../shared/seo-pages.json";
+import { renderPriceSnapshot, renderPriceMarkdown, escapeHtml } from "./seo.js";
 import { join } from "node:path";
 
 import helmet from "@fastify/helmet";
@@ -10,11 +13,13 @@ import Fastify, {
 } from "fastify";
 import { z } from "zod";
 
-import type { CurrencyInfo, FeedState, HistoryPayload, MarketSnapshot } from "../shared/contracts.js";
+import type { CurrencyInfo, FeedState, HistoryPayload, MarketSnapshot, PriceObservation } from "../shared/contracts.js";
 import { HISTORY_RANGES, type HistoryRange } from "../shared/widget-config.js";
 import type { FxService } from "./services/fx-service.js";
 import { createPricePayload } from "./services/pricing.js";
 import { StreamCapacityError, type StreamRegistry } from "./services/sse-hub.js";
+import type { BidService } from "./sats-bid/service.js";
+import { registerBidRoutes } from "./sats-bid/routes.js";
 
 const CURRENCY_SCHEMA = z.string().trim().toUpperCase().regex(/^[A-Z]{3}$/).default("USD");
 const RANGE_SCHEMA = z.enum(HISTORY_RANGES).default("24h");
@@ -39,6 +44,7 @@ interface HistoryReader {
 }
 
 interface BuildAppOptions {
+  bidding?: BidService | null;
   market: MarketReader;
   fx: FxReader;
   history: HistoryReader;
@@ -51,6 +57,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
   const app = Fastify({
     logger: options.logger ?? true,
     trustProxy: true,
+    routerOptions: { ignoreTrailingSlash: true },
     bodyLimit: 16 * 1_024,
     requestTimeout: 15_000,
   });
@@ -60,20 +67,38 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     frameguard: false,
     crossOriginEmbedderPolicy: false,
   });
+  app.addHook("onRoute", (route) => {
+    if (route.url.startsWith("/api/sats-bid/") || route.url === "/api/webhooks/btcpay") {
+      route.config = { ...route.config, rateLimit: false };
+    }
+  });
   void app.register(rateLimit, {
     max: 120,
     timeWindow: "1 minute",
     hook: "onRequest",
   });
 
+  if (options.bidding) {
+    void app.register(async instance => registerBidRoutes(instance, options.bidding!));
+  } else {
+    app.get("/api/sats-bid/round/current", async () => ({ enabled: false, bids_open: false, coming_soon: true }));
+  }
+
   app.addHook("onRequest", async (request, reply) => {
-    if (request.hostname.toLowerCase() === "www.priceb.tc") {
+    const hostname = request.hostname.toLowerCase();
+    if (hostname === "www.priceb.tc" || hostname === "live.priceb.tc" || (hostname === "priceb.tc" && request.protocol === "http")) {
       return reply.redirect(`https://priceb.tc${request.url}`, 308);
+    }
+    const url = new URL(request.url, "http://localhost");
+    const normalized = url.pathname.replace(/\/index\.html$/, "").replace(/\/+$/, "") || "/";
+    if ((seoPages.indexable.includes(normalized) || ["/embed", "/overlay"].includes(normalized)) && normalized !== url.pathname) {
+      return reply.redirect(`${normalized}${url.search}`, 308);
     }
   });
 
   app.addHook("onSend", async (request, reply, payload) => {
-    const path = request.url.split("?", 1)[0] ?? "/";
+    const rawPath = request.url.split("?", 1)[0] ?? "/";
+    const path = rawPath.replace(/\/+$/, "") || "/";
     const isRenderer = path === "/embed" || path === "/overlay";
     const framePolicy = isRenderer ? "*" : "'none'";
     reply.header(
@@ -84,9 +109,12 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     if (isRenderer) {
       reply.header("Cross-Origin-Resource-Policy", "cross-origin");
       reply.header("Cross-Origin-Opener-Policy", "unsafe-none");
+      reply.header("X-Robots-Tag", "noindex, follow, noarchive");
     } else {
       reply.header("X-Frame-Options", "DENY");
     }
+    if (["/robots.txt", "/sitemap.xml", "/llms.txt"].includes(path)) reply.header("Cache-Control", "no-cache, max-age=0, must-revalidate");
+    if (path.endsWith(".html")) reply.header("Cache-Control", "no-cache");
     return payload;
   });
 
@@ -95,18 +123,16 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     const currency = parseCurrency(request.query, options.fx, reply);
     if (!currency) return;
 
-    const snapshot = options.market.getSnapshot();
-    if (!snapshot) {
-      return reply.code(503).send({ code: "PRICE_UNAVAILABLE", message: "Live price is not available yet" });
-    }
+    const observation = readObservation(options, currency);
+    if (!observation) return reply.code(503).send({ code: "PRICE_UNAVAILABLE", message: "Live price is not available yet" });
+    return observation;
+  });
 
-    const fxStatus = options.fx.getStatus();
-    return createPricePayload({
-      snapshot,
-      currency,
-      convertUsd: (price) => options.fx.convertUsd(price, currency),
-      fxUpdatedAt: fxStatus.updatedAt,
-    });
+  app.get("/bitcoin-price.md", async (_request, reply) => {
+    const observation = readObservation(options, "USD");
+    reply.header("Cache-Control", "no-store").header("X-Robots-Tag", "noindex, follow");
+    reply.header("Link", '<https://priceb.tc/>; rel="canonical"');
+    return reply.code(observation ? 200 : 503).type("text/markdown; charset=utf-8").send(renderPriceMarkdown(observation));
   });
 
   app.get("/api/history", async (request, reply) => {
@@ -162,7 +188,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     };
   });
 
-  if (options.serveFrontend !== false) registerFrontend(app);
+  if (options.serveFrontend !== false) registerFrontend(app, options);
 
   app.setErrorHandler((error, request, reply) => {
     request.log.error({ error }, "Request failed");
@@ -178,6 +204,14 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
   return app;
 }
 
+function readObservation(options: BuildAppOptions, currency: string): PriceObservation | null {
+  const snapshot = options.market.getSnapshot();
+  if (!snapshot) return null;
+  const price = createPricePayload({ snapshot, currency, convertUsd: value => options.fx.convertUsd(value, currency), fxUpdatedAt: options.fx.getStatus().updatedAt });
+  if (options.market.getState() !== "live") price.status = "stale";
+  return price;
+}
+
 function parseCurrency(query: unknown, fx: FxReader, reply: FastifyReply): string | null {
   const rawCurrency = (query as Record<string, unknown> | null)?.currency;
   const parsed = CURRENCY_SCHEMA.safeParse(rawCurrency);
@@ -188,14 +222,61 @@ function parseCurrency(query: unknown, fx: FxReader, reply: FastifyReply): strin
   return parsed.data;
 }
 
-function registerFrontend(app: FastifyInstance): void {
+function registerFrontend(app: FastifyInstance, options: BuildAppOptions): void {
+  const frontendRoot = process.env.PRICEBTC_FRONTEND_DIR ?? join(process.cwd(), "dist/client");
+  const templates = new Map<string, Promise<string>>();
   void app.register(fastifyStatic, {
-    root: join(process.cwd(), "dist/client"),
+    root: frontendRoot,
     prefix: "/",
     wildcard: false,
     maxAge: "1y",
     immutable: true,
     index: false,
+  });
+
+  const documents = new Map([
+    ...seoPages.guides.map(guide => [guide.path, `${guide.path.slice(1)}/index.html`] as [string, string]),
+    ["/", "index.html"],
+    ["/about", "about/index.html"],
+    ["/faq", "faq/index.html"],
+    ["/api", "api/index.html"],
+    ["/studio", "studio/index.html"],
+    ["/embed", "embed/index.html"],
+    ["/overlay", "overlay/index.html"],
+    ["/bid", "bid/index.html"],
+    ["/leaderboard", "leaderboard/index.html"],
+    ["/history", "history/index.html"],
+    ["/rules", "rules/index.html"],
+    ["/admin", "admin/index.html"],
+  ]);
+
+  for (const [route, filename] of documents) {
+    app.get(route, async (request, reply) => {
+      if (route === "/" || route === "/api") {
+        let template = templates.get(filename);
+        if (!template) { template = readFile(join(frontendRoot, filename), "utf8"); templates.set(filename, template); }
+        const price = readObservation(options, "USD");
+        reply.header("Cache-Control", "no-store").type("text/html; charset=utf-8");
+        const html = await template;
+        return route === "/"
+          ? html.replace("<!--PRICE_SNAPSHOT-->", renderPriceSnapshot(price))
+          : html.replace("<!--API_OBSERVATION-->", price ? `<pre><code>${escapeHtml(JSON.stringify(price, null, 2))}</code></pre>` : '<p role="status">Price unavailable. The endpoint returns HTTP 503 until an observation is available.</p>');
+      }
+      if (["/leaderboard", "/history"].includes(route)) reply.header("X-Robots-Tag", "noindex, follow");
+      reply.header("Cache-Control", route === "/bid" || route === "/admin" ? "no-store" : "no-cache");
+      if (route === "/bid" || route === "/admin") reply.header("X-Robots-Tag", "noindex, nofollow");
+      if (route === "/embed" || route === "/overlay") {
+        reply.header("X-Robots-Tag", "noindex, follow, noarchive");
+      }
+      return reply.sendFile(filename, { cacheControl: false });
+    });
+  }
+  app.get("/day/:date", (request, reply) => {
+    reply.header("X-Robots-Tag", "noindex, follow");
+    const date = (request.params as { date: string }).date;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return reply.code(404).send();
+    reply.header("Cache-Control", "no-cache");
+    return reply.sendFile("day/index.html", { cacheControl: false });
   });
 
   app.setNotFoundHandler((request, reply) => {
@@ -206,6 +287,9 @@ function registerFrontend(app: FastifyInstance): void {
       return reply.code(404).send({ code: "NOT_FOUND", message: "Route not found" });
     }
     reply.header("Cache-Control", "no-cache");
-    return reply.sendFile("index.html", { cacheControl: false });
+    if (request.headers.accept?.includes("text/html")) {
+      return reply.code(404).sendFile("404.html", { cacheControl: false });
+    }
+    return reply.code(404).send({ code: "NOT_FOUND", message: "Route not found" });
   });
 }

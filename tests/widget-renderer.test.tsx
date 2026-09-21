@@ -41,9 +41,12 @@ describe("WidgetRenderer", () => {
     );
 
     expect(screen.getByText("$104,250.42")).toBeInTheDocument();
+    expect(screen.getByLabelText("Bitcoin price $104,250.42")).toHaveAttribute("title", "$104,250.42");
+    expect(screen.getByLabelText("Bitcoin price $104,250.42")).toHaveAttribute("data-price-length", "medium");
+    expect(screen.getByText(/\$104K/)).toHaveClass("widget__price-compact");
     expect(screen.getByText("+2.34%")).toBeInTheDocument();
     expect(screen.getByText("COINBASE")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "priceb.tc" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Bitcoin price by PRICEB.TC" })).toBeInTheDocument();
   });
 
   it("respects hidden chart and change settings", () => {
@@ -73,5 +76,97 @@ describe("WidgetRenderer", () => {
     );
 
     expect(screen.getByText("DELAYED")).toBeInTheDocument();
+  });
+
+  it.each([
+    ["connecting", "SYNCING"],
+    ["stopped", "OFFLINE"],
+    ["unavailable", "OFFLINE"],
+  ] as const)("maps %s connection state to %s", (connectionState, label) => {
+    render(
+      <WidgetRenderer
+        config={DEFAULT_EMBED_CONFIG}
+        mode="embed"
+        price={null}
+        history={[]}
+        connectionState={connectionState}
+      />,
+    );
+
+    expect(screen.getByText(label)).toBeInTheDocument();
+    expect(screen.getByLabelText(connectionState === "connecting" ? "Bitcoin price syncing" : "Bitcoin price unavailable")).toBeInTheDocument();
+  });
+
+  it("does not render or request a visual chart in unsupported layouts", () => {
+    render(
+      <WidgetRenderer
+        config={{ ...DEFAULT_EMBED_CONFIG, layout: "lower-third", showChart: true }}
+        mode="embed"
+        price={getPrice()}
+        history={history}
+        connectionState="live"
+        historyLoading
+      />,
+    );
+
+    expect(screen.queryByLabelText("Bitcoin price chart")).not.toBeInTheDocument();
+    expect(screen.queryByText("Loading Bitcoin price history…")).not.toBeInTheDocument();
+  });
+
+  it("shows distinct chart loading and unavailable states", () => {
+    const { rerender } = render(
+      <WidgetRenderer
+        config={DEFAULT_EMBED_CONFIG}
+        mode="embed"
+        price={getPrice()}
+        history={[]}
+        connectionState="live"
+        historyLoading
+      />,
+    );
+    expect(screen.getByText("Loading Bitcoin price history…")).toBeInTheDocument();
+
+    rerender(
+      <WidgetRenderer
+        config={DEFAULT_EMBED_CONFIG}
+        mode="embed"
+        price={getPrice()}
+        history={[]}
+        connectionState="live"
+        historyError="History unavailable"
+      />,
+    );
+    expect(screen.getByText("HISTORY UNAVAILABLE")).toBeInTheDocument();
+  });
+
+  it("maps built-in and custom themes without changing the public config shape", () => {
+    const { container, rerender } = render(
+      <WidgetRenderer
+        config={{ ...DEFAULT_EMBED_CONFIG, theme: "light" }}
+        mode="embed"
+        price={getPrice()}
+        history={history}
+        connectionState="live"
+      />,
+    );
+
+    const widget = container.querySelector<HTMLElement>(".widget");
+    expect(widget).toHaveClass("widget--theme-light");
+    expect(widget?.style.getPropertyValue("--widget-text")).toBe("#002B36");
+    expect(widget?.style.getPropertyValue("--widget-surface")).toBe("#FDF6E3");
+
+    rerender(
+      <WidgetRenderer
+        config={{ ...DEFAULT_EMBED_CONFIG, theme: "custom", text: "112233", surface: "DDEEFF", background: "transparent" }}
+        mode="overlay"
+        price={getPrice()}
+        history={history}
+        connectionState="live"
+      />,
+    );
+
+    expect(widget).toHaveClass("widget--theme-custom", "widget--transparent");
+    expect(widget?.style.getPropertyValue("--widget-text")).toBe("#112233");
+    expect(widget?.style.getPropertyValue("--widget-surface")).toBe("transparent");
   });
 });

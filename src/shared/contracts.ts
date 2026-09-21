@@ -23,6 +23,13 @@ export interface PricePayload {
   source: "coinbase";
 }
 
+export interface PriceObservation extends PricePayload {
+  asset: "Bitcoin";
+  symbol: "BTC";
+  sourceDetails: { name: "Coinbase Exchange"; market: "BTC-USD" };
+  provider: { name: "PRICEB.TC"; url: "https://priceb.tc/" };
+}
+
 export interface HistoryPoint {
   timestamp: string;
   price: string;

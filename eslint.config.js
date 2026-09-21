@@ -5,7 +5,7 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist", "coverage", "playwright-report", "test-results"] },
+  { ignores: [".data", "dist", "coverage", "playwright-report", "test-results", "pricebtc-freehosting"] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
@@ -13,6 +13,12 @@ export default tseslint.config(
     languageOptions: {
       ecmaVersion: 2022,
       globals: globals.node,
+    },
+  },
+  {
+    files: ["scripts/smoke-static.mjs"],
+    languageOptions: {
+      globals: globals.browser,
     },
   },
   {

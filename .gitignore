@@ -1,5 +1,5 @@
 node_modules/
-dist/
+dist
 coverage/
 playwright-report/
 test-results/
@@ -9,6 +9,8 @@ test-results/
 .env.*
 !.env.example
 .cloudflared/
+pricebtc-freehosting/
+pricebtc-freehosting.zip
 *.pem
 *.key
 *.crt

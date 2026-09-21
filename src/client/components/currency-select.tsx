@@ -21,7 +21,13 @@ export function CurrencySelect({
     <label className={`currency-field${compact ? " currency-field--compact" : ""}`} htmlFor={id}>
       <span className="currency-field__label">{label}</span>
       <span className="currency-field__control">
-        <select id={id} value={value} onChange={(event) => onChange(event.target.value)}>
+        <select
+          id={id}
+          name={`${id}-currency`}
+          autoComplete="off"
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+        >
           {currencies.map((currency) => (
             <option key={currency.code} value={currency.code}>
               {currency.code} — {currency.name}

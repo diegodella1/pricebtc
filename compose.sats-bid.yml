@@ -1,0 +1,22 @@
+services:
+  sats-db:
+    image: postgres:17-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: pricebtc
+      POSTGRES_DB: pricebtc
+      POSTGRES_PASSWORD: ${SATS_DB_PASSWORD:?Set SATS_DB_PASSWORD in the private environment}
+    ports:
+      - "127.0.0.1:${SATS_DB_PORT:-55432}:5432"
+    volumes:
+      - sats_postgres:/var/lib/postgresql/data
+    mem_limit: 512m
+    command:
+      ["postgres", "-c", "shared_buffers=64MB", "-c", "max_connections=30"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pricebtc -d pricebtc"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+volumes:
+  sats_postgres:

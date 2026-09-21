@@ -13,6 +13,28 @@ export type HistoryRange = (typeof HISTORY_RANGES)[number];
 export type MotionLevel = (typeof MOTION_LEVELS)[number];
 export type WidgetMode = "embed" | "overlay";
 
+export interface WidgetLayoutMeta {
+  label: string;
+  aspectRatio: string;
+  aspectLabel: string;
+  minWidth: number;
+  minHeight: number;
+  supportsChart: boolean;
+}
+
+export const WIDGET_LAYOUT_META: Record<WidgetLayout, WidgetLayoutMeta> = Object.freeze({
+  price: { label: "Price only", aspectRatio: "16 / 9", aspectLabel: "16:9", minWidth: 320, minHeight: 180, supportsChart: false },
+  card: { label: "Market card", aspectRatio: "16 / 9", aspectLabel: "16:9", minWidth: 320, minHeight: 180, supportsChart: true },
+  ticker: { label: "Ticker bar", aspectRatio: "6 / 1", aspectLabel: "6:1", minWidth: 480, minHeight: 96, supportsChart: true },
+  corner: { label: "Corner bug", aspectRatio: "1 / 1", aspectLabel: "1:1", minWidth: 240, minHeight: 240, supportsChart: true },
+  "lower-third": { label: "Lower third", aspectRatio: "16 / 3", aspectLabel: "16:3", minWidth: 480, minHeight: 96, supportsChart: false },
+  chart: { label: "Chart panel", aspectRatio: "16 / 9", aspectLabel: "16:9", minWidth: 360, minHeight: 203, supportsChart: true },
+});
+
+export function layoutSupportsChart(layout: WidgetLayout): boolean {
+  return WIDGET_LAYOUT_META[layout].supportsChart;
+}
+
 export interface WidgetConfig {
   version: 1;
   currency: string;
@@ -35,10 +57,10 @@ export const DEFAULT_EMBED_CONFIG: WidgetConfig = Object.freeze({
   currency: "USD",
   layout: "card",
   theme: "dark",
-  accent: "F7931A",
-  text: "F5F2EA",
-  surface: "101316",
-  font: "display",
+  accent: "CB4B16",
+  text: "FDF6E3",
+  surface: "002B36",
+  font: "mono",
   scale: 100,
   background: "solid",
   showChange: true,

@@ -5,7 +5,7 @@ interface BrandProps {
 
 export function Brand({ compact = false, inverse = false }: BrandProps) {
   return (
-    <a className={`brand${compact ? " brand--compact" : ""}${inverse ? " brand--inverse" : ""}`} href="/">
+    <a className={`brand${compact ? " brand--compact" : ""}${inverse ? " brand--inverse" : ""}`} href="/" translate="no">
       <span className="brand__mark" aria-hidden="true">
         ₿
       </span>

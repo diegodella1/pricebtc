@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from "react";
 
 import type { WidgetMode } from "../../shared/widget-config.js";
-import { parseWidgetConfig } from "../../shared/widget-config.js";
+import { layoutSupportsChart, parseWidgetConfig } from "../../shared/widget-config.js";
 import { WidgetRenderer } from "../components/widget-renderer.js";
 import { useLivePrice, usePriceHistory } from "../hooks/use-market.js";
 
@@ -12,7 +12,12 @@ interface RendererPageProps {
 export function RendererPage({ mode }: RendererPageProps) {
   const config = useMemo(() => parseWidgetConfig(new URLSearchParams(window.location.search), mode), [mode]);
   const { price, connectionState } = useLivePrice(config.currency);
-  const { points } = usePriceHistory(config.currency, config.range, config.showChart);
+  const historyEnabled = config.showChart && layoutSupportsChart(config.layout);
+  const { points, loading: historyLoading, error: historyError } = usePriceHistory(
+    config.currency,
+    config.range,
+    historyEnabled,
+  );
 
   useEffect(() => {
     document.documentElement.classList.add("renderer-document");
@@ -26,7 +31,15 @@ export function RendererPage({ mode }: RendererPageProps) {
 
   return (
     <main className="renderer-page">
-      <WidgetRenderer config={config} mode={mode} price={price} history={points} connectionState={connectionState} />
+      <WidgetRenderer
+        config={config}
+        mode={mode}
+        price={price}
+        history={points}
+        connectionState={connectionState}
+        historyLoading={historyLoading}
+        historyError={historyError}
+      />
     </main>
   );
 }
