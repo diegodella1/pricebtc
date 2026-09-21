@@ -116,7 +116,7 @@ export function HomePage() {
       <section className="public-section faq-section" id="data" aria-labelledby="faq-title"><div className="section-intro"><div><p className="section-kicker">Good to know</p><h2 id="faq-title">Simple tools. Clear sources.</h2></div><p>Live Bitcoin prices for the people watching, building and broadcasting.</p></div>
         <details><summary>Is PRICEB.TC free?</summary><p>Yes. Create and publish widgets without an account. Sponsorship is optional and separate.</p></details>
         <details><summary>Does it work with OBS and Streamlabs?</summary><p>Use the overlay URL as a Browser Source with a transparent background. Customize it in the Studio.</p></details>
-        <details><summary>Where does the price come from?</summary><p>Coinbase Exchange supplies BTC/USD trades and historical data. ExchangeRate-API supplies daily fiat conversions. Connection status and timestamps show when data is delayed.</p></details>
+        <details><summary>Why not Binance or Lemon?</summary><p>This service uses Coinbase BTC-USD only. ARS, BRL, and MXN prices are indicative conversions from USD using daily exchange rates. This is not financial advice.</p></details>
         <details><summary>How do sponsors work?</summary><p>One paid space beside the price. Once Lightning payments open, confirmed payments add to a participant’s daily total. The highest total leads until someone outbids it. Rounds reset at 00:00 UTC. <a href="/rules">Read the rules ↗</a></p></details>
       </section>
     </main>
