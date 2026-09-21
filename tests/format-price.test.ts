@@ -1,10 +1,8 @@
 // @vitest-environment jsdom
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import { describe, expect, it } from "vitest";
 
 import { formatPrice, formatPriceVariants } from "../src/client/lib/format.js";
+import fxRates from "./fixtures/fx-rates.json";
 
 describe("formatPrice", () => {
   it("uses fiat-aware precision", () => {
@@ -36,12 +34,9 @@ describe("formatPrice", () => {
     expect(jpy.exact).not.toContain(".00");
   });
 
-  it("formats every currency in the production FX matrix safely", () => {
-    const fixture = JSON.parse(
-      readFileSync(join(process.cwd(), ".data/fx-rates.json"), "utf8"),
-    ) as { rates: Record<string, number> };
-
-    for (const [currency, rate] of Object.entries(fixture.rates)) {
+  it("formats every currency in the recorded FX matrix safely", () => {
+    // Fixed public FX sample keeps formatting coverage independent of runtime data.
+    for (const [currency, rate] of Object.entries(fxRates)) {
       const result = formatPriceVariants(String(90_420.42 * rate), currency);
       expect(result.exact, currency).not.toBe("—");
       expect(result.compact, currency).not.toBe("—");
