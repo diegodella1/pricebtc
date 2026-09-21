@@ -31,6 +31,9 @@ Each release builds from a Git archive in `.data/builds/`, with isolated depende
 Typecheck, lint, application tests, deployment tests and the build must all pass.
 The root checkout's dependencies and running release remain intact on build failure.
 Vitest excludes build workspaces and the standalone Node deployment tests.
+Before cutover, the compiled candidate starts on a temporary loopback port with
+isolated runtime data and no database. The same release checks must pass there;
+startup failures leave production untouched.
 
 Activation preserves the previous `dist` symlink, records a recovery transaction,
 switches releases and restarts the app (plus its worker if already running). Local

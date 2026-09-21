@@ -1,4 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 import type { FastifyInstance } from "fastify";
 
@@ -24,7 +27,7 @@ function getSnapshot(): MarketSnapshot {
   };
 }
 
-function createTestApp(): FastifyInstance {
+function createTestApp(serveFrontend = false): FastifyInstance {
   const market = {
     getSnapshot: () => getSnapshot(),
     getState: () => "live" as const,
@@ -49,12 +52,30 @@ function createTestApp(): FastifyInstance {
     }),
   };
   const streams = { open: () => undefined, getClientCount: () => 3 };
-  const app = buildApp({ market, fx, history, streams, serveFrontend: false, logger: false });
+  const app = buildApp({ market, fx, history, streams, serveFrontend, logger: false });
   apps.push(app);
   return app;
 }
 
 describe("public API", () => {
+  it("starts with a static OG fallback while serving the dynamic image route", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "pricebtc-frontend-"));
+    const previous = process.env.PRICEBTC_FRONTEND_DIR;
+    process.env.PRICEBTC_FRONTEND_DIR = directory;
+    try {
+      await writeFile(join(directory, "og-image.png"), "static fallback");
+      const app = createTestApp(true);
+      await app.ready();
+      const response = await app.inject({ method: "GET", url: "/og-image.png?currency=USD" });
+      expect(response.statusCode).toBe(200);
+      expect(response.headers["content-type"]).toBe("image/png");
+      expect(response.rawPayload.subarray(0, 8)).toEqual(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
+    } finally {
+      if (previous === undefined) delete process.env.PRICEBTC_FRONTEND_DIR;
+      else process.env.PRICEBTC_FRONTEND_DIR = previous;
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
   it("redirects the live subdomain permanently, including forwarded hostname and query parameters", async () => {
     const app = createTestApp();
     for (const headers of [

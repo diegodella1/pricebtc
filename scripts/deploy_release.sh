@@ -67,6 +67,7 @@ mv "$build_dir/output" "$release_dir"
 mv "$build_dir/node_modules" "$release_dir/node_modules"
 cp "$build_dir/package.json" "$release_dir/package.json"
 printf '%s\n' "$revision" > "$release_dir/REVISION"
+node "$project_dir/scripts/check-release-startup.mjs" "$release_dir"
 if [ "$(git rev-parse HEAD)" != "$revision" ] || [ -n "$(git status --porcelain)" ]; then
   echo "Checkout changed during build; refusing activation"
   exit 1

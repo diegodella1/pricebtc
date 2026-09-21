@@ -112,7 +112,8 @@ function releaseFixture(t) {
     echo "$*" >> "$PRICEBTC_TEST_ROOT/.data/systemctl.log"
     if [ "$1" = is-active ]; then exit 1; fi`);
   executable("node", `
-    if [ "\${FAIL_HEALTH:-}" = yes ] && [ "$(readlink -f "$3")" != "$PRICEBTC_TEST_ROOT/.data/releases/old" ]; then exit 1; fi`);
+    if [[ "$1" = *check-release-startup.mjs ]] && [ "\${FAIL_STARTUP:-}" = yes ]; then exit 1; fi
+    if [[ "$1" = *verify-release.mjs ]] && [ "\${FAIL_HEALTH:-}" = yes ] && [ "$(readlink -f "$3")" != "$PRICEBTC_TEST_ROOT/.data/releases/old" ]; then exit 1; fi`);
   executable("sleep", ":");
   const git = (...args) => execFileSync("git", args, { cwd: root, stdio: "pipe" });
   git("init", "-b", "main");
@@ -129,6 +130,14 @@ function releaseFixture(t) {
 test("a failed build never stops production or replaces its release", t => {
   const fixture = releaseFixture(t);
   const result = fixture.run({ FAIL_BUILD: "yes" });
+  assert.equal(result.status, 1, result.stderr);
+  assert.equal(readlinkSync(join(fixture.root, "dist")), fixture.old);
+  assert.equal(existsSync(join(fixture.root, ".data/systemctl.log")), false);
+});
+
+test("a candidate startup failure leaves production untouched", t => {
+  const fixture = releaseFixture(t);
+  const result = fixture.run({ FAIL_STARTUP: "yes" });
   assert.equal(result.status, 1, result.stderr);
   assert.equal(readlinkSync(join(fixture.root, "dist")), fixture.old);
   assert.equal(existsSync(join(fixture.root, ".data/systemctl.log")), false);

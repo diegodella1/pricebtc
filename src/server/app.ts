@@ -252,6 +252,7 @@ function registerFrontend(app: FastifyInstance, options: BuildAppOptions): void 
     root: frontendRoot,
     prefix: "/",
     wildcard: false,
+    globIgnore: ["og-image.png"],
     maxAge: "1y",
     immutable: true,
     index: false,
