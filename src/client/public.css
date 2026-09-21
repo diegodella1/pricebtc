@@ -58,7 +58,7 @@ body:has(.public-site)::before, body:has(.public-site)::after, body:has(.studio-
 #bid-top-slot:has(.bid-top, .public-notice) > .sponsor-loading { display: none; }
 .sponsor-loading { min-height: 290px; padding: 24px; border: 1px dashed var(--line); border-radius: 14px; color: var(--accent); }
 .sponsor-loading span { color: var(--text-muted); font-size: 14px; }
-.public-site .bid-top { min-height: 0; height: 100%; padding: 24px; background: #171a1d; color: var(--text); border: 1px solid #f7931a70; border-radius: 14px; display: flex; flex-direction: column; gap: 12px; box-shadow: none; }
+.public-site .bid-top { min-height: 0; height: 100%; padding: 24px; background: #171a1d; color: var(--text); border: 1px solid rgba(203, 75, 22, 0.44); border-radius: 14px; display: flex; flex-direction: column; gap: 12px; box-shadow: none; }
 .public-site .bid-top header { display: flex; justify-content: space-between; gap: 10px; color: var(--accent); font: 11px var(--font-mono); }
 .public-site .bid-top h2.bid-unclaimed { font: 500 32px/1.12 var(--font-display); letter-spacing: -.04em; margin: 8px 0 0; color: var(--text); }
 .public-site .bid-top .bid-unclaimed em { font-style: normal; color: var(--accent); }
@@ -198,7 +198,6 @@ body:has(.public-site)::before, body:has(.public-site)::after, body:has(.studio-
   html { scroll-behavior: auto; }
   .public-site *, .public-bid *, .studio-shell * { animation: none !important; transition: none !important; }
 }
-.studio-shell { --solar-base03: #0d1012; --solar-base02: #14181c; --solar-base01: #737b85; --solar-base00: #9ba3ad; --solar-base0: #a4a9b1; --solar-base1: #a4a9b1; --solar-base2: #e3e4e6; --solar-base3: #f2f2f3; --solar-orange: #f7931a; --solar-green: #34d399; }
 .studio-shell .studio-header { background: #0d1012f5; min-height: 76px; box-shadow: none; }
 .studio-shell .studio-header__title, .studio-shell .studio-header > a { font-size: 14px; letter-spacing: 0; }
 .studio-shell .studio-controls, .studio-shell .studio-controls__heading { background: var(--background); }
