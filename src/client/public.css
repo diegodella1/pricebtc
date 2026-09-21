@@ -158,10 +158,11 @@ body:has(.public-site)::before, body:has(.public-site)::after, body:has(.studio-
 .public-bid .bid-footer { padding: 24px 32px; }
 @media (max-width: 850px) {
   .price-module { padding: 20px; display: flex; flex-direction: column; }
-  .price-sponsor-grid { grid-template-columns: minmax(0, 1fr); gap: 24px; order: 1; }
+  .price-sponsor-grid { display: contents; }
+  .price-primary { order: 1; }
   .kpi-strip { order: 2; margin-top: 12px; padding-top: 12px; }
   .price-chart-block { order: 3; margin-top: 16px; }
-  #bid-top-slot { order: 4; }
+  #bid-top-slot { order: 4; margin-top: 24px; }
   .chart-toolbar { justify-content: center; }
   .public-site .bid-top { min-height: 0; }
   .public-site .bid-top h2.bid-unclaimed { font-size: 28px; }

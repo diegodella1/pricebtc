@@ -81,14 +81,7 @@ export function HomePage() {
             <div className="chart-toolbar">
               <div className="pill-controls" role="group" aria-label="Chart range">{HISTORY_RANGES.map(value => <button key={value} type="button" aria-pressed={range === value} onClick={() => setRange(value)}>{value.toUpperCase()}</button>)}</div>
             </div>
-          {price && currency === "USD" && (price.high24h || price.low24h || price.volume24h) && (
-            <div className="market-stats-24h">
-              {price.high24h && <span>High <strong>{formatPrice(price.high24h, currency)}</strong></span>}
-              {price.low24h && <span>Low <strong>{formatPrice(price.low24h, currency)}</strong></span>}
-              {price.volume24h && <span>Vol (24h) <strong title={volume24hUsdDisplay ?? undefined}>{volume24hDisplay}</strong></span>}
-            </div>
-          )}
-          <div className="hero__chart"><PriceChart points={displayedPoints} positive={(telemetry?.changePercent ?? 0) >= 0} showVolume={currency === "USD"} loading={historyLoading} error={historyError} /></div>
+            <div className="hero__chart"><PriceChart points={displayedPoints} positive={(telemetry?.changePercent ?? 0) >= 0} showVolume={currency === "USD"} loading={historyLoading} error={historyError} /></div>
           {currency === "USD" && <div className="volume-legend" aria-label="Volume legend">
             <span className="volume-legend__buy">Recorded buys: {recordedVolume ? `${recordedVolume.buy} BTC` : "—"}</span><span className="volume-legend__sell">Recorded sells: {recordedVolume ? `${recordedVolume.sell} BTC` : "—"}</span><span className="volume-legend__unknown">Unclassified</span>
             <p>BTC volume by initiating side on Coinbase. Grey volume has no recorded split; older intervals and gaps may be incomplete. <a href="/bitcoin-price-updates">How it works</a></p>
