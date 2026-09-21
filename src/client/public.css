@@ -1,8 +1,8 @@
 /* Public interface tokens are scoped so published widgets retain their appearance. */
 .public-site, .studio-shell, .public-bid {
-  --background: #0d1012; --surface: #14181c; --text: #f2f2f3; --text-muted: #a4a9b1;
-  --line: #343a42; --line-soft: #262b31; --accent: #f7931a; --positive: #34d399; --negative: #fb7185;
-  --font-display: "Space Grotesk", sans-serif; --font-body: "Geist", sans-serif; --font-mono: "JetBrains Mono", monospace;
+  --background: #0d1012; --surface: #14181c; --text: #fdf6e3; --text-muted: #93a1a1;
+  --line: #343a42; --line-soft: #262b31; --accent: #cb4b16; --link: #2aa198; --positive: #34d399; --negative: #fb7185;
+  --font-display: "Bricolage Grotesque", sans-serif; --font-body: "IBM Plex Sans", sans-serif; --font-mono: "IBM Plex Mono", monospace;
   --bid-paper: var(--background); --bid-ink: var(--text); --bid-muted: var(--text-muted); --bid-line: var(--line-soft); --bid-accent: var(--accent); --bid-white: var(--surface); --bid-alert: #ffb66b;
   background: var(--background); color: var(--text); font-family: var(--font-body); font-size: 16px; line-height: 1.6;
 }
@@ -18,7 +18,8 @@ body:has(.public-site)::before, body:has(.public-site)::after, body:has(.studio-
 .public-header.site-header { position: sticky; top: 0; z-index: 40; display: flex; align-items: center; justify-content: space-between; gap: 24px; width: 100%; max-width: 1200px; min-height: 88px; margin: auto; padding: 16px 32px; border: 0; border-bottom: 1px solid var(--line-soft); background: #0d1012f5; backdrop-filter: blur(12px); }
 .public-header .brand { min-width: 0; color: var(--text); gap: 8px; }
 .public-header .brand__word, .studio-shell .brand__word { font: 600 16px var(--font-mono); letter-spacing: .08em; }
-.public-header .brand__mark, .studio-shell .brand__mark { width: 12px; height: 12px; min-width: 12px; border: 0; border-radius: 50%; background: var(--accent); color: transparent; font-size: 0; box-shadow: none; }
+.public-header .brand__mark, .studio-shell .brand__mark { width: 12px; height: 12px; min-width: 12px; border: 1px solid var(--surface); border-radius: 50%; background: var(--accent); color: var(--text); font-size: 8px; display: grid; place-items: center; font-family: var(--font-display); font-weight: 700; box-shadow: none; }
+.public-header .brand__mark::before { content: "₿"; }
 .public-header nav { display: flex; gap: 4px; padding: 3px; border: 1px solid var(--line-soft); border-radius: 30px; background: var(--surface); }
 .public-header nav a { padding: 8px 16px; min-height: 44px; display: flex; align-items: center; font: 400 14px var(--font-body); letter-spacing: 0; color: var(--text-muted); border-radius: 24px; }
 .public-header nav a:hover { color: var(--text); background: var(--line-soft); }
@@ -29,6 +30,8 @@ body:has(.public-site)::before, body:has(.public-site)::after, body:has(.studio-
 .price-section { padding: 40px 0 0; }
 .market-toolbar, .history-toolbar, .demo-controls, .demo-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
 .public-site .market-toolbar h1 { font-size: 20px; margin: 0; letter-spacing: -.02em; }
+.market-status { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.market-time { font: 12px var(--font-mono); color: var(--text-muted); }
 .feed-state { display: flex; align-items: center; gap: 8px; color: var(--text-muted); font: 12px var(--font-mono); }
 .feed-state i { width: 7px; height: 7px; background: currentColor; border-radius: 50%; }
 .public-site .is-positive, .public-site .is-live { color: var(--positive); }
@@ -250,3 +253,27 @@ body:has(.public-site)::before, body:has(.public-site)::after, body:has(.studio-
 .observation-description a { text-decoration: underline; text-underline-offset: .2em; }
 .guide-content dt { margin-top: 1rem; color: #ffb66b; }
 .guide-content dd { margin: .25rem 0 1rem; color: #b3b7be; }
+
+/* Home P0 additions */
+.market-subtitle { font-size: 15px; color: var(--text-muted); margin: 8px 0 24px; max-width: 700px; }
+.market-subtitle a { color: var(--link); text-decoration: underline; text-underline-offset: .2em; }
+.kpi-strip { display: flex; gap: 32px; margin: 24px 0 16px; padding: 16px 0; border-top: 1px solid var(--line-soft); border-bottom: 1px solid var(--line-soft); }
+.kpi-item { display: flex; flex-direction: column; gap: 6px; }
+.kpi-label { font: 11px var(--font-mono); color: var(--text-muted); letter-spacing: .05em; text-transform: uppercase; }
+.kpi-value { font: 600 20px/1 var(--font-display); color: var(--text); letter-spacing: -.02em; }
+.sponsor-empty-cta { display: block; padding: 24px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; text-align: center; text-decoration: none; min-height: 290px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
+.sponsor-empty-cta__title { font: 500 24px var(--font-display); color: var(--text); margin: 0; }
+.sponsor-empty-cta__desc { font-size: 14px; color: var(--text-muted); margin: 0; }
+.sponsor-empty-cta__button { display: inline-flex; padding: 10px 20px; border: 1px solid var(--accent); border-radius: 8px; color: var(--accent); font: 600 14px var(--font-body); text-decoration: none; margin-top: 8px; }
+.sponsor-empty-cta__button:hover { background: var(--accent); color: #0d1012; }
+.market-ctas { display: flex; gap: 16px; margin: 24px 0; flex-wrap: wrap; }
+.market-cta { display: inline-flex; align-items: center; gap: 12px; padding: 12px 20px; min-height: 48px; border: 1px solid var(--line); border-radius: 8px; color: var(--text); text-decoration: none; font: 600 15px var(--font-body); background: var(--surface); flex: 1; min-width: 200px; }
+.market-cta:hover { border-color: var(--accent); color: var(--accent); }
+.market-cta svg { flex-shrink: 0; }
+@media (max-width: 640px) {
+  .kpi-strip { gap: 20px; flex-wrap: wrap; }
+  .kpi-value { font-size: 18px; }
+  .market-ctas { flex-direction: column; }
+  .market-cta { min-width: 100%; }
+}
+

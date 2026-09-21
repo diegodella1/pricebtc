@@ -33,7 +33,7 @@ export function createPricePayload(options: CreatePricePayloadOptions): PriceObs
     high24h,
     low24h,
     volume24h,
-    volume24hUsd: options.currency === "USD" ? volume24hUsd : null,
+    volume24hUsd: options.currency === "USD" ? volume24hUsd : undefined,
     marketTimestamp: options.snapshot.marketTimestamp,
     receivedAt: options.snapshot.receivedAt,
     fxUpdatedAt: options.fxUpdatedAt,

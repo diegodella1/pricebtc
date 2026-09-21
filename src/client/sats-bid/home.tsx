@@ -8,7 +8,7 @@ import {
   recordEvent,
   sats,
 } from "./api.js";
-import { Countdown, Ranking, TopSpot } from "./components.js";
+import { Countdown, Ranking, TopSpot, EmptySponsorCTA } from "./components.js";
 import { ComingSoonHome } from "./coming-soon.js";
 export default function BidHome() {
   const [round, setRound] = useState<CurrentRound | null>(null);
@@ -104,9 +104,9 @@ export default function BidHome() {
       <SponsorInventory />
       <div className="bid-home-grid bid-home-grid--ranking">
         {slot && board ? (
-          createPortal(<TopSpot leader={board.leader} delayed={error} />, slot)
+          createPortal(board.leader ? <TopSpot leader={board.leader} delayed={error} /> : <EmptySponsorCTA />, slot)
         ) : !slot && board ? (
-          <TopSpot leader={board.leader} delayed={error} />
+          board.leader ? <TopSpot leader={board.leader} delayed={error} /> : <EmptySponsorCTA />
         ) : null}
         <div className="bid-board">
           <header className="bid-board-heading">

@@ -12,6 +12,7 @@ describe("parseTickerMessage", () => {
     expect(snapshot).toMatchObject({ high24h: "102000", low24h: "98000", volume24h: "123.456" });
   });
   it("normalizes Coinbase ticker messages", () => {
+    const stats24h = { high: "106000", low: "101000", volume: "10000" };
     const snapshot = parseTickerMessage(
       JSON.stringify({
         type: "ticker",
@@ -22,14 +23,15 @@ describe("parseTickerMessage", () => {
         time: "2026-08-24T17:00:00.000Z",
       }),
       "2026-08-24T17:00:00.100Z",
+      stats24h,
     );
 
     expect(snapshot).toEqual({
       priceUsd: "105000.50",
       change24h: 5.0005,
-      high24h: null,
-      low24h: null,
-      volume24h: null,
+      high24h: "106000",
+      low24h: "101000",
+      volume24h: "10000",
       marketTimestamp: "2026-08-24T17:00:00.000Z",
       receivedAt: "2026-08-24T17:00:00.100Z",
       sequence: 42,

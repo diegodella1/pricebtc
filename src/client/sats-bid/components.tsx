@@ -154,35 +154,17 @@ export function TopSpot({
             {sats(leader.total_sats)} <small>SATS TODAY</small>
           </div>
         </>
-      ) : (
-        <>
-          <h2 className="bid-unclaimed">Your brand<br />{" "}<em>beside Bitcoin.</em></h2>
-          <p>
-            {comingSoon
-              ? "A space for your project, right next to Bitcoin's live price. Lightning sponsorship is coming soon."
-              : "This spot is unclaimed. Be the first to claim today's space next to Bitcoin's price."}
-          </p>
-        </>
-      )}
-      <a
-        className="bid-button bid-button--dark"
-        href={comingSoon ? "/#sats-bid" : "/bid"}
-        onClick={() => {
-          if (!comingSoon) recordEvent("take_spot_clicked");
-        }}
-      >
-        {comingSoon
-          ? "See how it works"
-          : leader
-            ? "TAKE THE SPOT"
-            : "CLAIM IT"}{" "}
-        <span>↗</span>
-      </a>
-      <footer>
-        {comingSoon
-          ? "PAYMENTS · PRÓXIMAMENTE / COMING SOON"
-          : "Paid placement · Position can change at any time"}
-      </footer>
+      ) : null}
     </article>
+  );
+}
+
+export function EmptySponsorCTA() {
+  return (
+    <a href="/sponsors" className="sponsor-empty-cta">
+      <h3 className="sponsor-empty-cta__title">Sponsor space</h3>
+      <p className="sponsor-empty-cta__desc">Rank beside Bitcoin</p>
+      <span className="sponsor-empty-cta__button">Bid from 1,000 sats</span>
+    </a>
   );
 }

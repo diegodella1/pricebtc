@@ -55,7 +55,7 @@ interface MarketServiceOptions {
   logger?: Pick<Console, "info" | "warn" | "error">;
 }
 
-export function parseTickerMessage(rawMessage: string, receivedAt: string): MarketSnapshot | null {
+export function parseTickerMessage(rawMessage: string, receivedAt: string, stats24h?: { high: string; low: string; volume: string } | null): MarketSnapshot | null {
   let decoded: unknown;
   try {
     decoded = JSON.parse(rawMessage);
@@ -73,9 +73,9 @@ export function parseTickerMessage(rawMessage: string, receivedAt: string): Mark
   return {
     priceUsd: parsed.data.price,
     change24h: price.minus(open).div(open).mul(100).toNumber(),
-    high24h: parsed.data.high_24h ?? null,
-    low24h: parsed.data.low_24h ?? null,
-    volume24h: parsed.data.volume_24h ?? null,
+    high24h: parsed.data.high_24h ?? stats24h?.high ?? null,
+    low24h: parsed.data.low_24h ?? stats24h?.low ?? null,
+    volume24h: parsed.data.volume_24h ?? stats24h?.volume ?? null,
     marketTimestamp: parsed.data.time,
     receivedAt,
     sequence: parsed.data.sequence ?? null,
@@ -94,6 +94,7 @@ export class MarketService {
 
   private socket: WebSocket | null = null;
   private snapshot: MarketSnapshot | null = null;
+  private stats24h: { high: string; low: string; volume: string } | null = null;
   private state: FeedState = "stopped";
   private stopping = false;
   private reconnectAttempts = 0;
@@ -101,6 +102,7 @@ export class MarketService {
   private reconnectTimer: NodeJS.Timeout | null = null;
   private heartbeatTimer: NodeJS.Timeout | null = null;
   private fallbackTimer: NodeJS.Timeout | null = null;
+  private statsRefreshTimer: NodeJS.Timeout | null = null;
   private fallbackRequestActive = false;
 
   constructor(options: MarketServiceOptions = {}) {
@@ -119,6 +121,10 @@ export class MarketService {
     if (this.state !== "stopped") return;
     this.stopping = false;
     this.setState("connecting");
+    // Fetch initial stats before first price
+    await this.refreshStats().catch((error: unknown) => {
+      this.logger.warn("Initial stats refresh failed", error);
+    });
     await this.refreshFromRest().catch((error: unknown) => {
       this.logger.warn("Initial Coinbase snapshot failed", error);
     });
@@ -182,12 +188,13 @@ export class MarketService {
       }),
     );
     this.startHeartbeatWatchdog(socket);
+    this.startStatsRefresh();
     this.logger.info("Coinbase WebSocket connected");
   }
 
   private handleMessage(data: RawData): void {
     this.lastMessageAt = this.now();
-    const snapshot = parseTickerMessage(data.toString(), new Date(this.now()).toISOString());
+    const snapshot = parseTickerMessage(data.toString(), new Date(this.now()).toISOString(), this.stats24h);
     if (!snapshot) return;
 
     this.snapshot = snapshot;
@@ -254,6 +261,40 @@ export class MarketService {
     this.fallbackTimer = null;
   }
 
+  private startStatsRefresh(): void {
+    if (this.statsRefreshTimer) return;
+    this.statsRefreshTimer = setInterval(() => this.refreshStats(), 15_000);
+    this.statsRefreshTimer.unref();
+  }
+
+  private async refreshStats(): Promise<void> {
+    try {
+      const response = await this.fetcher(`${this.apiUrl}/products/BTC-USD/stats`, {
+        headers: { Accept: "application/json", "User-Agent": "priceb.tc/1.0" },
+        signal: AbortSignal.timeout(5_000),
+      });
+      if (!response.ok) return;
+      
+      const stats = REST_STATS_SCHEMA.parse(await response.json());
+      this.stats24h = {
+        high: stats.high,
+        low: stats.low,
+        volume: stats.volume,
+      };
+      
+      if (this.snapshot) {
+        this.snapshot = {
+          ...this.snapshot,
+          high24h: stats.high,
+          low24h: stats.low,
+          volume24h: stats.volume,
+        };
+      }
+    } catch (error) {
+      this.logger.warn("Stats refresh failed", error);
+    }
+  }
+
   private async refreshFromRest(): Promise<void> {
     if (this.fallbackRequestActive) return;
     this.fallbackRequestActive = true;
@@ -276,6 +317,13 @@ export class MarketService {
       const price = new Decimal(ticker.price);
       const open = new Decimal(stats.open);
       const receivedAt = new Date(this.now()).toISOString();
+      
+      this.stats24h = {
+        high: stats.high,
+        low: stats.low,
+        volume: stats.volume,
+      };
+      
       this.snapshot = {
         priceUsd: ticker.price,
         change24h: open.isZero() ? 0 : price.minus(open).div(open).mul(100).toNumber(),
@@ -302,8 +350,10 @@ export class MarketService {
     if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
     if (this.heartbeatTimer) clearInterval(this.heartbeatTimer);
     if (this.fallbackTimer) clearInterval(this.fallbackTimer);
+    if (this.statsRefreshTimer) clearInterval(this.statsRefreshTimer);
     this.reconnectTimer = null;
     this.heartbeatTimer = null;
     this.fallbackTimer = null;
+    this.statsRefreshTimer = null;
   }
 }

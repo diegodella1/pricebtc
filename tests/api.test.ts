@@ -15,6 +15,9 @@ function getSnapshot(): MarketSnapshot {
   return {
     priceUsd: "100000",
     change24h: 2.5,
+    high24h: "101000",
+    low24h: "99000",
+    volume24h: "10000",
     marketTimestamp: "2026-08-24T17:00:00.000Z",
     receivedAt: new Date().toISOString(),
     sequence: 1,
@@ -76,7 +79,7 @@ describe("public API", () => {
     const response = await createTestApp().inject({ method: "GET", url: "/api/price?currency=EUR" });
 
     expect(response.statusCode).toBe(200);
-    expect(response.json()).toMatchObject({ currency: "EUR", price: "90000", source: "coinbase" });
+    expect(response.json()).toMatchObject({ currency: "EUR", price: "90000", source: "coinbase", high24h: "90900", low24h: "89100", volume24h: "10000" });
     expect(response.headers["cache-control"]).toBe("no-store");
   });
 

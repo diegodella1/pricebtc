@@ -5,7 +5,7 @@ import { PriceChart } from "../components/price-chart.js";
 import { WidgetDemo } from "../components/widget-demo.js";
 import { useCurrencies, useLivePrice, usePriceHistory } from "../hooks/use-market.js";
 import { IS_STATIC_BUILD } from "../lib/api.js";
-import { formatPercent, formatPrice, formatPriceVariants } from "../lib/format.js";
+import { formatPercent, formatPrice, formatPriceVariants, formatRelativeTime, formatVolume } from "../lib/format.js";
 import { formatUtcDate, formatUtcTime, getMarketTelemetry } from "../lib/market-telemetry.js";
 import { HISTORY_RANGES, type HistoryRange } from "../../shared/widget-config.js";
 import siteContent from "../../shared/site-content.json";
@@ -37,7 +37,8 @@ export function HomePage() {
     };
   }, [points]);
   const formatted = price ? formatPriceVariants(price.price, currency) : null;
-  const status = live ? "Live price" : connectionState === "connecting" ? "Connecting" : price ? "Data delayed" : "Price unavailable";
+  const status = live ? "Live" : connectionState === "connecting" ? "Connecting" : price ? "Stale" : "Unavailable";
+  const relativeTime = price ? formatRelativeTime(price.marketTimestamp) : null;
   const satsPerDollar = price && Number(price.priceUsd) > 0 ? Math.round(100_000_000 / Number(price.priceUsd)).toLocaleString("en-US") : "—";
   const volume24hDisplay = price?.volume24h ? `${Number(price.volume24h).toFixed(2)} BTC` : "—";
   const volume24hUsdDisplay = price?.volume24hUsd ? `$${Number(price.volume24hUsd).toLocaleString("en-US", { maximumFractionDigits: 0 })}` : null;
@@ -50,7 +51,14 @@ export function HomePage() {
     <SiteHeader />
     <main id="main-content" className="public-main">
       <section id="market" className="price-section" aria-labelledby="hero-title">
-        <div className="market-toolbar"><h1 id="hero-title">Bitcoin price now</h1><span className={`feed-state${live ? " is-live" : ""}`} role="status"><i aria-hidden="true" />{status}</span></div>
+        <div className="market-toolbar">
+          <h1 id="hero-title">Bitcoin price now</h1>
+          <div className="market-status">
+            <span className={`feed-state${live ? " is-live" : ""}`} role="status"><i aria-hidden="true" />{status}</span>
+            {relativeTime && <span className="market-time" title={price?.marketTimestamp}>Updated {relativeTime} · Coinbase BTC-USD</span>}
+          </div>
+        </div>
+        <p className="market-subtitle">One exchange observation, not a global index. <a href="/bitcoin-price-updates">Source and methodology</a></p>
         <div className="price-sponsor-grid">
           <div className="price-primary">
             <div className="quote-label"><span>BTC / {currency}</span><span>Coinbase Exchange</span></div>
@@ -59,12 +67,31 @@ export function HomePage() {
             </p>
             <div className="quote-context"><span className={price && live ? price.change24h >= 0 ? "is-positive" : "is-negative" : ""}>{price ? formatPercent(price.change24h) : "—"} <small>24h</small></span><span>1 USD = <strong>{satsPerDollar}</strong> sats</span></div>
             <CurrencySelect currencies={currencies} value={currency} onChange={setCurrency} id="home-currency" />
-            <p className="market-source">Market timestamp: <time dateTime={price?.marketTimestamp}>{price?.marketTimestamp ?? "—"}</time>{currency !== "USD" ? " · Indicative fiat conversion" : ""}</p>
             {error && <p className="public-notice" role="status">{error}</p>}
           </div>
-          {!IS_STATIC_BUILD && <aside id="bid-top-slot" aria-label="Sponsor space"><div className="sponsor-loading" role="status">Sponsor space<br /><span>Checking availability…</span></div></aside>}
+          <aside id="bid-top-slot" aria-label="Sponsor space"><a href="/sponsors" className="sponsor-empty-cta"><h3 className="sponsor-empty-cta__title">Sponsor space</h3><p className="sponsor-empty-cta__desc">Rank beside Bitcoin</p><span className="sponsor-empty-cta__button">Bid from 1,000 sats</span></a></aside>
+        </div>
+        <div className="kpi-strip">
+          <div className="kpi-item"><span className="kpi-label">High 24h</span><strong className="kpi-value">{price?.high24h ? formatPrice(price.high24h, currency) : "—"}</strong></div>
+          <div className="kpi-item"><span className="kpi-label">Low 24h</span><strong className="kpi-value">{price?.low24h ? formatPrice(price.low24h, currency) : "—"}</strong></div>
+          <div className="kpi-item"><span className="kpi-label">Volume 24h</span><strong className="kpi-value">{formatVolume(price?.volume24h ?? null)}</strong></div>
         </div>
         <p className="observation-description">{siteContent.home.observationDescription} <a href="/api">Bitcoin Price API</a> · <a href="/bitcoin-price-updates">Price source and methodology</a></p>
+        <div className="market-ctas">
+          <a href="/api/price?currency=USD" className="market-cta">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <path d="M3 10h14M3 5h14M3 15h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+            <span>Get price as JSON</span>
+          </a>
+          <a href="/studio" className="market-cta">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <rect x="2" y="2" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="2"/>
+              <path d="M6 10h8M10 6v8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+            <span>Create a widget</span>
+          </a>
+        </div>
         <div className="market-history">
           <div className="history-toolbar"><h2>Price history</h2><div className="pill-controls" role="group" aria-label="Chart range">{HISTORY_RANGES.map(value => <button key={value} type="button" aria-pressed={range === value} onClick={() => setRange(value)}>{value.toUpperCase()}</button>)}</div></div>
           {price && currency === "USD" && (price.high24h || price.low24h || price.volume24h) && (
@@ -89,10 +116,10 @@ export function HomePage() {
       <section className="public-section faq-section" id="data" aria-labelledby="faq-title"><div className="section-intro"><div><p className="section-kicker">Good to know</p><h2 id="faq-title">Simple tools. Clear sources.</h2></div><p>Live Bitcoin prices for the people watching, building and broadcasting.</p></div>
         <details><summary>Is PRICEB.TC free?</summary><p>Yes. Create and publish widgets without an account. Sponsorship is optional and separate.</p></details>
         <details><summary>Does it work with OBS and Streamlabs?</summary><p>Use the overlay URL as a Browser Source with a transparent background. Customize it in the Studio.</p></details>
-        <details><summary>Where does the price come from?</summary><p>Coinbase Exchange supplies BTC/USD trades and historical data. ExchangeRate-API supplies daily fiat conversions. Connection status and timestamps show when data is delayed.</p></details>
+        <details><summary>Why not Binance or Lemon?</summary><p>This service uses Coinbase BTC-USD only. ARS, BRL, and MXN prices are indicative conversions from USD using daily exchange rates. This is not financial advice.</p></details>
         <details><summary>How do sponsors work?</summary><p>One paid space beside the price. Once Lightning payments open, confirmed payments add to a participant’s daily total. The highest total leads until someone outbids it. Rounds reset at 00:00 UTC. <a href="/rules">Read the rules ↗</a></p></details>
       </section>
     </main>
-    <footer className="public-footer"><div><a href="/" className="footer-wordmark">PRICEB.TC</a><p>Bitcoin, in view.</p></div><nav aria-label="Footer navigation"><a href="/about">About</a><a href="/faq">FAQ</a><a href="/api">Bitcoin Price API</a><a href="/bitcoin-price-updates">Price updates</a><a href="/bitcoin-price-widget">Widget guide</a><a href="/bitcoin-obs-overlay">OBS guide</a><a href="/studio">Studio</a><a href="/leaderboard">Leaderboard</a><a href="/history">History</a><a href="/rules">Rules</a><a href={`mailto:${siteContent.contactEmail}`}>{siteContent.contactEmail}</a></nav><p>Indicative market data · Not financial advice · FX by <a href="https://www.exchangerate-api.com" target="_blank" rel="noreferrer">ExchangeRate-API</a></p></footer>
+    <footer className="public-footer"><div><a href="/" className="footer-wordmark">PRICEB.TC</a><p>Bitcoin, in view.</p></div><nav aria-label="Footer navigation"><a href="/sponsors">Sponsor</a><a href="/status">Status</a><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="/studio">Studio</a><a href="/about">About</a><a href="/faq">FAQ</a><a href="/api">API</a><a href={`mailto:${siteContent.contactEmail}`}>Contact</a></nav><p>Indicative market data · Not financial advice · FX by <a href="https://www.exchangerate-api.com" target="_blank" rel="noreferrer">ExchangeRate-API</a></p></footer>
   </div>;
 }
