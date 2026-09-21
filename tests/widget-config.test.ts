@@ -11,11 +11,11 @@ import {
 } from "../src/shared/widget-config.js";
 
 describe("widget config", () => {
-  it("ships Solarized tactical defaults", () => {
+  it("ships charcoal surface defaults", () => {
     expect(DEFAULT_EMBED_CONFIG).toMatchObject({
       accent: "CB4B16",
       text: "FDF6E3",
-      surface: "002B36",
+      surface: "0D1012",
       font: "mono",
     });
   });

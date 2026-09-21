@@ -44,9 +44,6 @@ export function HomePage() {
   const status = live ? "Live" : connectionState === "connecting" ? "Connecting" : price ? "Stale" : "Unavailable";
   const relativeTime = price ? formatRelativeTime(price.marketTimestamp) : null;
   const satsPerDollar = price && Number(price.priceUsd) > 0 ? Math.round(100_000_000 / Number(price.priceUsd)).toLocaleString("en-US") : "—";
-  const volume24hDisplay = price?.volume24h ? `${Number(price.volume24h).toFixed(2)} BTC` : "—";
-  const volume24hUsdDisplay = price?.volume24hUsd ? `$${Number(price.volume24hUsd).toLocaleString("en-US", { maximumFractionDigits: 0 })}` : null;
-  
   const isIndicative = currencies.find((c) => c.code === currency)?.indicative ?? false;
 
   function setCurrency(value: string) {

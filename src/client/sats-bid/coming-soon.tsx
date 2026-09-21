@@ -1,6 +1,5 @@
 import { SponsorInventory } from "./inventory.js";
-import { createPortal } from "react-dom";
-import { BidShell, EmptySponsorCTA } from "./components.js";
+import { BidShell } from "./components.js";
 
 export function SponsorExplanation() {
   return (
