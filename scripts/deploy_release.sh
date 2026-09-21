@@ -1,60 +1,103 @@
 #!/usr/bin/env bash
-set -euo pipefail
-
+set -Eeuo pipefail
+export PATH="/home/diego/.local/bin:/usr/local/bin:/usr/bin:/bin"
 project_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$project_dir"
-rtk npm ci
-rtk npm run typecheck
-rtk npm run lint
-rtk npm test
-rtk npm run build:preview
-
-rtk sudo install -d -o diego -g diego -m 0750 /var/lib/pricebtc
-rtk sudo install -d -o root -g root -m 0755 /etc/pricebtc
-if ! rtk sudo test -f /etc/pricebtc/pricebtc.env; then
-  rtk sudo install -o root -g root -m 0600 deploy/pricebtc.env /etc/pricebtc/pricebtc.env
+mkdir -p .data/releases .data/deployment-backups
+if [ "${1:-}" != "--lock-held" ]; then
+  exec 9>.data/deploy.lock
+  flock -w 1800 9
 fi
-if rtk sudo /usr/bin/node --env-file=/etc/pricebtc/pricebtc.env -e 'process.exit(process.env.DATABASE_URL ? 0 : 1)'; then
-  rtk sudo /usr/bin/node --env-file=/etc/pricebtc/pricebtc.env --import tsx scripts/sats-db.ts
-fi
+transaction="$project_dir/.data/deployment-transaction"
 
-release_stamp="$(date -u +%Y%m%dT%H%M%SZ)"
+verify() {
+  local base="$1" directory="$2"
+  for attempt in {1..12}; do
+    if node "$project_dir/scripts/verify-release.mjs" "$base" "$directory"; then return 0; fi
+    sleep 5
+  done
+  return 1
+}
+
+restore_transaction() {
+  local backup
+  backup="$(cat "$transaction")" || return 1
+  echo "Restoring previous release from $backup"
+  sudo -n systemctl stop pricebtc.service || return 1
+  if [ -e "$backup/dist" ] || [ -L "$backup/dist" ]; then
+    # Only remove the symlink created by deployment, never release contents.
+    if [ -L dist ]; then unlink dist || return 1; fi
+    mv "$backup/dist" dist || return 1
+  fi
+  sudo -n systemctl start pricebtc.service || return 1
+  if [ -f "$backup/worker-active" ]; then sudo -n systemctl restart pricebtc-worker.service || return 1; fi
+  verify http://127.0.0.1:3466 "$project_dir/dist" || return 1
+  verify https://priceb.tc "$project_dir/dist" || return 1
+  rm "$transaction" || return 1
+  echo "Previous release restored and verified"
+}
+
+# Recover a cutover interrupted by a process or host crash before accepting new work.
+if [ -f "$transaction" ]; then restore_transaction; fi
+if [ -n "$(git status --porcelain)" ]; then
+  echo "Refusing deployment: checkout has local changes"
+  exit 1
+fi
+revision="$(git rev-parse HEAD)"
+release_stamp="$(date -u +%Y%m%dT%H%M%S)-${revision:0:12}-$$"
 release_dir="$project_dir/.data/releases/$release_stamp"
 backup_dir="$project_dir/.data/deployment-backups/pricebtc-$release_stamp"
-rtk mkdir -p "$release_dir" "$backup_dir"
-rtk cp -a .data/sats-preview/client "$release_dir/client"
-rtk cp -a .data/sats-preview/server "$release_dir/server"
-rtk sudo install -o root -g root -m 0644 deploy/pricebtc.service /etc/systemd/system/pricebtc.service
-rtk sudo install -o root -g root -m 0644 deploy/pricebtc-worker.service /etc/systemd/system/pricebtc-worker.service
-rtk sudo install -d -m 0755 /etc/systemd/journald@pricebtc.conf.d
-rtk sudo install -o root -g root -m 0644 deploy/pricebtc-journal.conf /etc/systemd/journald@pricebtc.conf.d/retention.conf
-rtk sudo install -o root -g root -m 0644 deploy/pricebtc-backup.service /etc/systemd/system/pricebtc-backup.service
-rtk sudo install -o root -g root -m 0644 deploy/pricebtc-backup.timer /etc/systemd/system/pricebtc-backup.timer
-rtk sudo systemctl daemon-reload
+build_dir="$project_dir/.data/builds/$release_stamp"
+mkdir -p "$build_dir" "$backup_dir"
+git archive "$revision" | tar -x -C "$build_dir"
+(
+  cd "$build_dir"
+  rtk npm ci
+  rtk npm run typecheck
+  rtk npm run lint
+  rtk npm test
+  rtk npm run test:deployment
+  PRICEBTC_PREVIEW_DIR="$build_dir/output" rtk npm run build:preview
+  if [ "${PRICEBTC_AUTO_DEPLOY:-false}" != true ] && sudo -n /usr/bin/node --env-file=/etc/pricebtc/pricebtc.env -e 'process.exit(process.env.DATABASE_URL ? 0 : 1)'; then
+    sudo -n /usr/bin/node --env-file=/etc/pricebtc/pricebtc.env --import tsx scripts/sats-db.ts
+  fi
+)
+# Build dependencies belong to this release; failed builds never touch live dependencies.
+mv "$build_dir/output" "$release_dir"
+mv "$build_dir/node_modules" "$release_dir/node_modules"
+cp "$build_dir/package.json" "$release_dir/package.json"
+printf '%s\n' "$revision" > "$release_dir/REVISION"
+if [ "$(git rev-parse HEAD)" != "$revision" ] || [ -n "$(git status --porcelain)" ]; then
+  echo "Checkout changed during build; refusing activation"
+  exit 1
+fi
+if systemctl is-active --quiet pricebtc-worker.service; then touch "$backup_dir/worker-active"; fi
+if [ -L dist ]; then cp -a dist "$backup_dir/dist";
+elif [ -e dist ]; then echo "Expected dist to be a release symlink; migrate manually first"; exit 1;
+else echo "No previous release available for rollback"; exit 1; fi
 
 rollback() {
-  rtk sudo systemctl stop pricebtc.service || true
-  if [ -L dist ] && [ "$(readlink dist)" = "$release_dir" ]; then
-    rtk rm dist
+  local code="$?"
+  trap - ERR TERM INT
+  if [ -f "$transaction" ]; then
+    if ! restore_transaction; then echo "ROLLBACK FAILED: intervention required; $transaction retained"; fi
   fi
-  if [ -e "$backup_dir/dist" ] || [ -L "$backup_dir/dist" ]; then
-    rtk mv "$backup_dir/dist" dist
-    rtk sudo systemctl start pricebtc.service
-  fi
+  exit "$code"
 }
-rtk sudo systemctl stop pricebtc.service
-if [ -e dist ] || [ -L dist ]; then rtk mv dist "$backup_dir/dist"; fi
 trap rollback ERR
-ln -s "$release_dir" dist
-rtk sudo systemctl enable --now pricebtc.service
-for attempt in 1 2 3 4 5; do
-  if rtk curl --fail --silent --show-error --max-time 10 http://127.0.0.1:3466/healthz; then break; fi
-  if [ "$attempt" = 5 ]; then false; fi
-  sleep 2
-done
-trap - ERR
-if rtk sudo /usr/bin/node --env-file=/etc/pricebtc/pricebtc.env -e 'process.exit(process.env.SATS_WORKER_ENABLED === "true" ? 0 : 1)'; then
-  rtk sudo systemctl enable --now pricebtc-worker.service
-  rtk sudo systemctl restart pricebtc-worker.service
-  rtk sudo systemctl enable --now pricebtc-backup.timer
-fi
+trap 'false' TERM INT
+printf '%s\n' "$backup_dir" > "$transaction.tmp"
+mv "$transaction.tmp" "$transaction"
+sync -f "$transaction"
+sudo -n systemctl stop pricebtc.service
+if [ -L "$project_dir/.data/dist-next" ]; then unlink "$project_dir/.data/dist-next"; fi
+ln -s "$release_dir" "$project_dir/.data/dist-next"
+mv -Tf "$project_dir/.data/dist-next" dist
+sudo -n systemctl start pricebtc.service
+if [ -f "$backup_dir/worker-active" ]; then sudo -n systemctl restart pricebtc-worker.service; fi
+verify http://127.0.0.1:3466 "$release_dir"
+verify https://priceb.tc "$release_dir"
+printf '%s\n' "$(date -u +%FT%TZ)" > "$release_dir/VERIFIED"
+rm "$transaction"
+trap - ERR TERM INT
+printf 'Published=%s release=%s previous=%s\n' "$revision" "$release_dir" "$backup_dir/dist"
