@@ -248,6 +248,11 @@ function registerFrontend(app: FastifyInstance, options: BuildAppOptions): void 
     ["/history", "history/index.html"],
     ["/rules", "rules/index.html"],
     ["/admin", "admin/index.html"],
+    ["/pricing", "pricing/index.html"],
+    ["/sponsors", "sponsors/index.html"],
+    ["/status", "status/index.html"],
+    ["/terms", "terms/index.html"],
+    ["/privacy", "privacy/index.html"],
   ]);
 
   for (const [route, filename] of documents) {
