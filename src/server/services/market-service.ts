@@ -12,6 +12,9 @@ const TICKER_SCHEMA = z
     product_id: z.literal("BTC-USD"),
     price: z.string().regex(/^\d+(?:\.\d+)?$/),
     open_24h: z.string().regex(/^\d+(?:\.\d+)?$/),
+    high_24h: z.string().regex(/^\d+(?:\.\d+)?$/).optional(),
+    low_24h: z.string().regex(/^\d+(?:\.\d+)?$/).optional(),
+    volume_24h: z.string().regex(/^\d+(?:\.\d+)?$/).optional(),
     time: z.string(),
     sequence: z.number().int().nonnegative().optional(),
   })
@@ -70,9 +73,9 @@ export function parseTickerMessage(rawMessage: string, receivedAt: string): Mark
   return {
     priceUsd: parsed.data.price,
     change24h: price.minus(open).div(open).mul(100).toNumber(),
-    high24h: null,
-    low24h: null,
-    volume24h: null,
+    high24h: parsed.data.high_24h ?? null,
+    low24h: parsed.data.low_24h ?? null,
+    volume24h: parsed.data.volume_24h ?? null,
     marketTimestamp: parsed.data.time,
     receivedAt,
     sequence: parsed.data.sequence ?? null,

@@ -16,7 +16,7 @@ export function createPricePayload(options: CreatePricePayloadOptions): PriceObs
 
   const high24h = options.snapshot.high24h ? options.convertUsd(options.snapshot.high24h) : null;
   const low24h = options.snapshot.low24h ? options.convertUsd(options.snapshot.low24h) : null;
-  const volume24h = options.snapshot.volume24h;
+  const volume24h = options.snapshot.volume24h ?? null;
   const volume24hUsd = options.snapshot.volume24h && options.snapshot.priceUsd
     ? String(Number(options.snapshot.volume24h) * Number(options.snapshot.priceUsd))
     : null;

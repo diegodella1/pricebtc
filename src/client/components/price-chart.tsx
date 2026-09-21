@@ -23,7 +23,8 @@ const PADDING = 8;
 const VOLUME_HEIGHT_RATIO = 0.25;
 
 function getGeometry(points: HistoryPoint[], showVolume: boolean): ChartGeometry | null {
-  const values = points.map(({ price }) => Number(price)).filter(Number.isFinite);
+  const validPoints = points.filter(({ price }) => Number.isFinite(Number(price)));
+  const values = validPoints.map(({ price }) => Number(price));
   if (values.length < 2) return null;
 
   let minimum = values[0] ?? 0;
@@ -33,7 +34,7 @@ function getGeometry(points: HistoryPoint[], showVolume: boolean): ChartGeometry
     if (value > maximum) maximum = value;
   }
   const spread = maximum - minimum || Math.max(Math.abs(maximum) * 0.01, 1);
-  
+
   const priceHeight = showVolume ? HEIGHT * (1 - VOLUME_HEIGHT_RATIO) : HEIGHT;
   const usablePriceHeight = priceHeight - PADDING * 2;
   const usableWidth = WIDTH - PADDING * 2;
@@ -48,7 +49,10 @@ function getGeometry(points: HistoryPoint[], showVolume: boolean): ChartGeometry
 
   let volumes: Array<{ x: number; height: number; width: number }> = [];
   if (showVolume && points.length > 0) {
-    const volumeValues = points.map(({ volume }) => Number(volume)).filter(Number.isFinite);
+    const volumeValues = validPoints.map(({ volume }) => {
+      const value = Number(volume);
+      return Number.isFinite(value) && value >= 0 ? value : 0;
+    });
     const maxVolume = Math.max(...volumeValues, 1);
     const volumeTop = priceHeight + PADDING;
     const volumeBottom = HEIGHT - PADDING;

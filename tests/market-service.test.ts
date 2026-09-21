@@ -3,6 +3,14 @@ import { describe, expect, it } from "vitest";
 import { parseTickerMessage } from "../src/server/services/market-service.js";
 
 describe("parseTickerMessage", () => {
+  it("preserves 24-hour statistics from live ticker updates", () => {
+    const snapshot = parseTickerMessage(JSON.stringify({
+      type: "ticker", product_id: "BTC-USD", price: "100000", open_24h: "99000",
+      high_24h: "102000", low_24h: "98000", volume_24h: "123.456",
+      time: "2026-09-21T17:00:00Z",
+    }), "2026-09-21T17:00:01Z");
+    expect(snapshot).toMatchObject({ high24h: "102000", low24h: "98000", volume24h: "123.456" });
+  });
   it("normalizes Coinbase ticker messages", () => {
     const snapshot = parseTickerMessage(
       JSON.stringify({
