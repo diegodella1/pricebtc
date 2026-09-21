@@ -4,6 +4,31 @@ export function escapeHtml(value: string): string {
   return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;");
 }
 
+export function injectOgMeta(html: string, price: PricePayload | null, currency: string = "USD"): string {
+  if (!price) return html;
+
+  const priceFormatted = Number(price.price).toLocaleString("en-US", {
+    style: "currency",
+    currency: currency,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  });
+  const change24h = price.change24h >= 0 ? `+${price.change24h.toFixed(2)}%` : `${price.change24h.toFixed(2)}%`;
+  
+  const title = `Bitcoin ${priceFormatted} ${change24h} (24h) | PRICEB.TC`;
+  const description = `Bitcoin (BTC) is trading at ${priceFormatted} on Coinbase, ${change24h} in the last 24 hours. Live market data updated ${price.status === "live" ? "now" : "recently"}.`;
+  const ogImageUrl = `https://priceb.tc/og-image.png?currency=${currency}`;
+
+  return html
+    .replace(/<meta property="og:title" content="[^"]*"/, `<meta property="og:title" content="${escapeHtml(title)}"`)
+    .replace(/<meta property="og:description" content="[^"]*"/, `<meta property="og:description" content="${escapeHtml(description)}"`)
+    .replace(/<meta property="og:image" content="[^"]*"/, `<meta property="og:image" content="${ogImageUrl}"`)
+    .replace(/<meta name="twitter:title" content="[^"]*"/, `<meta name="twitter:title" content="${escapeHtml(title)}"`)
+    .replace(/<meta name="twitter:description" content="[^"]*"/, `<meta name="twitter:description" content="${escapeHtml(description)}"`)
+    .replace(/<meta name="twitter:image" content="[^"]*"/, `<meta name="twitter:image" content="${ogImageUrl}"`)
+    .replace(/<title>[^<]*<\/title>/, `<title>${escapeHtml(title)}</title>`);
+}
+
 /** A timestamped observation shared by visitors and crawlers, never a build-time quote. */
 export function renderPriceSnapshot(price: PricePayload | null): string {
   if (!price) return '<p role="status">Price unavailable. Waiting for market data.</p>';

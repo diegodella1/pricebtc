@@ -304,3 +304,10 @@ body:has(.public-site)::before, body:has(.public-site)::after, body:has(.studio-
   .market-cta { min-width: 100%; }
 }
 
+/* Currency chips (Home P1) */
+.currency-chips { display: flex; gap: 8px; margin: 0 0 12px; }
+.currency-chip { padding: 8px 16px; min-height: 40px; border: 1px solid var(--line); border-radius: 20px; background: transparent; color: var(--text-muted); font: 600 14px var(--font-mono); cursor: pointer; transition: all 0.15s ease; }
+.currency-chip:hover { border-color: var(--accent); color: var(--text); }
+.currency-chip--active { background: var(--accent); border-color: var(--accent); color: #0d1012; }
+.currency-disclaimer { font-size: 13px; color: var(--text-muted); margin: 0 0 20px; font-style: italic; }
+
