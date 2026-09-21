@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { SiteHeader } from "../components/site-header.js";
+import { formatRelativeTime } from "../lib/format.js";
 
 interface HealthCheck {
   status: "ok" | "degraded";
@@ -51,20 +52,8 @@ export function StatusPage() {
                 ? "degraded"
                 : "outage",
           detail: health.market.lastUpdateAt
-            ? `Last update: ${new Date(health.market.lastUpdateAt).toLocaleString()}`
+            ? `Last update: ${formatRelativeTime(health.market.lastUpdateAt)}`
             : undefined,
-        },
-        {
-          name: "History API",
-          status: health.status === "ok" ? "operational" : "degraded",
-        },
-        {
-          name: "JSON API",
-          status: "operational",
-        },
-        {
-          name: "Widgets",
-          status: "operational",
         },
         {
           name: "FX Rates",
@@ -75,19 +64,21 @@ export function StatusPage() {
                 ? "degraded"
                 : "outage",
           detail: health.fx.updatedAt
-            ? `Updated: ${new Date(health.fx.updatedAt).toLocaleString()}`
+            ? `Updated: ${formatRelativeTime(health.fx.updatedAt)}`
             : undefined,
         },
       ]
     : [];
 
-  const overallStatus = health
-    ? health.status === "ok"
-      ? "operational"
-      : "degraded"
+  const overallStatus = loading
+    ? "checking"
     : error
       ? "outage"
-      : "operational";
+      : health
+        ? health.status === "ok"
+          ? "operational"
+          : "degraded"
+        : "checking";
 
   return (
     <div className="site-shell public-site">
@@ -98,6 +89,7 @@ export function StatusPage() {
 
         <div className="status-hero">
           <div className={`status-badge status-badge--${overallStatus}`}>
+            {overallStatus === "checking" && "⋯ Checking Status"}
             {overallStatus === "operational" && "✓ All Systems Operational"}
             {overallStatus === "degraded" && "⚠ Degraded Performance"}
             {overallStatus === "outage" && "✗ Service Outage"}
