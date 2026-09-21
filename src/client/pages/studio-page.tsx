@@ -35,7 +35,11 @@ const COLOR_KEYS: ColorKey[] = ["accent", "text", "surface"];
 function getInitialStudioState(): StudioState {
   const params = new URLSearchParams(window.location.search);
   const mode: WidgetMode = params.get("mode") === "overlay" ? "overlay" : "embed";
-  const activeTab = params.get("tab") === "share" ? "share" : mode === "overlay" ? "obs" : "embed";
+  const tabParam = params.get("tab");
+  const activeTab: StudioState["activeTab"] = 
+    tabParam === "embed" ? "embed" :
+    tabParam === "obs" ? "obs" :
+    tabParam === "share" ? "share" : "preview";
   return {
     activeTab,
     mode,
@@ -53,7 +57,7 @@ function getEffectiveColors(config: WidgetConfig): Record<ColorKey, string> {
   if (config.theme === "light") {
     return { accent: config.accent, text: "002B36", surface: "FDF6E3" };
   }
-  return { accent: config.accent, text: "FDF6E3", surface: "002B36" };
+  return { accent: config.accent, text: "FDF6E3", surface: "0D1012" };
 }
 
 export function StudioPage() {
@@ -234,124 +238,129 @@ export function StudioPage() {
           </section>
 
           <section className="studio-controls" aria-labelledby="studio-controls-title">
-            <h2 id="studio-controls-title" className="visually-hidden">Widget controls</h2>
-
-            <fieldset className="control-group">
-              <legend>Content</legend>
-              <CurrencySelect currencies={currencies} value={config.currency} onChange={(value) => updateConfig("currency", value)} id="studio-currency" compact />
-              <label className={`studio-field${chartSupported ? "" : " is-disabled"}`}>
-                <span>CHART RANGE</span>
-                <select
-                  name="studio-chart-range"
-                  autoComplete="off"
-                  value={config.range}
-                  disabled={!chartSupported}
-                  aria-describedby={!chartSupported ? "chart-capability-note" : undefined}
-                  onChange={(event) => updateConfig("range", event.target.value as WidgetConfig["range"])}
-                >
-                  {HISTORY_RANGES.map((range) => <option key={range} value={range}>{range.toUpperCase()}</option>)}
-                </select>
-              </label>
-              <div className="toggle-row">
-                <label>
-                  <input name="studio-show-change" type="checkbox" checked={config.showChange} onChange={(event) => updateConfig("showChange", event.target.checked)} />
-                  <span aria-hidden="true" /> 24H CHANGE
-                </label>
-                <label className={chartSupported ? "" : "is-disabled"}>
-                  <input
-                    name="studio-show-chart"
-                    type="checkbox"
-                    checked={config.showChart}
-                    disabled={!chartSupported}
-                    aria-describedby={!chartSupported ? "chart-capability-note" : undefined}
-                    onChange={(event) => updateConfig("showChart", event.target.checked)}
-                  />
-                  <span aria-hidden="true" /> CHART
-                </label>
-                <label className={chartSupported && historyEnabled && config.currency === "USD" ? "" : "is-disabled"}>
-                  <input
-                    name="studio-show-volume"
-                    type="checkbox"
-                    checked={config.showVolume}
-                    disabled={!chartSupported || !historyEnabled || config.currency !== "USD"}
-                    aria-describedby={!chartSupported || !historyEnabled || config.currency !== "USD" ? "volume-capability-note" : undefined}
-                    onChange={(event) => updateConfig("showVolume", event.target.checked)}
-                  />
-                  <span aria-hidden="true" /> VOLUME
-                </label>
-              </div>
-              {!chartSupported ? <p className="control-hint" id="chart-capability-note">NOT AVAILABLE IN THIS LAYOUT</p> : null}
-              {chartSupported && config.currency !== "USD" ? <p className="control-hint" id="volume-capability-note">VOLUME AVAILABLE FOR USD ONLY</p> : null}
-            </fieldset>
-
-            <fieldset className="control-group">
-              <legend>Appearance</legend>
-              <span className="studio-label">Theme</span>
-              <div className="segmented-control">
-                {WIDGET_THEMES.map((theme) => (
-                  <button key={theme} aria-pressed={config.theme === theme} className={config.theme === theme ? "is-active" : ""} type="button" onClick={() => updateConfig("theme", theme)}>{theme.toUpperCase()}</button>
-                ))}
-              </div>
-              <div className="color-grid">
-                {COLOR_KEYS.map((colorKey) => {
-                  const editable = colorKey === "accent" || config.theme === "custom";
-                  const value = effectiveColors[colorKey];
-                  return (
-                    <label key={colorKey} className={editable ? "" : "is-disabled"}>
-                      <span>{colorKey.toUpperCase()}</span>
-                      <i style={{ backgroundColor: `#${value}` }}>
-                        <input
-                          name={`studio-${colorKey}-color`}
-                          type="color"
-                          value={`#${value}`}
-                          disabled={!editable}
-                          aria-describedby={!editable ? "custom-color-note" : undefined}
-                          onChange={(event) => updateConfig(colorKey, event.target.value.slice(1).toUpperCase())}
-                        />
-                      </i>
-                      <code translate="no">#{value}</code>
+            <details className="studio-controls-accordion" open>
+              <summary>
+                <h2 id="studio-controls-title">Customize widget</h2>
+              </summary>
+              <div className="studio-controls-content">
+                <fieldset className="control-group">
+                  <legend>Content</legend>
+                  <CurrencySelect currencies={currencies} value={config.currency} onChange={(value) => updateConfig("currency", value)} id="studio-currency" compact />
+                  <label className={`studio-field${chartSupported ? "" : " is-disabled"}`}>
+                    <span>CHART RANGE</span>
+                    <select
+                      name="studio-chart-range"
+                      autoComplete="off"
+                      value={config.range}
+                      disabled={!chartSupported}
+                      aria-describedby={!chartSupported ? "chart-capability-note" : undefined}
+                      onChange={(event) => updateConfig("range", event.target.value as WidgetConfig["range"])}
+                    >
+                      {HISTORY_RANGES.map((range) => <option key={range} value={range}>{range.toUpperCase()}</option>)}
+                    </select>
+                  </label>
+                  <div className="toggle-row">
+                    <label>
+                      <input name="studio-show-change" type="checkbox" checked={config.showChange} onChange={(event) => updateConfig("showChange", event.target.checked)} />
+                      <span aria-hidden="true" /> 24H CHANGE
                     </label>
-                  );
-                })}
+                    <label className={chartSupported ? "" : "is-disabled"}>
+                      <input
+                        name="studio-show-chart"
+                        type="checkbox"
+                        checked={config.showChart}
+                        disabled={!chartSupported}
+                        aria-describedby={!chartSupported ? "chart-capability-note" : undefined}
+                        onChange={(event) => updateConfig("showChart", event.target.checked)}
+                      />
+                      <span aria-hidden="true" /> CHART
+                    </label>
+                    <label className={chartSupported && historyEnabled && config.currency === "USD" ? "" : "is-disabled"}>
+                      <input
+                        name="studio-show-volume"
+                        type="checkbox"
+                        checked={config.showVolume}
+                        disabled={!chartSupported || !historyEnabled || config.currency !== "USD"}
+                        aria-describedby={!chartSupported || !historyEnabled || config.currency !== "USD" ? "volume-capability-note" : undefined}
+                        onChange={(event) => updateConfig("showVolume", event.target.checked)}
+                      />
+                      <span aria-hidden="true" /> VOLUME
+                    </label>
+                  </div>
+                  {!chartSupported ? <p className="control-hint" id="chart-capability-note">NOT AVAILABLE IN THIS LAYOUT</p> : null}
+                  {chartSupported && config.currency !== "USD" ? <p className="control-hint" id="volume-capability-note">VOLUME AVAILABLE FOR USD ONLY</p> : null}
+                </fieldset>
+
+                <fieldset className="control-group">
+                  <legend>Appearance</legend>
+                  <span className="studio-label">Theme</span>
+                  <div className="segmented-control">
+                    {WIDGET_THEMES.map((theme) => (
+                      <button key={theme} aria-pressed={config.theme === theme} className={config.theme === theme ? "is-active" : ""} type="button" onClick={() => updateConfig("theme", theme)}>{theme.toUpperCase()}</button>
+                    ))}
+                  </div>
+                  <div className="color-grid">
+                    {COLOR_KEYS.map((colorKey) => {
+                      const editable = colorKey === "accent" || config.theme === "custom";
+                      const value = effectiveColors[colorKey];
+                      return (
+                        <label key={colorKey} className={editable ? "" : "is-disabled"}>
+                          <span>{colorKey.toUpperCase()}</span>
+                          <i style={{ backgroundColor: `#${value}` }}>
+                            <input
+                              name={`studio-${colorKey}-color`}
+                              type="color"
+                              value={`#${value}`}
+                              disabled={!editable}
+                              aria-describedby={!editable ? "custom-color-note" : undefined}
+                              onChange={(event) => updateConfig(colorKey, event.target.value.slice(1).toUpperCase())}
+                            />
+                          </i>
+                          <code translate="no">#{value}</code>
+                        </label>
+                      );
+                    })}
+                  </div>
+                  {config.theme !== "custom" ? <p className="control-hint" id="custom-color-note">SELECT CUSTOM TO EDIT TEXT &amp; SURFACE</p> : null}
+                  {config.theme === "custom" ? (
+                    <div className="contrast-matrix" aria-label="Custom theme contrast checks">
+                      {config.background === "transparent" ? (
+                        <span>CONTRAST // HOST DEPENDENT</span>
+                      ) : (
+                        <>
+                          <span className={textContrast.passesAa ? "is-pass" : "is-warning"}>TEXT {textContrast.label}</span>
+                          <span className={accentContrast.passesAa ? "is-pass" : "is-warning"}>ACCENT {accentContrast.label}</span>
+                        </>
+                      )}
+                    </div>
+                  ) : null}
+                  <details className="studio-advanced"><summary>Advanced appearance</summary>
+                  <div className="studio-field-grid">
+                    <label className="studio-field">
+                      <span>TYPE</span>
+                      <select name="studio-font" autoComplete="off" value={config.font} onChange={(event) => updateConfig("font", event.target.value as WidgetConfig["font"])}>
+                        {WIDGET_FONTS.map((font) => <option key={font} value={font}>{font.toUpperCase()}</option>)}</select>
+                    </label>
+                    <label className="studio-field">
+                      <span>BACKGROUND</span>
+                      <select name="studio-background" autoComplete="off" value={config.background} onChange={(event) => updateConfig("background", event.target.value as WidgetConfig["background"])}>
+                        <option value="solid">SOLID</option><option value="transparent">TRANSPARENT</option>
+                      </select>
+                    </label>
+                  </div>
+                  <label className="range-control">
+                    <span>SCALE <output>{config.scale}%</output></span>
+                    <input name="studio-scale" type="range" min="75" max="200" step="5" value={config.scale} onChange={(event) => updateConfig("scale", Number(event.target.value))} />
+                  </label>
+                  <label className="studio-field">
+                    <span>MOTION</span>
+                    <select name="studio-motion" autoComplete="off" value={config.motion} onChange={(event) => updateConfig("motion", event.target.value as WidgetConfig["motion"])}>
+                      {MOTION_LEVELS.map((motion) => <option key={motion} value={motion}>{motion.toUpperCase()}</option>)}</select>
+                  </label>
+                  </details>
+                </fieldset>
               </div>
-              {config.theme !== "custom" ? <p className="control-hint" id="custom-color-note">SELECT CUSTOM TO EDIT TEXT &amp; SURFACE</p> : null}
-              {config.theme === "custom" ? (
-                <div className="contrast-matrix" aria-label="Custom theme contrast checks">
-                  {config.background === "transparent" ? (
-                    <span>CONTRAST // HOST DEPENDENT</span>
-                  ) : (
-                    <>
-                      <span className={textContrast.passesAa ? "is-pass" : "is-warning"}>TEXT {textContrast.label}</span>
-                      <span className={accentContrast.passesAa ? "is-pass" : "is-warning"}>ACCENT {accentContrast.label}</span>
-                    </>
-                  )}
-                </div>
-              ) : null}
-              <details className="studio-advanced"><summary>Advanced appearance</summary>
-              <div className="studio-field-grid">
-                <label className="studio-field">
-                  <span>TYPE</span>
-                  <select name="studio-font" autoComplete="off" value={config.font} onChange={(event) => updateConfig("font", event.target.value as WidgetConfig["font"])}>
-                    {WIDGET_FONTS.map((font) => <option key={font} value={font}>{font.toUpperCase()}</option>)}</select>
-                </label>
-                <label className="studio-field">
-                  <span>BACKGROUND</span>
-                  <select name="studio-background" autoComplete="off" value={config.background} onChange={(event) => updateConfig("background", event.target.value as WidgetConfig["background"])}>
-                    <option value="solid">SOLID</option><option value="transparent">TRANSPARENT</option>
-                  </select>
-                </label>
-              </div>
-              <label className="range-control">
-                <span>SCALE <output>{config.scale}%</output></span>
-                <input name="studio-scale" type="range" min="75" max="200" step="5" value={config.scale} onChange={(event) => updateConfig("scale", Number(event.target.value))} />
-              </label>
-              <label className="studio-field">
-                <span>MOTION</span>
-                <select name="studio-motion" autoComplete="off" value={config.motion} onChange={(event) => updateConfig("motion", event.target.value as WidgetConfig["motion"])}>
-                  {MOTION_LEVELS.map((motion) => <option key={motion} value={motion}>{motion.toUpperCase()}</option>)}</select>
-              </label>
-              </details>
-            </fieldset>
+            </details>
           </section>
         </div>
 

@@ -3,18 +3,18 @@
   background: #0d1012;
   --background: #0d1012;
   --surface: #14181c;
-  --text: #f2f2f3;
-  --text-muted: #a4a9b1;
+  --text: #fdf6e3;
+  --text-muted: #93a1a1;
   --line: #343a42;
   --line-soft: #262b31;
   --accent: #cb4b16;
-  --studio-action: #a63c10;
+  --studio-action: #cb4b16;
   --solar-base00: #93a1a1;
   --solar-base01: #737b85;
-  --solar-base0: #a4a9b1;
-  --solar-base1: #a4a9b1;
+  --solar-base0: #93a1a1;
+  --solar-base1: #93a1a1;
   --solar-base2: #e3e4e6;
-  --solar-base3: #f2f2f3;
+  --solar-base3: #fdf6e3;
   --solar-base03: #0d1012;
   --solar-base02: #14181c;
   --solar-cyan: #2aa198;
@@ -402,6 +402,52 @@
 .studio-controls {
   padding: 0;
   background: var(--background);
+}
+
+.studio-controls-accordion {
+  border: 0;
+}
+
+.studio-controls-accordion summary {
+  display: none;
+  min-height: 3.5rem;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--line);
+  color: var(--text);
+  cursor: pointer;
+  background: var(--surface);
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  list-style: none;
+  text-transform: uppercase;
+  user-select: none;
+}
+
+.studio-controls-accordion summary::-webkit-details-marker {
+  display: none;
+}
+
+.studio-controls-accordion summary::before {
+  content: "▾ ";
+  margin-right: 0.5rem;
+  color: var(--accent);
+}
+
+.studio-controls-accordion:not([open]) summary::before {
+  content: "▸ ";
+}
+
+.studio-controls-accordion summary h2 {
+  display: inline;
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.studio-controls-content {
+  display: block;
 }
 
 .control-group {
@@ -949,6 +995,25 @@
   .preview-stage {
     min-height: 18rem;
     padding: 1.5rem;
+  }
+
+  .preview-action {
+    position: sticky;
+    bottom: 0;
+    z-index: 20;
+    margin: 0 -1rem;
+    padding: 1rem;
+    border-top: 1px solid var(--line);
+    background: rgba(13, 16, 18, 0.95);
+    backdrop-filter: blur(12px);
+  }
+
+  .studio-controls-accordion summary {
+    display: block;
+  }
+
+  .studio-controls-accordion:not([open]) .studio-controls-content {
+    display: none;
   }
 
   .preset-grid {
