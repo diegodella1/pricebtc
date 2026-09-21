@@ -77,6 +77,12 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     max: 120,
     timeWindow: "1 minute",
     hook: "onRequest",
+    addHeaders: {
+      "x-ratelimit-limit": true,
+      "x-ratelimit-remaining": true,
+      "x-ratelimit-reset": true,
+      "retry-after": true,
+    },
   });
 
   if (options.bidding) {
