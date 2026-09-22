@@ -11,6 +11,38 @@ const WaitlistSchema = z.object({
 const submissionsByIp = new Map<string, number>();
 let rateLimitWindow = 0;
 
+function getAllowedOrigins(): string[] {
+  const isProduction = process.env.NODE_ENV === "production" || process.env.APP_ENV === "production";
+  const allowed = new Set<string>();
+
+  if (isProduction) {
+    allowed.add("https://priceb.tc");
+  }
+
+  const publicSiteUrl = process.env.PUBLIC_SITE_URL;
+  if (publicSiteUrl) {
+    try {
+      const siteOrigin = new URL(publicSiteUrl).origin;
+      allowed.add(siteOrigin);
+      
+      if (!isProduction && siteOrigin.includes("localhost")) {
+        allowed.add(siteOrigin);
+      }
+    } catch {
+      // Invalid URL, skip
+    }
+  }
+
+  if (!isProduction) {
+    allowed.add("http://localhost:3478");
+    allowed.add("http://127.0.0.1:3478");
+    allowed.add("http://localhost:5173");
+    allowed.add("http://127.0.0.1:5173");
+  }
+
+  return Array.from(allowed);
+}
+
 function checkRateLimit(ip: string, reply: FastifyReply): void {
   const window = Math.floor(Date.now() / 60000);
   if (window !== rateLimitWindow) {
@@ -40,8 +72,8 @@ export async function registerWaitlistRoutes(
       checkRateLimit(ip, reply);
 
       const origin = request.headers.origin;
-      const expectedOrigin = process.env.PUBLIC_SITE_URL || "http://localhost:3478";
-      if (origin !== new URL(expectedOrigin).origin) {
+      const allowedOrigins = getAllowedOrigins();
+      if (!origin || !allowedOrigins.includes(origin)) {
         return reply.code(403).send({ error: "Invalid origin" });
       }
 
