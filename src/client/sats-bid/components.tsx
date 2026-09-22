@@ -6,7 +6,7 @@ import "./sats-bid.css";
 export function BidShell({
   children,
   title,
-  eyebrow = "SATS BID / DAILY ROUND",
+  eyebrow = "SPONSORS / TOP 21",
 }: {
   children: React.ReactNode;
   title: string;
@@ -21,7 +21,7 @@ export function BidShell({
         {children}
       </main>
       <footer className="bid-footer">
-        <span>ONE SPOT. A NEW ROUND EVERY DAY.</span>
+        <span>TOP 21 · CUMULATIVE SATS · OUTBID ANYTIME</span>
         <a href="/rules">Rules & payments</a>
         <a href="/">PRICEB.TC ↗</a>
       </footer>
@@ -76,15 +76,10 @@ export function EntryLogo({ entry }: { entry: Entry }) {
     </span>
   );
 }
-export function Ranking({ entries }: { entries: Entry[] }) {
-  if (!entries.length)
-    return (
-      <div className="bid-empty">
-        <span>—</span>
-        <h3>No bids yet.</h3>
-        <p>The first confirmed payment starts today's leaderboard.</p>
-      </div>
-    );
+export function Ranking({ entries, comingSoon = false }: { entries: Entry[]; comingSoon?: boolean }) {
+  const LEADERBOARD_SIZE = 21;
+  const emptySlots = Math.max(0, LEADERBOARD_SIZE - entries.length);
+  
   return (
     <ol className="bid-ranking">
       {entries.map((entry, index) => (
@@ -110,6 +105,19 @@ export function Ranking({ entries }: { entries: Entry[] }) {
           </strong>
         </li>
       ))}
+      {Array.from({ length: emptySlots }, (_, i) => (
+        <li key={`empty-${i}`} className="bid-empty-slot">
+          <span className="bid-rank">
+            {String(entries.length + i + 1).padStart(2, "0")}
+          </span>
+          <div className="bid-entry-copy">
+            <p>Available sponsor spot</p>
+          </div>
+          <a href={comingSoon ? "/sponsors#waitlist" : "/sponsors"} className="bid-claim-button">
+            {comingSoon ? "Join waitlist →" : "Claim spot · 1,000 sats min"}
+          </a>
+        </li>
+      ))}
     </ol>
   );
 }
@@ -126,9 +134,9 @@ export function TopSpot({
     <article className={`bid-top${leader ? " has-leader" : ""}`}>
       <header>
         <span>
-          {comingSoon ? "SPONSOR SPACE / AVAILABLE" : "TODAY'S PAID TOP SPOT"}
+          {comingSoon ? "SPONSOR SPACE / AVAILABLE" : "TOP 21 SPONSOR SPACE"}
         </span>
-        <span>01 / 01</span>
+        <span>01 / 21</span>
       </header>
       {delayed && (
         <p role="status">Updates delayed. This position may have changed.</p>
@@ -151,7 +159,7 @@ export function TopSpot({
           </a>
           <p>{leader.description}</p>
           <div className="bid-top-total">
-            {sats(leader.total_sats)} <small>SATS TODAY</small>
+            {sats(leader.total_sats)} <small>SATS</small>
           </div>
         </>
       ) : null}
@@ -159,12 +167,14 @@ export function TopSpot({
   );
 }
 
-export function EmptySponsorCTA() {
+export function EmptySponsorCTA({ comingSoon = false }: { comingSoon?: boolean }) {
   return (
-    <a href="/sponsors" className="sponsor-empty-cta">
+    <a href={comingSoon ? "/sponsors#waitlist" : "/sponsors"} className="sponsor-empty-cta">
       <h3 className="sponsor-empty-cta__title">Sponsor space</h3>
       <p className="sponsor-empty-cta__desc">Rank beside Bitcoin</p>
-      <span className="sponsor-empty-cta__button">Bid from 1,000 sats</span>
+      <span className="sponsor-empty-cta__button">
+        {comingSoon ? "Join waitlist →" : "Bid from 1,000 sats"}
+      </span>
     </a>
   );
 }

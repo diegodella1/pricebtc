@@ -28,7 +28,7 @@ events. Ranking ties use the sequence when the total was reached. Fees do not
 increase scores. Historical results remain mutable only through audited corrections.
 
 The homepage adds an orange Top Spot beside the price and a cream leaderboard
-below the market tools. `/bid`, `/leaderboard`, `/history`, `/day/YYYY-MM-DD`,
+below the market tools. `/sponsors`, `/leaderboard`, `/history`, `/day/YYYY-MM-DD`,
 `/rules` and `/admin` are separate pages. Existing widget URLs and market APIs
 retain their contracts. Static/FreeHosting remains a market-only edition.
 
@@ -69,7 +69,7 @@ deterministically. No wallet or real sats are used. Open `/admin`; local email i
 `operator@example.com`. Read `SATS_LOCAL_ADMIN_PASSWORD` privately from
 `.env.sats.local`. That generated value is only a development login.
 
-In `/bid`, create a profile, accept the rules, create an invoice and click
+In `/sponsors`, create a profile, accept the rules, create an invoice and click
 **Simulate payment**. Use a second browser profile to outbid the first; refresh
 the first to recover identity and add more sats. A mock invoice deliberately has
 no payable BOLT11. Real BOLT11 invoices render a local QR, copy and wallet link.

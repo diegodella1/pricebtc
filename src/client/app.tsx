@@ -16,9 +16,16 @@ const AdminPage = lazy(() => import("./sats-bid/admin.js"));
 
 export function App() {
   const path = window.location.pathname.replace(/\/index\.html$/, "").replace(/\/+$/, "") || "/";
-  if (["/bid", "/leaderboard", "/history", "/rules", "/admin"].includes(path) || /^\/day\/\d{4}-\d{2}-\d{2}$/.test(path)) {
-    if (IS_STATIC_BUILD) return <main className="not-found"><span>SATS BID</span><h1>LIVE SERVICE REQUIRED.</h1><p>This static edition provides Bitcoin price widgets. Paid participation is unavailable here.</p><a className="button button--light" href="/">RETURN HOME →</a></main>;
-    return <Suspense fallback={<main aria-busy="true">Loading Sats Bid…</main>}>{path === "/bid" ? <BidPage /> : path === "/rules" ? <RulesPage /> : path === "/admin" ? <AdminPage /> : <ArchivePage />}</Suspense>;
+  
+  if (path === "/bid" || path.startsWith("/bid/")) {
+    const newPath = path.replace(/^\/bid/, "/sponsors");
+    window.location.replace(newPath + window.location.search);
+    return null;
+  }
+  
+  if (["/sponsors", "/leaderboard", "/history", "/rules", "/admin"].includes(path) || /^\/day\/\d{4}-\d{2}-\d{2}$/.test(path)) {
+    if (IS_STATIC_BUILD) return <main className="not-found"><span>SPONSORS</span><h1>LIVE SERVICE REQUIRED.</h1><p>This static edition provides Bitcoin price widgets. Paid sponsorship is unavailable here.</p><a className="button button--light" href="/">RETURN HOME →</a></main>;
+    return <Suspense fallback={<main aria-busy="true">Loading Sponsors…</main>}>{path === "/sponsors" ? <BidPage /> : path === "/rules" ? <RulesPage /> : path === "/admin" ? <AdminPage /> : <ArchivePage />}</Suspense>;
   }
   if (path === "/") return <HomePage />;
   if (path === "/api") return <ApiPage />;
@@ -26,7 +33,6 @@ export function App() {
   if (path === "/embed") return <RendererPage mode="embed" />;
   if (path === "/overlay") return <RendererPage mode="overlay" />;
   if (path === "/pricing") return <PlaceholderPage title="Pricing" eyebrow="PRICING" description="Bitcoin price tools that scale with your business." />;
-  if (path === "/sponsors") return <PlaceholderPage title="Sponsor" eyebrow="SPONSOR" description="Bid from 1,000 sats. Rank beside Bitcoin." />;
   if (path === "/status") return <StatusPage />;
   if (path === "/terms") return <TermsPage />;
   if (path === "/privacy") return <PrivacyPage />;

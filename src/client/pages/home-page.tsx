@@ -97,7 +97,7 @@ export function HomePage() {
               <CurrencySelect currencies={currencies} value={currency} onChange={setCurrency} id="home-currency" />
               {error && <p className="public-notice" role="status">{error}</p>}
             </div>
-            <aside id="bid-top-slot" aria-label="Sponsor space"><a href="/sponsors" className="sponsor-empty-cta"><h3 className="sponsor-empty-cta__title">Sponsor space</h3><p className="sponsor-empty-cta__desc">Rank beside Bitcoin</p><span className="sponsor-empty-cta__button">Bid from 1,000 sats</span></a></aside>
+            <aside id="bid-top-slot" aria-label="Sponsor space"><a href="/sponsors#waitlist" className="sponsor-empty-cta"><h3 className="sponsor-empty-cta__title">Sponsor space</h3><p className="sponsor-empty-cta__desc">Rank beside Bitcoin</p><span className="sponsor-empty-cta__button">Join waitlist →</span></a></aside>
           </div>
           <div className="kpi-strip">
             <div className="kpi-item"><span className="kpi-label">High 24h</span><strong className="kpi-value">{price?.high24h ? formatPrice(price.high24h, currency) : "—"}</strong></div>

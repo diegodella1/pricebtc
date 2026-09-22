@@ -75,10 +75,10 @@ export default function ArchivePage() {
     <BidShell
       title={
         history
-          ? "EVERY DAY. A NEW LEADER."
+          ? "HISTORY"
           : date
-            ? `THE ROUND / ${date}`
-            : "TODAY'S LEADERBOARD."
+            ? `SNAPSHOT / ${date}`
+            : "TOP 21 LEADERBOARD"
       }
     >
       {error && (
@@ -107,7 +107,7 @@ export default function ArchivePage() {
             ))
           ) : (
             <p>
-              No completed rounds yet. Today's story is still being written.
+              No history yet. The leaderboard is building.
             </p>
           )}
         </div>
@@ -123,7 +123,7 @@ export default function ArchivePage() {
                     ? "Provisional — confirming payments"
                     : "Paid participation. Positions can change."}
             </p>
-            <Ranking entries={board.participants} />
+            <Ranking entries={board.participants} comingSoon={comingSoon} />
             <p className="bid-caption">
               {sats(board.total_sats)} sats · All confirmed participation
               payments, including moderated entries.
@@ -155,8 +155,8 @@ export default function ArchivePage() {
           </button>
         </p>
       )}
-      <a className="bid-text-button" href="/bid">
-        Join today's round ↗
+      <a className="bid-text-button" href="/sponsors">
+        Claim your spot ↗
       </a>
     </BidShell>
   );

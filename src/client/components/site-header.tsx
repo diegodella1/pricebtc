@@ -7,6 +7,7 @@ export function SiteHeader() {
       <a href="/#market">Price</a>
       <a href="/#formats">Widgets</a>
       <a href="/api">API</a>
+      <a href="/sponsors">Sponsors</a>
       <a href="/pricing">Pricing</a>
     </nav>
     <a className="action-link" href="/studio">Create a widget.</a>

@@ -4,7 +4,7 @@ test.skip(
   "Requires isolated mock API and worker",
 );
 async function participate(page: Page, name: string, amount: string) {
-  await page.goto("/bid");
+  await page.goto("/sponsors");
   await page.getByLabel("Name", { exact: true }).fill(name);
   await page.getByLabel("Website", { exact: true }).fill("https://example.com");
   await page

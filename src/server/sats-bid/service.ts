@@ -890,7 +890,7 @@ export class BidService {
   async leaderboard(
     date?: string,
     offset = 0,
-    limit = 20,
+    limit = 21,
   ): Promise<Leaderboard> {
     const selectedDate = date ?? roundWindow(this.clock()).date;
     type Entry = Pick<

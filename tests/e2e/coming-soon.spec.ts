@@ -31,14 +31,14 @@ test("sponsor presentation is visible without enabling payments", async ({
   await expect(page.locator("#bid-top-slot")).toContainText(
     "SPONSOR SPACE / AVAILABLE",
   );
-  await expect(page.locator("#sats-bid")).toContainText("PRÓXIMAMENTE");
-  await expect(page.locator("#sats-bid")).toContainText("0 participants");
+  await expect(page.locator("#sats-bid")).toContainText("PAYMENTS OPENING");
+  await expect(page.locator("#sats-bid")).toContainText("JOIN THE LIST");
+  await expect(page.locator(".bid-waitlist")).toBeVisible();
+  await expect(page.locator("#sats-bid")).toContainText("21 SPOTS AVAILABLE");
   await expect(page.locator(".bid-how-it-works li")).toHaveCount(3);
-  await page
-    .locator("#bid-top-slot")
-    .getByRole("link", { name: /See how it works/ })
-    .click();
-  await expect(page).toHaveURL(/#sats-bid$/);
+  const waitlistLink = page.locator("#bid-top-slot").getByRole("link").first();
+  await waitlistLink.click();
+  await expect(page).toHaveURL(/\/sponsors#waitlist$/);
   for (const width of [360, 768, 1440]) {
     await page.setViewportSize({ width, height: 1000 });
     expect(
@@ -58,12 +58,14 @@ test("sponsor presentation is visible without enabling payments", async ({
     path: "/tmp/pricebtc-coming-soon-mobile.png",
     fullPage: true,
   });
-  for (const path of ["/bid", "/leaderboard", "/history"]) {
+  for (const path of ["/sponsors", "/leaderboard", "/history"]) {
     await page.goto(path);
-    await expect(page.locator(".bid-launch-notice")).toContainText(
-      "PRÓXIMAMENTE",
-    );
-    await expect(page.locator("form")).toHaveCount(0);
+    await expect(page.locator(".bid-waitlist")).toBeVisible();
+    await expect(page.locator(".bid-waitlist")).toContainText("PAYMENTS OPENING");
+    const emailLink = page.getByRole("link", { name: /Email us/ });
+    const xLink = page.getByRole("link", { name: /Post on X/ });
+    await expect(emailLink).toHaveAttribute("href", /^mailto:/);
+    await expect(xLink).toHaveAttribute("href", /^https:\/\/x\.com/);
     await expect(
       page.getByRole("button", {
         name: /CREATE LIGHTNING INVOICE|SIMULATE PAYMENT/,
