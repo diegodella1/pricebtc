@@ -7,6 +7,8 @@ import { MarketService } from "./services/market-service.js";
 import { SseHub } from "./services/sse-hub.js";
 import { PlausibleService } from "./services/plausible.js";
 import { createBidRuntime } from "./sats-bid/runtime.js";
+import { createStripeRuntime } from "./services/stripe-runtime.js";
+import { bidConfig } from "./sats-bid/config.js";
 
 const environment = parseEnvironment();
 const fx = new FxService({ dataDir: environment.PRICEBTC_DATA_DIR, apiUrl: environment.FX_API_URL });
@@ -25,13 +27,21 @@ const streams = new SseHub({
 const plausible = new PlausibleService(environment.PLAUSIBLE_DOMAIN, environment.PLAUSIBLE_API_KEY);
 let bidding: ReturnType<typeof createBidRuntime> = null;
 try { bidding = createBidRuntime(); } catch { process.stderr.write("Sats Bid disabled: invalid configuration\n"); }
+let stripe: ReturnType<typeof createStripeRuntime> = null;
+try { 
+  const bidCfg = bidConfig();
+  stripe = createStripeRuntime(bidCfg.DATABASE_URL || undefined); 
+} catch { 
+  process.stderr.write("Stripe integration disabled: invalid configuration\n"); 
+}
 const app = buildApp({ 
   market, 
   fx, 
   history, 
   streams, 
   plausible,
-  bidding, 
+  bidding,
+  stripe,
   dataDir: environment.PRICEBTC_DATA_DIR,
   logger: { level: environment.LOG_LEVEL } 
 });
@@ -48,6 +58,7 @@ async function shutdown(signal: string): Promise<void> {
   await app.close();
   await tradeVolume.stop();
   await bidding?.pool.end();
+  await stripe?.pool.end();
 }
 
 async function main(): Promise<void> {

@@ -12,6 +12,14 @@ const ENV_SCHEMA = z.object({
   MAX_SSE_CLIENTS_PER_IP: z.coerce.number().int().min(1).max(100).default(5),
   PLAUSIBLE_DOMAIN: z.string().optional(),
   PLAUSIBLE_API_KEY: z.string().optional(),
+  STRIPE_SECRET_KEY: z.string().optional(),
+  STRIPE_PUBLISHABLE_KEY: z.string().optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().optional(),
+  STRIPE_PRICE_PRO_MONTHLY: z.string().optional(),
+  STRIPE_PRICE_PRO_YEARLY: z.string().optional(),
+  STRIPE_PRICE_BUSINESS_MONTHLY: z.string().optional(),
+  STRIPE_PRICE_BUSINESS_YEARLY: z.string().optional(),
+  PUBLIC_SITE_URL: z.string().url().default("http://127.0.0.1:5173"),
 });
 
 export function parseEnvironment(environment: NodeJS.ProcessEnv = process.env) {
