@@ -47,9 +47,17 @@ export default function BidHome() {
       document.removeEventListener("visibilitychange", refresh);
     };
   }, []);
-  if (!round && !error) return <div className="sponsor-presentation-loading" role="status">Loading sponsor information…</div>;
   
   const slot = document.getElementById("bid-top-slot");
+  
+  if (!round && !error) {
+    return (
+      <>
+        {slot && createPortal(<EmptySponsorCTA comingSoon={false} />, slot)}
+        <div className="sponsor-presentation-loading" role="status">Loading sponsor information…</div>
+      </>
+    );
+  }
   
   if (round?.coming_soon) {
     return (

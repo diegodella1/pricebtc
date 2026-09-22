@@ -113,8 +113,8 @@ export function Ranking({ entries, comingSoon = false }: { entries: Entry[]; com
           <div className="bid-entry-copy">
             <p>Open — claim this spot</p>
           </div>
-          <a href={comingSoon ? "/sponsors#waitlist" : "/sponsors"} className="bid-claim-button">
-            {comingSoon ? "Join waitlist →" : "Claim spot · 1,000 sats min"}
+          <a href="/sponsors#waitlist" className="bid-claim-button">
+            Join waitlist →
           </a>
         </li>
       ))}
@@ -169,11 +169,11 @@ export function TopSpot({
 
 export function EmptySponsorCTA({ comingSoon = false }: { comingSoon?: boolean }) {
   return (
-    <a href={comingSoon ? "/sponsors#waitlist" : "/sponsors"} className="sponsor-empty-cta">
+    <a href="/sponsors#waitlist" className="sponsor-empty-cta">
       <h3 className="sponsor-empty-cta__title">Sponsor space</h3>
       <p className="sponsor-empty-cta__desc">Rank beside Bitcoin</p>
       <span className="sponsor-empty-cta__button">
-        {comingSoon ? "Join waitlist →" : "Bid from 1,000 sats"}
+        Join waitlist →
       </span>
     </a>
   );
