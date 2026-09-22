@@ -10,6 +10,8 @@ const ENV_SCHEMA = z.object({
   FX_API_URL: z.string().url().default("https://open.er-api.com/v6/latest/USD"),
   MAX_SSE_CLIENTS: z.coerce.number().int().min(1).max(10_000).default(500),
   MAX_SSE_CLIENTS_PER_IP: z.coerce.number().int().min(1).max(100).default(5),
+  PLAUSIBLE_DOMAIN: z.string().optional(),
+  PLAUSIBLE_API_KEY: z.string().optional(),
 });
 
 export function parseEnvironment(environment: NodeJS.ProcessEnv = process.env) {

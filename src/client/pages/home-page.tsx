@@ -5,6 +5,7 @@ import { CurrencyChips } from "../components/currency-chips.js";
 import { PriceChart } from "../components/price-chart.js";
 import { WidgetDemo } from "../components/widget-demo.js";
 import { useCurrencies, useLivePrice, usePriceHistory } from "../hooks/use-market.js";
+import { useAnalytics } from "../hooks/use-analytics.js";
 import { IS_STATIC_BUILD } from "../lib/api.js";
 import { formatPercent, formatPrice, formatPriceVariants, formatRelativeTime, formatVolume } from "../lib/format.js";
 import { formatUtcDate, formatUtcTime, getMarketTelemetry } from "../lib/market-telemetry.js";
@@ -29,6 +30,7 @@ export function HomePage() {
   const { currencies } = useCurrencies();
   const { price, connectionState, error } = useLivePrice(currency);
   const { points, loading: historyLoading, error: historyError } = usePriceHistory(currency, range);
+  const { stats } = useAnalytics();
   const live = connectionState === "live" && price?.status === "live";
   const displayedPoints = useMemo(() => !price || !points.length ? points : [...points, { timestamp: price.marketTimestamp, price: price.price }], [points, price]);
   const telemetry = useMemo(() => getMarketTelemetry(displayedPoints), [displayedPoints]);
@@ -144,6 +146,6 @@ export function HomePage() {
         <details><summary>How do sponsors work?</summary><p>One paid space beside the price. Top 21 ranking by cumulative sats. Confirmed Lightning payments add to your total. The highest total takes the spot until someone outbids it. No daily resets. <a href="/rules">Read the rules ↗</a></p></details>
       </section>
     </main>
-    <footer className="public-footer"><div><a href="/" className="footer-wordmark">PRICEB.TC</a><p>Bitcoin, in view.</p></div><nav aria-label="Footer navigation"><a href="/sponsors">Sponsor</a><a href="/status">Status</a><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="/studio">Studio</a><a href="/about">About</a><a href="/faq">FAQ</a><a href="/api">API</a><a href={`mailto:${siteContent.contactEmail}`}>Contact</a></nav><p>Indicative market data · Not financial advice · FX by <a href="https://www.exchangerate-api.com" target="_blank" rel="noreferrer">ExchangeRate-API</a></p></footer>
+    <footer className="public-footer"><div><a href="/" className="footer-wordmark">PRICEB.TC</a><p>Bitcoin, in view.</p>{stats && <p className="footer-stats">{stats.visitors.toLocaleString()} visitors · Last 30 days</p>}</div><nav aria-label="Footer navigation"><a href="/sponsors">Sponsor</a><a href="/status">Status</a><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="/studio">Studio</a><a href="/about">About</a><a href="/faq">FAQ</a><a href="/api">API</a><a href={`mailto:${siteContent.contactEmail}`}>Contact</a></nav><p>Indicative market data · Not financial advice · FX by <a href="https://www.exchangerate-api.com" target="_blank" rel="noreferrer">ExchangeRate-API</a></p></footer>
   </div>;
 }

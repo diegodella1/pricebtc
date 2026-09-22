@@ -11,6 +11,7 @@ import {
 import { BidShell } from "./components.js";
 import { PaymentDialog } from "./payment.js";
 import { ComingSoonPage } from "./coming-soon.js";
+import { useAnalytics } from "../hooks/use-analytics.js";
 export default function BidPage() {
   const [round, setRound] = useState<CurrentRound | null>(null);
   const [board, setBoard] = useState<Board | null>(null);
@@ -29,6 +30,7 @@ export default function BidPage() {
   const paymentTrigger = useRef<HTMLElement | null>(null);
   const initialized = useRef(false);
   const previousRound = useRef<string | null>(null);
+  const { stats } = useAnalytics();
   const refresh = useCallback(async () => {
     const current = await bidApi<CurrentRound>("/round/current");
     setRound(current);
@@ -134,6 +136,7 @@ export default function BidPage() {
     >
       <p className="bid-intro">
         Pay Lightning sats. Rank in the Top 21. Anyone can outbid you anytime.
+        {stats && <span className="bid-intro-stats"> · {stats.visitors.toLocaleString()} visits last 30 days</span>}
       </p>
       <div className="bid-checkout-grid">
         <form className="bid-form" onSubmit={submit}>
