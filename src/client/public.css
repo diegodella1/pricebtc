@@ -155,7 +155,12 @@ body:has(.public-site)::before, body:has(.public-site)::after, body:has(.studio-
 .public-bid .bid-main { max-width: 1200px; }
 .public-bid .bid-eyebrow, .public-bid .bid-footer { font: 12px/1.6 var(--font-mono); }
 .public-bid .bid-button, .public-bid .bid-text-button { border-radius: 8px; min-height: 44px; font: 500 14px var(--font-body); }
-.public-bid .bid-button { background: var(--accent); color: #0d1012; }
+.public-bid .bid-button { background: var(--accent); color: #ffffff; }
+.public-bid .bid-waitlist-submit { background: var(--accent); color: #ffffff; }
+.public-bid .bid-claim-button { background: var(--accent); color: #ffffff; border: 0; }
+.public-bid .bid-claim-button:hover { background: var(--positive); color: #0d1012; }
+.public-bid .bid-empty-slot { opacity: 1; background: transparent; }
+.public-bid .bid-link-secondary { color: var(--link); }
 .public-bid input, .public-bid textarea, .public-bid select { background: var(--surface); color: var(--text); border-color: var(--line); font-size: 16px; }
 .public-bid .bid-footer { padding: 24px 32px; }
 @media (max-width: 850px) {
