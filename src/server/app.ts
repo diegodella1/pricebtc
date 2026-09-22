@@ -22,7 +22,9 @@ import { StreamCapacityError, type StreamRegistry } from "./services/sse-hub.js"
 import type { BidService } from "./sats-bid/service.js";
 import { registerBidRoutes } from "./sats-bid/routes.js";
 import { registerWaitlistRoutes } from "./waitlist.js";
+import { registerStripeRoutes } from "./stripe-routes.js";
 import type { PlausibleService } from "./services/plausible.js";
+import type { StripeRuntime } from "./services/stripe-runtime.js";
 
 const CURRENCY_SCHEMA = z.string().trim().toUpperCase().regex(/^[A-Z]{3}$/).default("USD");
 const RANGE_SCHEMA = z.enum(HISTORY_RANGES).default("24h");
@@ -48,6 +50,7 @@ interface HistoryReader {
 
 interface BuildAppOptions {
   bidding?: BidService | null;
+  stripe?: StripeRuntime | null;
   market: MarketReader;
   fx: FxReader;
   history: HistoryReader;
@@ -73,7 +76,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     crossOriginEmbedderPolicy: false,
   });
   app.addHook("onRoute", (route) => {
-    if (!route.url.startsWith("/api/") || route.url.startsWith("/api/sats-bid/") || route.url === "/api/webhooks/btcpay") {
+    if (!route.url.startsWith("/api/") || route.url.startsWith("/api/sats-bid/") || route.url === "/api/webhooks/btcpay" || route.url === "/api/stripe/webhook") {
       route.config = { ...route.config, rateLimit: false };
     }
   });
@@ -88,6 +91,8 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       "retry-after": true,
     },
   });
+
+  registerResponsePolicies(app);
 
   registerResponsePolicies(app);
 
@@ -148,6 +153,24 @@ function registerApplicationRoutes(app: FastifyInstance, options: BuildAppOption
     void app.register(async instance => registerBidRoutes(instance, options.bidding!));
   } else {
     app.get("/api/sats-bid/round/current", async () => ({ enabled: false, bids_open: false, coming_soon: true }));
+  }
+
+  if (options.stripe) {
+    void app.register(async instance => {
+      instance.decorate("stripe", options.stripe!.stripe);
+      registerStripeRoutes(instance, {
+        stripe: options.stripe!.stripe,
+        config: options.stripe!.config,
+        subscriptions: options.stripe!.subscriptions,
+      });
+    });
+  } else {
+    app.post("/api/stripe/create-checkout-session", async (_, reply) => {
+      return reply.code(503).send({ code: "STRIPE_NOT_CONFIGURED", message: "Stripe integration is not configured" });
+    });
+    app.post("/api/stripe/create-portal-session", async (_, reply) => {
+      return reply.code(503).send({ code: "STRIPE_NOT_CONFIGURED", message: "Stripe integration is not configured" });
+    });
   }
 
   app.get("/api/price", async (request, reply) => {
