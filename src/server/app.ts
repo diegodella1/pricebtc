@@ -122,7 +122,7 @@ function registerResponsePolicies(app: FastifyInstance): void {
     const framePolicy = isRenderer ? "*" : "'none'";
     reply.header(
       "Content-Security-Policy",
-      `default-src 'self'; connect-src 'self'; img-src 'self' data:; font-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; frame-ancestors ${framePolicy}; base-uri 'none'; form-action 'self'`,
+      `default-src 'self'; connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com; img-src 'self' data: https://www.google-analytics.com https://www.googletagmanager.com; font-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' https://www.googletagmanager.com; frame-ancestors ${framePolicy}; base-uri 'none'; form-action 'self'`,
     );
     reply.header("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()");
     if (isRenderer) {
