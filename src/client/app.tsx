@@ -4,6 +4,7 @@ import { PlaceholderPage } from "./pages/placeholder-page.js";
 import { TermsPage } from "./pages/terms-page.js";
 import { PrivacyPage } from "./pages/privacy-page.js";
 import { StatusPage } from "./pages/status-page.js";
+import { ApiPage } from "./pages/api-page.js";
 
 import { lazy, Suspense } from "react";
 import { IS_STATIC_BUILD } from "./lib/api.js";
@@ -20,6 +21,7 @@ export function App() {
     return <Suspense fallback={<main aria-busy="true">Loading Sats Bid…</main>}>{path === "/bid" ? <BidPage /> : path === "/rules" ? <RulesPage /> : path === "/admin" ? <AdminPage /> : <ArchivePage />}</Suspense>;
   }
   if (path === "/") return <HomePage />;
+  if (path === "/api") return <ApiPage />;
   if (path === "/studio") return <Suspense fallback={<main aria-busy="true">Loading Widget Studio…</main>}><StudioPage /></Suspense>;
   if (path === "/embed") return <RendererPage mode="embed" />;
   if (path === "/overlay") return <RendererPage mode="overlay" />;
