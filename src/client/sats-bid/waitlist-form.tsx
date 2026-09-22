@@ -42,8 +42,11 @@ export function WaitlistForm() {
   };
 
   return (
-    <div className="bid-waitlist">
-      <h2 className="bid-waitlist-heading">Join the waitlist</h2>
+    <div className="bid-waitlist" id="waitlist">
+      <h2 className="bid-waitlist-heading">Get notified when sponsorship launches</h2>
+      <p className="bid-waitlist-intro">
+        Be among the first to claim a Top 21 spot. Lightning payments open soon.
+      </p>
       
       {submitState === "success" ? (
         <div className="bid-waitlist-success">
