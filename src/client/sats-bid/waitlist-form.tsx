@@ -55,7 +55,7 @@ export function WaitlistForm() {
           </p>
         </div>
       ) : (
-        <form className="bid-waitlist-form" onSubmit={handleSubmit}>
+        <form className="bid-waitlist-form" onSubmit={handleSubmit} noValidate>
           <div className="bid-waitlist-fields">
             <label>
               <span>EMAIL (REQUIRED)</span>
