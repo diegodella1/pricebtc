@@ -134,9 +134,9 @@ export function TopSpot({
     <article className={`bid-top${leader ? " has-leader" : ""}`}>
       <header>
         <span>
-          {comingSoon ? "SPONSOR SPACE / AVAILABLE" : "TODAY'S PAID TOP SPOT"}
+          {comingSoon ? "SPONSOR SPACE / AVAILABLE" : "TOP 21 SPONSOR SPACE"}
         </span>
-        <span>01 / 01</span>
+        <span>01 / 21</span>
       </header>
       {delayed && (
         <p role="status">Updates delayed. This position may have changed.</p>
@@ -159,7 +159,7 @@ export function TopSpot({
           </a>
           <p>{leader.description}</p>
           <div className="bid-top-total">
-            {sats(leader.total_sats)} <small>SATS TODAY</small>
+            {sats(leader.total_sats)} <small>SATS</small>
           </div>
         </>
       ) : null}

@@ -107,7 +107,7 @@ export default function ArchivePage() {
             ))
           ) : (
             <p>
-              No completed rounds yet. Today's story is still being written.
+              No history yet. The leaderboard is building.
             </p>
           )}
         </div>

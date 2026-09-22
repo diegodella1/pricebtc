@@ -48,46 +48,28 @@ function WaitlistForm() {
       <div className="bid-waitlist-intro">
         <strong>PAYMENTS OPENING — JOIN THE LIST</strong>
         <p>
-          Lightning payments are coming soon. Get notified when sponsorship opens.
+          Lightning payments are coming soon. Contact us to join the waitlist.
         </p>
       </div>
-      <form className="bid-waitlist-form" onSubmit={(e) => {
-        e.preventDefault();
-        const form = e.currentTarget;
-        const email = (form.elements.namedItem("email") as HTMLInputElement)?.value;
-        const twitter = (form.elements.namedItem("twitter") as HTMLInputElement)?.value;
-        if (email || twitter) {
-          alert(`Thanks! We'll notify you at: ${email || twitter}`);
-          form.reset();
-        }
-      }}>
-        <div className="bid-waitlist-fields">
-          <label>
-            Email
-            <input
-              type="email"
-              name="email"
-              placeholder="you@example.com"
-              autoComplete="email"
-            />
-          </label>
-          <label>
-            X / Twitter handle
-            <input
-              type="text"
-              name="twitter"
-              placeholder="@yourhandle"
-              pattern="@?[A-Za-z0-9_]+"
-            />
-          </label>
-        </div>
-        <button type="submit" className="bid-button">
-          Join waitlist →
-        </button>
-        <p className="bid-caption">
-          Provide email or Twitter. We'll contact you once when payments open.
-        </p>
-      </form>
+      <div className="bid-waitlist-links">
+        <a 
+          href="mailto:contact@priceb.tc?subject=Sponsor%20Waitlist&body=I%20want%20to%20join%20the%20sponsor%20waitlist.%0A%0AEmail%3A%20%0AX%2FTwitter%3A%20%0A"
+          className="bid-button"
+        >
+          Email us →
+        </a>
+        <a 
+          href="https://x.com/intent/post?text=@pricebtc%20I%20want%20to%20join%20the%20sponsor%20waitlist"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="bid-button bid-button--secondary"
+        >
+          Post on X →
+        </a>
+      </div>
+      <p className="bid-caption">
+        We'll reply once when Lightning payments open.
+      </p>
     </div>
   );
 }

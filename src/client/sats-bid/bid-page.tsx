@@ -19,6 +19,7 @@ export default function BidPage() {
   const [description, setDescription] = useState("");
   const [url, setUrl] = useState("");
   const [logo, setLogo] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [value, setValue] = useState<string | null>(null);
   const [accepted, setAccepted] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -176,13 +177,44 @@ export default function BidPage() {
               <small>100 characters. Make them count.</small>
             </label>
             <label>
-              Logo <small>Optional · PNG, JPEG, WebP · 2 MiB max</small>
+              Logo <small>Required for visibility · PNG, JPEG, WebP · 2 MiB max</small>
               <input
                 type="file"
                 accept="image/png,image/jpeg,image/webp"
-                onChange={(e) => setLogo(e.target.files?.[0] ?? null)}
+                required
+                onChange={(e) => {
+                  const file = e.target.files?.[0] ?? null;
+                  setLogo(file);
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                      setLogoPreview(ev.target?.result as string);
+                    };
+                    reader.readAsDataURL(file);
+                  } else {
+                    setLogoPreview(null);
+                  }
+                }}
               />
             </label>
+            {(name || logo) && (
+              <div className="bid-profile-preview">
+                <p className="bid-caption">Preview before paying:</p>
+                <div className="bid-preview-chip">
+                  {logoPreview ? (
+                    <img src={logoPreview} alt="" className="bid-preview-logo" />
+                  ) : (
+                    <span className="bid-preview-monogram">
+                      {name.slice(0, 2).toUpperCase() || "??"}
+                    </span>
+                  )}
+                  <div className="bid-preview-info">
+                    <strong>{name || "Your project"}</strong>
+                    {description && <small>{description}</small>}
+                  </div>
+                </div>
+              </div>
+            )}
           </fieldset>
           <fieldset disabled={busy}>
             <legend>02 / Add sats to your cumulative total</legend>

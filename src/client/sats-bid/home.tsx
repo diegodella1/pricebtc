@@ -58,7 +58,7 @@ export default function BidHome() {
   if (showEmptySlot) {
     return (
       <section id="sats-bid" className="public-section">
-        {slot && createPortal(<TopSpot leader={null} comingSoon={comingSoon} />, slot)}
+        {slot && createPortal(comingSoon ? <EmptySponsorCTA comingSoon={true} /> : <TopSpot leader={null} />, slot)}
         {error && (!enabled || !board) && (
           <p className="public-notice" role="status">
             Sponsor information is temporarily unavailable. Please try again shortly.
@@ -109,7 +109,7 @@ export default function BidHome() {
         ) : null}
         <div className="bid-board">
           <header className="bid-board-heading">
-            <h3>Today's leaderboard</h3>
+            <h3>Top 21 Leaderboard</h3>
             <span>{board?.participant_count ?? 0} PARTICIPANTS</span>
           </header>
           <Ranking entries={board?.participants ?? []} comingSoon={comingSoon} />

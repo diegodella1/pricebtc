@@ -901,3 +901,70 @@
   background: var(--bid-accent);
   color: var(--bid-ink);
 }
+
+.bid-profile-preview {
+  margin-top: 24px;
+  padding: 16px;
+  border: 1px solid var(--bid-line);
+  background: var(--bid-paper);
+}
+.bid-preview-chip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+.bid-preview-logo,
+.bid-preview-monogram {
+  width: 48px;
+  height: 48px;
+  border-radius: 4px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.bid-preview-monogram {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bid-ink);
+  color: var(--bid-paper);
+  font:
+    600 18px "IBM Plex Mono",
+    monospace;
+}
+.bid-preview-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.bid-preview-info strong {
+  font:
+    600 14px "IBM Plex Sans",
+    sans-serif;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bid-preview-info small {
+  font-size: 12px;
+  color: var(--bid-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bid-waitlist-links {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.bid-button--secondary {
+  background: var(--bid-paper);
+  color: var(--bid-ink);
+  border: 2px solid var(--bid-ink);
+}
+.bid-button--secondary:hover {
+  background: var(--bid-accent);
+  color: var(--bid-ink);
+}
