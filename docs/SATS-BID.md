@@ -28,7 +28,7 @@ events. Ranking ties use the sequence when the total was reached. Fees do not
 increase scores. Historical results remain mutable only through audited corrections.
 
 The homepage adds an orange Top Spot beside the price and a cream leaderboard
-below the market tools. `/bid`, `/leaderboard`, `/history`, `/day/YYYY-MM-DD`,
+below the market tools. `/sponsors`, `/leaderboard`, `/history`, `/day/YYYY-MM-DD`,
 `/rules` and `/admin` are separate pages. Existing widget URLs and market APIs
 retain their contracts. Static/FreeHosting remains a market-only edition.
 
