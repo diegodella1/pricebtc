@@ -67,7 +67,7 @@ export default function BidHome() {
   if (showEmptySlot) {
     return (
       <section id="sats-bid" className="public-section">
-        {slot && createPortal(comingSoon ? <EmptySponsorCTA comingSoon={true} /> : <TopSpot leader={null} />, slot)}
+        {slot && createPortal(<EmptySponsorCTA comingSoon={comingSoon} />, slot)}
         {error && (!enabled || !board) && (
           <p className="public-notice" role="status">
             Sponsor information is temporarily unavailable. Please try again shortly.
