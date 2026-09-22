@@ -111,7 +111,7 @@ export function Ranking({ entries, comingSoon = false }: { entries: Entry[]; com
             {String(entries.length + i + 1).padStart(2, "0")}
           </span>
           <div className="bid-entry-copy">
-            <p>Available sponsor spot</p>
+            <p>Open — claim this spot</p>
           </div>
           <a href={comingSoon ? "/sponsors#waitlist" : "/sponsors"} className="bid-claim-button">
             {comingSoon ? "Join waitlist →" : "Claim spot · 1,000 sats min"}

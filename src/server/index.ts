@@ -23,7 +23,15 @@ const streams = new SseHub({
 });
 let bidding: ReturnType<typeof createBidRuntime> = null;
 try { bidding = createBidRuntime(); } catch { process.stderr.write("Sats Bid disabled: invalid configuration\n"); }
-const app = buildApp({ market, fx, history, streams, bidding, logger: { level: environment.LOG_LEVEL } });
+const app = buildApp({ 
+  market, 
+  fx, 
+  history, 
+  streams, 
+  bidding, 
+  dataDir: environment.PRICEBTC_DATA_DIR,
+  logger: { level: environment.LOG_LEVEL } 
+});
 
 let shuttingDown = false;
 
