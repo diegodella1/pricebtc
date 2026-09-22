@@ -6,6 +6,7 @@
   --bid-muted: #586052;
   --bid-white: #fff;
   --bid-alert: #84331c;
+  --bid-link: #2aa198;
 }
 .bid-launch-notice {
   display: flex;
@@ -870,10 +871,15 @@
 .bid-waitlist-fields input[aria-invalid="true"] {
   border-color: var(--bid-accent);
 }
+.bid-field-error {
+  color: var(--bid-accent);
+  font-size: 12px;
+  margin-top: 4px;
+}
 .bid-waitlist-submit {
   padding: 14px 24px;
   background: var(--bid-accent);
-  color: var(--bid-white);
+  color: var(--bid-ink);
   border: none;
   font:
     600 14px "IBM Plex Mono",

@@ -72,6 +72,9 @@ export function WaitlistForm() {
                 aria-invalid={emailError}
                 disabled={isPending}
               />
+              {emailError && (
+                <span className="bid-field-error">Enter a valid email.</span>
+              )}
             </label>
             <label>
               <span>X HANDLE (OPTIONAL)</span>
