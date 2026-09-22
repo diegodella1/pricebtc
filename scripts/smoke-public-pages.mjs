@@ -11,6 +11,21 @@ export async function verifyPublicPages(base) {
     const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
     const errors = [];
     page.on("pageerror", error => errors.push(error.message));
+    const home = await page.goto(base, { waitUntil: "domcontentloaded" });
+    assert.equal(home.status(), 200, "Home: HTTP status");
+    await expect(page.locator('#bid-top-slot .sponsor-empty-cta, #bid-top-slot .bid-top-spot')).toHaveCount(1, { timeout: 15_000 });
+    await expect(page.locator('.sponsor-empty-cta')).toHaveCount(1);
+    await expect(page.locator('script[src="https://www.googletagmanager.com/gtag/js?id=G-T9E3ZF3J0T"]')).toHaveCount(1);
+    const csp = home.headers()["content-security-policy"] ?? "";
+    assert.match(csp, /script-src[^;]*https:\/\/www\.googletagmanager\.com/, "GA4 script CSP");
+    assert.match(csp, /connect-src[^;]*https:\/\/www\.google-analytics\.com/, "GA4 collection CSP");
+    assert.equal(await page.evaluate(() => (globalThis.dataLayer ?? []).some(entry => entry[0] === "config" && entry[1] === "G-T9E3ZF3J0T")), true, "GA4 initialized");
+    const waitlist = page.locator('.bid-waitlist-form');
+    await expect(waitlist).toBeVisible();
+    await waitlist.getByRole('button', { name: 'Join the waitlist', exact: true }).click();
+    await expect(waitlist.getByText('Enter a valid email.', { exact: true })).toBeVisible();
+    await expect(waitlist.locator('input[type="email"]')).toHaveAttribute('aria-invalid', 'true');
+    console.log("Browser OK: home — one sponsor, GA4 configuration/CSP, waitlist validation");
     for (const [path, heading] of [
       ["/terms", "Terms of Service"], ["/privacy", "Privacy Policy"],
       ["/status", "Service Health"], ["/pricing", "Pricing"],

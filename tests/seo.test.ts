@@ -3,6 +3,7 @@ import { mkdtemp, writeFile, rm, mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { buildApp } from "../src/server/app.js";
+import { PlausibleService } from "../src/server/services/plausible.js";
 import { renderPriceSnapshot } from "../src/server/seo.js";
 import type { MarketSnapshot } from "../src/shared/contracts.js";
 
@@ -25,6 +26,7 @@ async function frontend(snapshot: MarketSnapshot | null, state: "live" | "degrad
   await writeFile(join(root, "faq/index.html"), '<html lang="en"><h1>PRICEB.TC FAQ</h1></html>');
   for (const name of ["robots.txt", "sitemap.xml", "llms.txt"]) await writeFile(join(root, name), "public");
   const app = buildApp({
+    plausible: new PlausibleService(),
     market: { getSnapshot: () => snapshot, getState: () => state },
     fx: { supportsCurrency: () => true, convertUsd: p => p, getCurrencies: () => [], getStatus: () => ({ state: "live", updatedAt: null }) },
     history: { getHistory: async range => ({ range, points: [], cachedAt: "", source: "coinbase", high24h: null, low24h: null, volume24h: null }) },

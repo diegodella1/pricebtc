@@ -6,6 +6,7 @@ import { join } from "node:path";
 import type { FastifyInstance } from "fastify";
 
 import { buildApp } from "../src/server/app.js";
+import { PlausibleService } from "../src/server/services/plausible.js";
 import type { MarketSnapshot } from "../src/shared/contracts.js";
 
 const apps: FastifyInstance[] = [];
@@ -52,7 +53,7 @@ function createTestApp(serveFrontend = false): FastifyInstance {
     }),
   };
   const streams = { open: () => undefined, getClientCount: () => 3 };
-  const app = buildApp({ market, fx, history, streams, serveFrontend, logger: false });
+  const app = buildApp({ market, fx, history, streams, plausible: new PlausibleService(), serveFrontend, logger: false });
   apps.push(app);
   return app;
 }

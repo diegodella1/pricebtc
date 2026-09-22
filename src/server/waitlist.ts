@@ -17,9 +17,6 @@ function getAllowedOrigins(): string[] {
 
   allowed.add("https://priceb.tc");
 
-  if (isProduction) {
-  }
-
   const publicSiteUrl = process.env.PUBLIC_SITE_URL;
   if (publicSiteUrl) {
     try {
