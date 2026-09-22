@@ -111,10 +111,10 @@ export function Ranking({ entries, comingSoon = false }: { entries: Entry[]; com
             {String(entries.length + i + 1).padStart(2, "0")}
           </span>
           <div className="bid-entry-copy">
-            <p>Open — claim this spot</p>
+            <p>Available — Your project here</p>
           </div>
           <a href="/sponsors#waitlist" className="bid-claim-button">
-            Join waitlist →
+            Join the waitlist →
           </a>
         </li>
       ))}
@@ -170,10 +170,10 @@ export function TopSpot({
 export function EmptySponsorCTA({ comingSoon = false }: { comingSoon?: boolean }) {
   return (
     <a href="/sponsors#waitlist" className="sponsor-empty-cta">
-      <h3 className="sponsor-empty-cta__title">Sponsor space</h3>
-      <p className="sponsor-empty-cta__desc">Rank beside Bitcoin</p>
+      <h3 className="sponsor-empty-cta__title">Your project here</h3>
+      <p className="sponsor-empty-cta__desc">Pay sats · Rank Top 21 · Stay visible</p>
       <span className="sponsor-empty-cta__button">
-        Join waitlist →
+        Join the waitlist →
       </span>
     </a>
   );

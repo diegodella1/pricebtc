@@ -54,7 +54,7 @@ export default function BidHome() {
     return (
       <>
         {slot && createPortal(<EmptySponsorCTA comingSoon={false} />, slot)}
-        <div className="sponsor-presentation-loading" role="status">Loading sponsor information…</div>
+        <div className="sponsor-presentation-loading" role="status">Loading sponsor space…</div>
       </>
     );
   }
@@ -78,7 +78,7 @@ export default function BidHome() {
         {slot && createPortal(<EmptySponsorCTA comingSoon={comingSoon} />, slot)}
         {error && (!enabled || !board) && (
           <p className="public-notice" role="status">
-            Sponsor information is temporarily unavailable. Please try again shortly.
+            Sponsor space is temporarily unavailable. Please try again shortly.
           </p>
         )}
         {!error && !enabled && (

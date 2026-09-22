@@ -9,33 +9,33 @@ export function SponsorExplanation({ showStats = false }: { showStats?: boolean 
   return (
     <>
       <p className="bid-intro">
-        One sponsor spot, right beside the live Bitcoin price. Support the
-        signal and put your project in view.
+        Sponsor PRICEB.TC and display your project beside the live Bitcoin price.
+        Pay Lightning sats, rank in the Top 21, and reach builders watching the signal.
         {showStats && stats && Number.isFinite(stats.visitors) && <span className="bid-intro-stats"> · {stats.visitors.toLocaleString()} visitors last 30 days</span>}
       </p>
       <ol className="bid-how-it-works">
         <li>
-          <span>01 / INTRODUCE YOUR PROJECT</span>
-          <h3>Your name. Your link. Your logo.</h3>
+          <span>01 / YOUR PROJECT PROFILE</span>
+          <h3>Name, logo, and one-line pitch.</h3>
           <p>
-            Add your project name, HTTPS website, logo and optional description. Preview
-            your entry before paying.
+            Create your sponsor profile with your project name, website, logo, and 
+            a 100-character description. Preview your entry before paying a single sat.
           </p>
         </li>
         <li>
           <span>02 / PAY LIGHTNING SATS</span>
-          <h3>Build your cumulative total.</h3>
+          <h3>Cumulative ranking. No resets.</h3>
           <p>
-            Pay with Lightning. Confirmed payments add to your all-time total.
-            The top 21 cumulative totals rank on the leaderboard.
+            Every confirmed Lightning payment adds to your all-time total.
+            The top 21 cumulative totals rank on the public leaderboard. No daily resets.
           </p>
         </li>
         <li>
-          <span>03 / STAY VISIBLE</span>
-          <h3>Top 21 · Outbid anytime.</h3>
+          <span>03 / COMPETITIVE VISIBILITY</span>
+          <h3>Hold your spot. Defend your rank.</h3>
           <p>
-            Anyone can outbid you at any time. No resets, no rounds — cumulative
-            sats determine your position in the Top 21.
+            Anyone can outbid you at any time. Stay visible by maintaining your position
+            in the Top 21. Payment is competitive placement, not guaranteed display time.
           </p>
         </li>
       </ol>
@@ -60,17 +60,17 @@ function EmptyLaunchRanking() {
           <li key={i} className="bid-empty-slot">
             <span className="bid-rank">{String(i + 1).padStart(2, "0")}</span>
             <div className="bid-entry-copy">
-              <p>Open — claim this spot</p>
+              <p>Available — Your project here</p>
             </div>
             <a href="#waitlist" className="bid-claim-button">
-              Join waitlist →
+              Join the waitlist →
             </a>
           </li>
         ))}
       </ol>
       <div className="bid-board-footer">
-        <span>21 spots open</span>
-        <a href="/leaderboard">VIEW LEADERBOARD ↗</a>
+        <span>All 21 spots available</span>
+        <a href="/leaderboard">VIEW FULL LEADERBOARD ↗</a>
       </div>
     </div>
   );
@@ -85,15 +85,16 @@ export function ComingSoonHome() {
     >
       <div className="bid-home-heading">
         <div>
-          <p className="bid-eyebrow">SPONSORS / BITCOIN VISIBILITY</p>
-          <h2 id="sats-bid-heading">Your brand. In the picture.</h2>
+          <p className="bid-eyebrow">SPONSORS / TOP 21 CUMULATIVE</p>
+          <h2 id="sats-bid-heading">Sponsor PRICEB.TC.<br />Rank beside Bitcoin.</h2>
+          <p className="bid-home-subtitle">Lightning payments launch soon. Join the waitlist to claim a Top 21 spot.</p>
         </div>
       </div>
       <div id="waitlist">
         <WaitlistForm />
       </div>
       <SponsorInventory />
-      <div className="sponsor-explanation" id="sponsor-how"><h3>How sponsorship will work</h3><SponsorExplanation showStats={true} /></div>
+      <div className="sponsor-explanation" id="sponsor-how"><h3>How sponsorship works</h3><SponsorExplanation showStats={true} /></div>
       <EmptyLaunchRanking />
     </section>
   );
@@ -102,16 +103,16 @@ export function ComingSoonHome() {
 export function ComingSoonPage({ archive = false }: { archive?: boolean }) {
   return (
     <BidShell
-      title={archive ? "The story starts soon." : "Your project. This spot."}
-      eyebrow="SPONSORS / BITCOIN VISIBILITY"
+      title={archive ? "The story starts soon." : "Pay sats. Rank Top 21. Stay visible."}
+      eyebrow="SPONSORS / TOP 21 CUMULATIVE"
     >
       <div id="waitlist">
         <WaitlistForm />
       </div>
       {archive ? (
         <div className="bid-empty">
-          <h2>No past rounds yet.</h2>
-          <p>Completed rounds will appear here after sponsorship launches.</p>
+          <h2>No completed rounds yet.</h2>
+          <p>Historical leaderboard results will appear here after sponsorship launches.</p>
         </div>
       ) : (
         <>
@@ -120,7 +121,7 @@ export function ComingSoonPage({ archive = false }: { archive?: boolean }) {
         </>
       )}
       <a className="bid-text-button" href="/#sats-bid">
-        View the sponsor space ↗
+        View sponsor space on homepage ↗
       </a>
     </BidShell>
   );

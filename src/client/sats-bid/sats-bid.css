@@ -149,6 +149,12 @@
 .bid-home-heading p:not(.bid-eyebrow) {
   max-width: 450px;
 }
+.bid-home-subtitle {
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--bid-muted);
+  margin-top: 12px;
+}
 .bid-reset {
   font:
     11px "IBM Plex Mono",
@@ -833,10 +839,16 @@
 }
 .bid-waitlist-heading {
   font:
-    600 24px "IBM Plex Sans",
+    600 28px "IBM Plex Sans",
     sans-serif;
-  margin-bottom: 24px;
+  margin-bottom: 12px;
   color: var(--bid-ink);
+}
+.bid-waitlist-intro {
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--bid-muted);
+  margin-bottom: 24px;
 }
 .bid-waitlist-form {
   display: flex;
@@ -877,17 +889,18 @@
   margin-top: 4px;
 }
 .bid-waitlist-submit {
-  padding: 14px 24px;
-  background: var(--bid-accent);
-  color: var(--bid-ink);
+  padding: 16px 32px;
+  background: #cb4b16;
+  color: #fff;
   border: none;
   font:
-    600 14px "IBM Plex Mono",
+    600 15px "IBM Plex Mono",
     monospace;
   cursor: pointer;
-  min-height: 48px;
+  min-height: 54px;
   transition: opacity 0.2s;
   align-self: flex-start;
+  letter-spacing: 0.02em;
 }
 .bid-waitlist-submit:hover:not(:disabled) {
   opacity: 0.9;
