@@ -136,7 +136,7 @@ export default function BidPage() {
     >
       <p className="bid-intro">
         Pay Lightning sats. Rank in the Top 21. Anyone can outbid you anytime.
-        {stats && <span className="bid-intro-stats"> · {stats.visitors.toLocaleString()} visits last 30 days</span>}
+        {stats && Number.isFinite(stats.visitors) && <span className="bid-intro-stats"> · {stats.visitors.toLocaleString()} visitors last 30 days</span>}
       </p>
       <div className="bid-checkout-grid">
         <form className="bid-form" onSubmit={submit}>

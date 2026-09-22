@@ -25,19 +25,16 @@ const streams = new SseHub({
 const plausible = new PlausibleService(environment.PLAUSIBLE_DOMAIN, environment.PLAUSIBLE_API_KEY);
 let bidding: ReturnType<typeof createBidRuntime> = null;
 try { bidding = createBidRuntime(); } catch { process.stderr.write("Sats Bid disabled: invalid configuration\n"); }
-<<<<<<< HEAD
 const app = buildApp({ 
   market, 
   fx, 
   history, 
   streams, 
+  plausible,
   bidding, 
   dataDir: environment.PRICEBTC_DATA_DIR,
   logger: { level: environment.LOG_LEVEL } 
 });
-=======
-const app = buildApp({ market, fx, history, streams, plausible, bidding, logger: { level: environment.LOG_LEVEL } });
->>>>>>> eb6b08d (feat: add Plausible analytics with last-30-day visitor counts)
 
 let shuttingDown = false;
 
