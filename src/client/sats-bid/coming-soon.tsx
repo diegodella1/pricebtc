@@ -1,5 +1,6 @@
 import { SponsorInventory } from "./inventory.js";
 import { BidShell } from "./components.js";
+import siteContent from "../../shared/site-content.json";
 
 export function SponsorExplanation() {
   return (
@@ -53,7 +54,7 @@ function WaitlistForm() {
       </div>
       <div className="bid-waitlist-links">
         <a 
-          href="mailto:contact@priceb.tc?subject=Sponsor%20Waitlist&body=I%20want%20to%20join%20the%20sponsor%20waitlist.%0A%0AEmail%3A%20%0AX%2FTwitter%3A%20%0A"
+          href={`mailto:${siteContent.contactEmail}?subject=Sponsor%20Waitlist&body=I%20want%20to%20join%20the%20sponsor%20waitlist.%0A%0AEmail%3A%20%0AX%2FTwitter%3A%20%0A`}
           className="bid-button"
         >
           Email us →

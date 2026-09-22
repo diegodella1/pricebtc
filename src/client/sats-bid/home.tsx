@@ -48,9 +48,18 @@ export default function BidHome() {
     };
   }, []);
   if (!round && !error) return <div className="sponsor-presentation-loading" role="status">Loading sponsor information…</div>;
-  if (round?.coming_soon) return <ComingSoonHome />;
   
   const slot = document.getElementById("bid-top-slot");
+  
+  if (round?.coming_soon) {
+    return (
+      <>
+        {slot && createPortal(<EmptySponsorCTA comingSoon={true} />, slot)}
+        <ComingSoonHome />
+      </>
+    );
+  }
+  
   const enabled = round?.enabled ?? false;
   const comingSoon = round?.coming_soon ?? false;
   const showEmptySlot = !enabled || error || !board;
