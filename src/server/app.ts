@@ -22,6 +22,7 @@ import { StreamCapacityError, type StreamRegistry } from "./services/sse-hub.js"
 import type { BidService } from "./sats-bid/service.js";
 import { registerBidRoutes } from "./sats-bid/routes.js";
 import { registerWaitlistRoutes } from "./waitlist.js";
+import type { PlausibleService } from "./services/plausible.js";
 
 const CURRENCY_SCHEMA = z.string().trim().toUpperCase().regex(/^[A-Z]{3}$/).default("USD");
 const RANGE_SCHEMA = z.enum(HISTORY_RANGES).default("24h");
@@ -51,6 +52,7 @@ interface BuildAppOptions {
   fx: FxReader;
   history: HistoryReader;
   streams: StreamRegistry;
+  plausible: PlausibleService;
   serveFrontend?: boolean;
   logger?: FastifyServerOptions["logger"];
   dataDir?: string;
@@ -185,6 +187,22 @@ function registerApplicationRoutes(app: FastifyInstance, options: BuildAppOption
   app.get("/api/currencies", async (_request, reply) => {
     reply.header("Cache-Control", "public, max-age=3600");
     return options.fx.getCurrencies();
+  });
+
+  app.get("/api/analytics", async (_request, reply) => {
+    reply.header("Cache-Control", "public, max-age=300");
+    
+    if (!options.plausible.isConfigured()) {
+      return reply.code(404).send({ code: "NOT_CONFIGURED", message: "Analytics not configured" });
+    }
+
+    const stats = await options.plausible.getStats();
+    
+    if (!stats) {
+      return reply.code(503).send({ code: "UNAVAILABLE", message: "Analytics data unavailable" });
+    }
+
+    return stats;
   });
 
   app.get("/og-image.png", async (request, reply) => {

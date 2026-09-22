@@ -1,13 +1,17 @@
 import { SponsorInventory } from "./inventory.js";
 import { BidShell } from "./components.js";
 import { WaitlistForm } from "./waitlist-form.js";
+import { useAnalytics } from "../hooks/use-analytics.js";
 
-export function SponsorExplanation() {
+export function SponsorExplanation({ showStats = false }: { showStats?: boolean }) {
+  const { stats } = useAnalytics();
+  
   return (
     <>
       <p className="bid-intro">
         One sponsor spot, right beside the live Bitcoin price. Support the
         signal and put your project in view.
+        {showStats && stats && Number.isFinite(stats.visitors) && <span className="bid-intro-stats"> · {stats.visitors.toLocaleString()} visitors last 30 days</span>}
       </p>
       <ol className="bid-how-it-works">
         <li>
@@ -89,7 +93,7 @@ export function ComingSoonHome() {
         <WaitlistForm />
       </div>
       <SponsorInventory />
-      <div className="sponsor-explanation" id="sponsor-how"><h3>How sponsorship will work</h3><SponsorExplanation /></div>
+      <div className="sponsor-explanation" id="sponsor-how"><h3>How sponsorship will work</h3><SponsorExplanation showStats={true} /></div>
       <EmptyLaunchRanking />
     </section>
   );
@@ -111,7 +115,7 @@ export function ComingSoonPage({ archive = false }: { archive?: boolean }) {
         </div>
       ) : (
         <>
-          <SponsorExplanation />
+          <SponsorExplanation showStats={true} />
           <EmptyLaunchRanking />
         </>
       )}

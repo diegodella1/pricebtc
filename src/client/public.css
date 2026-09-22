@@ -113,6 +113,7 @@ body:has(.public-site)::before, body:has(.public-site)::after, body:has(.studio-
 .sponsor-explanation { padding-top: 32px; }
 .public-site .sponsor-explanation > h3 { font-size: 24px; margin: 0; }
 .public-site .bid-intro, .public-bid .bid-intro { font-size: 16px; color: var(--text-muted); max-width: 700px; }
+.bid-intro-stats { opacity: 0.6; font-size: 14px; }
 .public-site .bid-how-it-works, .public-bid .bid-how-it-works { margin: 24px 0; gap: 24px; }
 .public-site .bid-how-it-works li, .public-bid .bid-how-it-works li { border-top: 1px solid var(--line); }
 .public-site .bid-how-it-works span, .public-bid .bid-how-it-works span { font: 500 12px var(--font-mono); color: var(--accent); }
@@ -146,6 +147,7 @@ body:has(.public-site)::before, body:has(.public-site)::after, body:has(.studio-
 .public-footer { border-top: 1px solid var(--line); padding-top: 32px; padding-bottom: 40px; display: flex; align-items: start; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
 .footer-wordmark { font: 600 16px var(--font-mono); letter-spacing: .06em; }
 .public-footer p { color: var(--text-muted); font-size: 12px; }
+.footer-stats { opacity: 0.6; font-size: 11px; margin-top: 4px; }
 .public-footer nav { display: flex; flex-wrap: wrap; gap: 8px 24px; font-size: 14px; }
 .public-footer nav a { padding: 10px 0; }
 .public-footer > p { width: 100%; margin: 0; }

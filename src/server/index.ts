@@ -5,6 +5,7 @@ import { HistoryService } from "./services/history-service.js";
 import { TradeVolumeService } from "./services/trade-volume.js";
 import { MarketService } from "./services/market-service.js";
 import { SseHub } from "./services/sse-hub.js";
+import { PlausibleService } from "./services/plausible.js";
 import { createBidRuntime } from "./sats-bid/runtime.js";
 
 const environment = parseEnvironment();
@@ -21,6 +22,7 @@ const streams = new SseHub({
   maxClients: environment.MAX_SSE_CLIENTS,
   maxClientsPerIp: environment.MAX_SSE_CLIENTS_PER_IP,
 });
+const plausible = new PlausibleService(environment.PLAUSIBLE_DOMAIN, environment.PLAUSIBLE_API_KEY);
 let bidding: ReturnType<typeof createBidRuntime> = null;
 try { bidding = createBidRuntime(); } catch { process.stderr.write("Sats Bid disabled: invalid configuration\n"); }
 const app = buildApp({ 
@@ -28,6 +30,7 @@ const app = buildApp({
   fx, 
   history, 
   streams, 
+  plausible,
   bidding, 
   dataDir: environment.PRICEBTC_DATA_DIR,
   logger: { level: environment.LOG_LEVEL } 
