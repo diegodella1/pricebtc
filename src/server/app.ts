@@ -99,8 +99,9 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     const url = new URL(request.url, "http://localhost");
     const normalized = url.pathname.replace(/\/index\.html$/, "").replace(/\/+$/, "") || "/";
     
-    if (normalized === "/bid") {
-      return reply.redirect(`/sponsors${url.search}`, 301);
+    if (normalized === "/bid" || normalized.startsWith("/bid/")) {
+      const newPath = normalized.replace(/^\/bid/, "/sponsors");
+      return reply.redirect(`${newPath}${url.search}`, 301);
     }
     
     if ((seoPages.indexable.includes(normalized) || ["/embed", "/overlay"].includes(normalized)) && normalized !== url.pathname) {

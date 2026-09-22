@@ -123,7 +123,7 @@ export function PaymentDialog({
       </h2>
       <p role="status">{state}</p>
       {payment && (
-        <p className="bid-caption">UTC round: {payment.round_date}</p>
+        <p className="bid-caption">Payment date: {payment.round_date}</p>
       )}
       {error && (
         <p role="alert" className="bid-alert">
@@ -203,7 +203,7 @@ export function PaymentDialog({
       {credited && (
         <div className="bid-success">
           <span>✓</span>
-          <p>Your sats count toward this UTC round.</p>
+          <p>Your sats add to your cumulative total.</p>
           <a href="/leaderboard" className="bid-button">
             View leaderboard ↗
           </a>

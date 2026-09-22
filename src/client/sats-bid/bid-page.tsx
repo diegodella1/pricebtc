@@ -8,7 +8,7 @@ import {
   recordEvent,
   sats,
 } from "./api.js";
-import { BidShell, Countdown } from "./components.js";
+import { BidShell } from "./components.js";
 import { PaymentDialog } from "./payment.js";
 import { ComingSoonPage } from "./coming-soon.js";
 export default function BidPage() {
@@ -129,10 +129,10 @@ export default function BidPage() {
   if (round?.coming_soon) return <ComingSoonPage />;
   return (
     <BidShell
-      title={leading ? "MAKE IT HARDER TO BEAT." : "YOUR NAME. THIS SPOT."}
+      title={leading ? "DEFEND YOUR POSITION." : "CLAIM YOUR SPOT."}
     >
       <p className="bid-intro">
-        Pay sats. Take the spot. Someone else can take it from you.
+        Pay Lightning sats. Rank in the Top 21. Anyone can outbid you anytime.
       </p>
       <div className="bid-checkout-grid">
         <form className="bid-form" onSubmit={submit}>
@@ -185,7 +185,7 @@ export default function BidPage() {
             </label>
           </fieldset>
           <fieldset disabled={busy}>
-            <legend>02 / Add sats to this round</legend>
+            <legend>02 / Add sats to your cumulative total</legend>
             <label>
               Amount in sats
               <input
@@ -239,15 +239,13 @@ export default function BidPage() {
                 I accept the{" "}
                 <a href="/rules" target="_blank" rel="noreferrer">
                   rules and payment terms
-                </a>{" "}
-                for this UTC round.
+                </a>.
               </span>
             </label>
             <p className="bid-caption">
-              Your payment adds to your total for this UTC round. Another
-              participant may outbid you at any time. Payments are final; there
-              is no guaranteed position or display time. Content may be removed
-              under the moderation rules. Rankings reset every day at 00:00 UTC.
+              Your payment adds to your all-time cumulative total. Top 21 totals rank on
+              the leaderboard. Anyone may outbid you at any time. Payments are final; no
+              guaranteed position or display time. Content may be removed under moderation.
             </p>
             <button
               className="bid-button"
@@ -315,24 +313,15 @@ export default function BidPage() {
               </dd>
             </div>
           </dl>
-          {round && (
-            <>
-              <p className="bid-eyebrow">NEXT RESET / UTC</p>
-              <Countdown
-                endsAt={round.ends_at}
-                serverTime={round.server_time}
-              />
-            </>
-          )}
           <p className="bid-caption">
             No position is reserved while you pay. Amounts and positions may
             change.
           </p>
           <hr />
-          <p>Same browser. Same daily total.</p>
+          <p>Same browser. Same cumulative total.</p>
           <p className="bid-caption">
             Your browser cookie controls this participation. Clearing it or
-            switching devices loses access. Keep it until your payments finish.
+            switching devices loses access. Keep it secure while paying.
           </p>
         </aside>
       </div>

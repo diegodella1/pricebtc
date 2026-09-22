@@ -69,7 +69,7 @@ deterministically. No wallet or real sats are used. Open `/admin`; local email i
 `operator@example.com`. Read `SATS_LOCAL_ADMIN_PASSWORD` privately from
 `.env.sats.local`. That generated value is only a development login.
 
-In `/bid`, create a profile, accept the rules, create an invoice and click
+In `/sponsors`, create a profile, accept the rules, create an invoice and click
 **Simulate payment**. Use a second browser profile to outbid the first; refresh
 the first to recover identity and add more sats. A mock invoice deliberately has
 no payable BOLT11. Real BOLT11 invoices render a local QR, copy and wallet link.

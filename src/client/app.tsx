@@ -16,8 +16,9 @@ const AdminPage = lazy(() => import("./sats-bid/admin.js"));
 export function App() {
   const path = window.location.pathname.replace(/\/index\.html$/, "").replace(/\/+$/, "") || "/";
   
-  if (path === "/bid") {
-    window.location.replace("/sponsors");
+  if (path === "/bid" || path.startsWith("/bid/")) {
+    const newPath = path.replace(/^\/bid/, "/sponsors");
+    window.location.replace(newPath + window.location.search);
     return null;
   }
   

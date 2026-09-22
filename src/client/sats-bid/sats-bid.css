@@ -824,3 +824,80 @@
   color: var(--bid-ink);
   max-width: 220px;
 }
+
+.bid-waitlist {
+  border: 2px solid var(--bid-ink);
+  padding: 32px;
+  margin: 32px 0;
+}
+.bid-waitlist-intro {
+  margin-bottom: 24px;
+}
+.bid-waitlist-intro strong {
+  font:
+    600 12px "IBM Plex Mono",
+    monospace;
+  display: block;
+  margin-bottom: 8px;
+}
+.bid-waitlist-intro p {
+  font-size: 16px;
+}
+.bid-waitlist-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.bid-waitlist-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+.bid-waitlist-fields label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font:
+    600 12px "IBM Plex Mono",
+    monospace;
+}
+.bid-waitlist-fields input {
+  padding: 12px;
+  border: 1px solid var(--bid-line);
+  background: var(--bid-white);
+  font-size: 14px;
+  min-height: 48px;
+}
+@media (max-width: 700px) {
+  .bid-waitlist {
+    padding: 24px;
+  }
+  .bid-waitlist-fields {
+    grid-template-columns: 1fr;
+  }
+}
+
+.bid-empty-slot {
+  opacity: 0.5;
+  background: var(--bid-paper);
+}
+.bid-empty-slot .bid-entry-copy p {
+  color: var(--bid-muted);
+  font-size: 12px;
+  font-style: italic;
+}
+.bid-claim-button {
+  padding: 8px 16px;
+  background: var(--bid-ink);
+  color: var(--bid-paper);
+  text-decoration: none;
+  font:
+    600 12px "IBM Plex Mono",
+    monospace;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+.bid-claim-button:hover {
+  background: var(--bid-accent);
+  color: var(--bid-ink);
+}

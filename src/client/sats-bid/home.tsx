@@ -8,7 +8,7 @@ import {
   recordEvent,
   sats,
 } from "./api.js";
-import { Countdown, Ranking, TopSpot, EmptySponsorCTA } from "./components.js";
+import { Ranking, TopSpot, EmptySponsorCTA } from "./components.js";
 import { ComingSoonHome } from "./coming-soon.js";
 export default function BidHome() {
   const [round, setRound] = useState<CurrentRound | null>(null);
@@ -52,12 +52,13 @@ export default function BidHome() {
   
   const slot = document.getElementById("bid-top-slot");
   const enabled = round?.enabled ?? false;
+  const comingSoon = round?.coming_soon ?? false;
   const showEmptySlot = !enabled || error || !board;
   
   if (showEmptySlot) {
     return (
       <section id="sats-bid" className="public-section">
-        {slot && createPortal(<TopSpot leader={null} />, slot)}
+        {slot && createPortal(<TopSpot leader={null} comingSoon={comingSoon} />, slot)}
         {error && (!enabled || !board) && (
           <p className="public-notice" role="status">
             Sponsor information is temporarily unavailable. Please try again shortly.
@@ -82,18 +83,16 @@ export default function BidHome() {
     >
       <div className="bid-home-heading">
         <div>
-          <p className="bid-eyebrow">SATS BID / {round.date} UTC</p>
+          <p className="bid-eyebrow">SPONSORS / TOP 21</p>
           <h2 id="sats-bid-heading">
             PAY SATS.
             <br />
-            <em>TAKE THE SPOT.</em>
+            <em>RANK TOP 21.</em>
           </h2>
-          <p>One place next to Bitcoin. Yours until someone outbids you.</p>
+          <p>Cumulative leaderboard. Outbid anytime. No resets.</p>
         </div>
         <div className="bid-reset">
-          NEXT RESET IN
-          <Countdown endsAt={round.ends_at} serverTime={round.server_time} />
-          <a href="/rules">How it works ↗</a>
+          <a href="/rules" className="bid-button">How it works ↗</a>
         </div>
       </div>
       {error && (
@@ -104,29 +103,28 @@ export default function BidHome() {
       <SponsorInventory />
       <div className="bid-home-grid bid-home-grid--ranking">
         {slot && board ? (
-          createPortal(board.leader ? <TopSpot leader={board.leader} delayed={error} /> : <EmptySponsorCTA />, slot)
+          createPortal(board.leader ? <TopSpot leader={board.leader} delayed={error} /> : <EmptySponsorCTA comingSoon={comingSoon} />, slot)
         ) : !slot && board ? (
-          board.leader ? <TopSpot leader={board.leader} delayed={error} /> : <EmptySponsorCTA />
+          board.leader ? <TopSpot leader={board.leader} delayed={error} /> : <EmptySponsorCTA comingSoon={comingSoon} />
         ) : null}
         <div className="bid-board">
           <header className="bid-board-heading">
             <h3>Today's leaderboard</h3>
             <span>{board?.participant_count ?? 0} PARTICIPANTS</span>
           </header>
-          <Ranking entries={board?.participants ?? []} />
+          <Ranking entries={board?.participants ?? []} comingSoon={comingSoon} />
           <div className="bid-board-footer">
             <a href="/leaderboard">VIEW FULL LEADERBOARD ↗</a>
-            <a href="/history">PAST ROUNDS ↗</a>
           </div>
           <p className="bid-caption">
-            {sats(board?.total_sats ?? "0")} sats · All confirmed participation
-            payments, including moderated entries.
+            {sats(board?.total_sats ?? "0")} sats · All confirmed cumulative
+            payments. Top 21 visible. Others can claim your spot anytime.
           </p>
         </div>
       </div>
       <p className="bid-caption">
-        Payments add to your daily total. No guaranteed position or display
-        time. No automatic refunds for being outbid.
+        Cumulative model: payments add to your all-time total. No guaranteed position or display
+        time. No refunds when outbid.
       </p>
     </section>
   );
