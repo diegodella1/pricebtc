@@ -15,8 +15,9 @@ function getAllowedOrigins(): string[] {
   const isProduction = process.env.NODE_ENV === "production" || process.env.APP_ENV === "production";
   const allowed = new Set<string>();
 
+  allowed.add("https://priceb.tc");
+
   if (isProduction) {
-    allowed.add("https://priceb.tc");
   }
 
   const publicSiteUrl = process.env.PUBLIC_SITE_URL;
