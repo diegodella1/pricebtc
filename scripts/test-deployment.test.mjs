@@ -183,9 +183,19 @@ test("public verification rejects old assets and stale market data", async t => 
   writeFileSync(join(directory, "client/assets/index-current.js"), "current-build");
   let staleAsset = false;
   let staleMarket = false;
+  let missingPage = false;
+  let missingHeaders = false;
   const server = createServer((request, response) => {
     if (request.url === "/healthz") return response.end(JSON.stringify({ market: { state: "live", lastUpdateAt: new Date(Date.now() - (staleMarket ? 60_000 : 0)).toISOString() }, fx: { state: "live" } }));
-    if (request.url.startsWith("/api/")) return response.end("{}");
+    if (request.url === "/terms" && missingPage) { response.statusCode = 404; return response.end("Missing page"); }
+    if (request.url.startsWith("/api/")) {
+      if (!missingHeaders) {
+        response.setHeader("x-ratelimit-limit", "120");
+        response.setHeader("x-ratelimit-remaining", "119");
+        response.setHeader("x-ratelimit-reset", "60");
+      }
+      return response.end("{}");
+    }
     if (request.url.startsWith("/assets/")) return response.end(staleAsset ? "old-build" : "current-build");
     response.end(html);
   });
@@ -198,4 +208,12 @@ test("public verification rejects old assets and stale market data", async t => 
   staleAsset = false;
   staleMarket = true;
   await assert.rejects(verifyRelease(base, directory), /Market data is stale/);
+  staleMarket = false;
+  missingPage = true;
+  await assert.rejects(verifyRelease(base, directory), /\/terms: HTTP 404/);
+  missingPage = false;
+  missingHeaders = true;
+  await assert.rejects(verifyRelease(base, directory), /missing or invalid x-ratelimit-limit/);
+  // Older releases must still be recoverable despite lacking the new functionality.
+  await verifyRelease(base, directory, { legacy: true });
 });

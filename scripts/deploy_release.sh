@@ -11,9 +11,9 @@ fi
 transaction="$project_dir/.data/deployment-transaction"
 
 verify() {
-  local base="$1" directory="$2"
+  local base="$1" directory="$2" mode="${3:-}"
   for attempt in {1..12}; do
-    if node "$project_dir/scripts/verify-release.mjs" "$base" "$directory"; then return 0; fi
+    if node "$project_dir/scripts/verify-release.mjs" "$base" "$directory" "$mode"; then return 0; fi
     sleep 5
   done
   return 1
@@ -31,8 +31,8 @@ restore_transaction() {
   fi
   sudo -n systemctl start pricebtc.service || return 1
   if [ -f "$backup/worker-active" ]; then sudo -n systemctl restart pricebtc-worker.service || return 1; fi
-  verify http://127.0.0.1:3466 "$project_dir/dist" || return 1
-  verify https://priceb.tc "$project_dir/dist" || return 1
+  verify http://127.0.0.1:3466 "$project_dir/dist" --legacy || return 1
+  verify https://priceb.tc "$project_dir/dist" --legacy || return 1
   rm "$transaction" || return 1
   echo "Previous release restored and verified"
 }

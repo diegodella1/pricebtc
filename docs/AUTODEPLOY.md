@@ -33,12 +33,16 @@ The root checkout's dependencies and running release remain intact on build fail
 Vitest excludes build workspaces and the standalone Node deployment tests.
 Before cutover, the compiled candidate starts on a temporary loopback port with
 isolated runtime data and no database. The same release checks must pass there;
-startup failures leave production untouched.
+startup failures leave production untouched. Chromium also verifies the rendered
+Terms, Privacy, Status, Pricing, Sponsor placeholder, API landing and Studio pages,
+including API currency tabs and the Studio branding teaser.
 
 Activation preserves the previous `dist` symlink, records a recovery transaction,
 switches releases and restarts the app (plus its worker if already running). Local
 and public checks verify live market data, acceptable FX state, home and Studio
-entry assets, exact asset content, and price/history/embed responses. Only then are
+entry assets, every JavaScript/CSS chunk, public page routes, rate-limit response
+headers, and price/history/embed responses. Rollback uses the legacy health/asset
+contract so an older working release can still be restored. Only then are
 `REVISION` and `VERIFIED` considered published. A failed check restores and verifies
 the previous release. An interrupted transaction is recovered before the next build.
 Failures remain logged; there is no automatic code repair or endless retry loop.

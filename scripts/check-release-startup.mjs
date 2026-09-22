@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { verifyRelease } from "./verify-release.mjs";
+import { verifyPublicPages } from "./smoke-public-pages.mjs";
 
 const release = resolve(process.argv[2]);
 const reservation = createServer();
@@ -42,6 +43,7 @@ try {
     catch (error) { failure = error; await delay(2000); }
   }
   if (!ready) throw new Error(`Candidate not ready: ${failure}\n${output}`);
+  await verifyPublicPages(`http://127.0.0.1:${port}`);
   console.log("Candidate startup and release checks passed before cutover");
 } catch (error) {
   console.error(error.message);

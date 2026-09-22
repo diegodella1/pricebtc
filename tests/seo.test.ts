@@ -8,6 +8,7 @@ import type { MarketSnapshot } from "../src/shared/contracts.js";
 
 const cleanup: (() => Promise<unknown>)[] = [];
 const applicationShell = '<html><h1>Live Bitcoin price</h1><!--PRICE_SNAPSHOT--><script type="module" src="/assets/app.js"></script></html>';
+const apiShell = '<html><h1>PRICEB.TC Bitcoin Price API</h1><script type="module" src="/assets/app.js"></script></html>';
 afterEach(async () => { for (const task of cleanup.reverse()) await task(); cleanup.length = 0; });
 
 async function frontend(snapshot: MarketSnapshot | null, state: "live" | "degraded" = "live") {
@@ -17,7 +18,7 @@ async function frontend(snapshot: MarketSnapshot | null, state: "live" | "degrad
   cleanup.push(async () => { if (previous === undefined) delete process.env.PRICEBTC_FRONTEND_DIR; else process.env.PRICEBTC_FRONTEND_DIR = previous; await rm(root, { recursive: true }); });
   await writeFile(join(root, "index.html"), applicationShell);
   await mkdir(join(root, "api"));
-  await writeFile(join(root, "api/index.html"), '<html><h1>PRICEB.TC Bitcoin Price API</h1><!--API_OBSERVATION--></html>');
+  await writeFile(join(root, "api/index.html"), apiShell);
   await mkdir(join(root, "about"));
   await writeFile(join(root, "about/index.html"), '<html lang="en"><h1>About PRICEB.TC</h1></html>');
   await mkdir(join(root, "faq"));
@@ -101,7 +102,7 @@ describe("crawlable price documents", () => {
     const doc = await app.inject("/api");
     expect(doc.statusCode).toBe(200);
     expect(doc.headers["cache-control"]).toBe("no-cache");
-    expect(doc.body).toBe(applicationShell);
+    expect(doc.body).toBe(apiShell);
     snapshot.priceUsd = "92345.6789";
     expect((await app.inject("/bitcoin-price.md")).body).toContain("92345.6789 USD");
     expect((await app.inject("/")).body).toContain("$92,345.68");

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -65,11 +65,13 @@ describe("public API", () => {
     try {
       await writeFile(join(directory, "og-image.png"), "static fallback");
       await writeFile(join(directory, "index.html"), "<html>Application shell</html>");
+      await mkdir(join(directory, "api"));
+      await writeFile(join(directory, "api/index.html"), "<html>API application shell</html>");
       const app = createTestApp(true);
       await app.ready();
       const apiPage = await app.inject({ method: "GET", url: "/api" });
       expect(apiPage.statusCode).toBe(200);
-      expect(apiPage.body).toBe("<html>Application shell</html>");
+      expect(apiPage.body).toBe("<html>API application shell</html>");
       const response = await app.inject({ method: "GET", url: "/og-image.png?currency=USD" });
       expect(response.statusCode).toBe(200);
       expect(response.headers["content-type"]).toBe("image/png");
@@ -80,6 +82,22 @@ describe("public API", () => {
       await rm(directory, { recursive: true, force: true });
     }
   }, 15_000); // Native font initialization can exceed five seconds on the Pi.
+  it("enforces the shared API quota, reports remaining requests and returns Retry-After", async () => {
+    const app = createTestApp();
+    const first = await app.inject("/api/price?currency=USD");
+    expect(first.headers["x-ratelimit-limit"]).toBe("120");
+    expect(first.headers["x-ratelimit-remaining"]).toBe("119");
+    expect(Number(first.headers["x-ratelimit-reset"])).toBeGreaterThan(0);
+    const second = await app.inject("/api/currencies");
+    expect(second.headers["x-ratelimit-remaining"]).toBe("118");
+    for (let count = 0; count < 118; count++) expect((await app.inject("/api/price")).statusCode).toBe(200);
+    const limited = await app.inject("/api/price");
+    expect(limited.statusCode).toBe(429);
+    expect(limited.headers["x-ratelimit-remaining"]).toBe("0");
+    expect(Number(limited.headers["retry-after"])).toBeGreaterThan(0);
+    expect((await app.inject("/healthz")).statusCode).toBe(200);
+    expect((await app.inject("/api/sats-bid/round/current")).statusCode).toBe(200);
+  });
   it("redirects the live subdomain permanently, including forwarded hostname and query parameters", async () => {
     const app = createTestApp();
     for (const headers of [

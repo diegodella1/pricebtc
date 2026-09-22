@@ -69,7 +69,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     crossOriginEmbedderPolicy: false,
   });
   app.addHook("onRoute", (route) => {
-    if (route.url.startsWith("/api/sats-bid/") || route.url === "/api/webhooks/btcpay") {
+    if (!route.url.startsWith("/api/") || route.url.startsWith("/api/sats-bid/") || route.url === "/api/webhooks/btcpay") {
       route.config = { ...route.config, rateLimit: false };
     }
   });
@@ -85,12 +85,14 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     },
   });
 
-  if (options.bidding) {
-    void app.register(async instance => registerBidRoutes(instance, options.bidding!));
-  } else {
-    app.get("/api/sats-bid/round/current", async () => ({ enabled: false, bids_open: false, coming_soon: true }));
-  }
+  registerResponsePolicies(app);
 
+  // Register routes after the limiter's onRoute hook is installed.
+  void app.register(async routes => registerApplicationRoutes(routes, options));
+  return app;
+}
+
+function registerResponsePolicies(app: FastifyInstance): void {
   app.addHook("onRequest", async (request, reply) => {
     const hostname = request.hostname.toLowerCase();
     if (hostname === "www.priceb.tc" || hostname === "live.priceb.tc" || (hostname === "priceb.tc" && request.protocol === "http")) {
@@ -124,6 +126,15 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     if (path.endsWith(".html")) reply.header("Cache-Control", "no-cache");
     return payload;
   });
+
+}
+
+function registerApplicationRoutes(app: FastifyInstance, options: BuildAppOptions): void {
+  if (options.bidding) {
+    void app.register(async instance => registerBidRoutes(instance, options.bidding!));
+  } else {
+    app.get("/api/sats-bid/round/current", async () => ({ enabled: false, bids_open: false, coming_soon: true }));
+  }
 
   app.get("/api/price", async (request, reply) => {
     reply.header("Cache-Control", "no-store");
@@ -224,7 +235,6 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     void reply.code(statusCode).send({ code: statusCode < 500 ? "BAD_REQUEST" : "INTERNAL_ERROR", message });
   });
 
-  return app;
 }
 
 function readObservation(options: BuildAppOptions, currency: string): PriceObservation | null {
@@ -305,7 +315,7 @@ function registerFrontend(app: FastifyInstance, options: BuildAppOptions): void 
   }
   app.get("/api", async (request, reply) => {
     reply.header("Cache-Control", "no-cache");
-    return reply.sendFile("index.html", { cacheControl: false });
+    return reply.sendFile("api/index.html", { cacheControl: false });
   });
 
   app.get("/day/:date", (request, reply) => {

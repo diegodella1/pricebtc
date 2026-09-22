@@ -14,6 +14,15 @@ beforeAll(async () => {
 });
 afterAll(async () => { if (root) await rm(root, { recursive: true }); });
 describe("generated SEO documents", () => {
+  it("builds HTML entry documents for every newly added public React route", async () => {
+    for (const route of ["terms", "privacy", "status", "pricing", "sponsors", "api"]) {
+      const html = await readFile(join(root, route, "index.html"), "utf8");
+      const document = new DOMParser().parseFromString(html, "text/html");
+      expect(document.querySelector('script[type="module"]'), route).not.toBeNull();
+      expect(document.querySelector('link[rel="canonical"]')?.getAttribute("href"), route).toBe(`https://priceb.tc/${route}`);
+      expect(document.querySelector("h1")?.textContent, route).toBeTruthy();
+    }
+  });
   it("matches all visible FAQ answers to its structured data and makes the page discoverable", async () => {
     const html = await readFile(join(root, "faq/index.html"), "utf8");
     const document = new DOMParser().parseFromString(html, "text/html");
@@ -56,7 +65,7 @@ describe("generated SEO documents", () => {
         expect(html).toContain("<!--PRICE_SNAPSHOT-->");
         expect(html).toContain('href="/api"');
       }
-      if (path === "/api" || path === "/about" || path === "/faq" || manifest.guides.some(g => g.path === path)) expect(document.querySelector('script[type="module"]')).toBeNull();
+      if (path === "/about" || path === "/faq" || manifest.guides.some(g => g.path === path)) expect(document.querySelector('script[type="module"]')).toBeNull();
     }
   });
   it("publishes a consistent entity on home and About without unsupported identity claims", async () => {
