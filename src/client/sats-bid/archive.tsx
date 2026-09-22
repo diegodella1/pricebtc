@@ -155,7 +155,7 @@ export default function ArchivePage() {
           </button>
         </p>
       )}
-      <a className="bid-text-button" href="/bid">
+      <a className="bid-text-button" href="/sponsors">
         Join today's round ↗
       </a>
     </BidShell>

@@ -58,7 +58,7 @@ test("sponsor presentation is visible without enabling payments", async ({
     path: "/tmp/pricebtc-coming-soon-mobile.png",
     fullPage: true,
   });
-  for (const path of ["/bid", "/leaderboard", "/history"]) {
+  for (const path of ["/sponsors", "/leaderboard", "/history"]) {
     await page.goto(path);
     await expect(page.locator(".bid-launch-notice")).toContainText(
       "PRÓXIMAMENTE",

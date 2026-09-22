@@ -98,6 +98,11 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     }
     const url = new URL(request.url, "http://localhost");
     const normalized = url.pathname.replace(/\/index\.html$/, "").replace(/\/+$/, "") || "/";
+    
+    if (normalized === "/bid") {
+      return reply.redirect(`/sponsors${url.search}`, 301);
+    }
+    
     if ((seoPages.indexable.includes(normalized) || ["/embed", "/overlay"].includes(normalized)) && normalized !== url.pathname) {
       return reply.redirect(`${normalized}${url.search}`, 308);
     }
@@ -267,13 +272,12 @@ function registerFrontend(app: FastifyInstance, options: BuildAppOptions): void 
     ["/studio", "studio/index.html"],
     ["/embed", "embed/index.html"],
     ["/overlay", "overlay/index.html"],
-    ["/bid", "bid/index.html"],
+    ["/sponsors", "sponsors/index.html"],
     ["/leaderboard", "leaderboard/index.html"],
     ["/history", "history/index.html"],
     ["/rules", "rules/index.html"],
     ["/admin", "admin/index.html"],
     ["/pricing", "pricing/index.html"],
-    ["/sponsors", "sponsors/index.html"],
     ["/status", "status/index.html"],
     ["/terms", "terms/index.html"],
     ["/privacy", "privacy/index.html"],
@@ -302,8 +306,8 @@ function registerFrontend(app: FastifyInstance, options: BuildAppOptions): void 
         return html;
       }
       if (["/leaderboard", "/history"].includes(route)) reply.header("X-Robots-Tag", "noindex, follow");
-      reply.header("Cache-Control", route === "/bid" || route === "/admin" ? "no-store" : "no-cache");
-      if (route === "/bid" || route === "/admin") reply.header("X-Robots-Tag", "noindex, nofollow");
+      reply.header("Cache-Control", route === "/sponsors" || route === "/admin" ? "no-store" : "no-cache");
+      if (route === "/sponsors" || route === "/admin") reply.header("X-Robots-Tag", "noindex, nofollow");
       if (route === "/embed" || route === "/overlay") {
         reply.header("X-Robots-Tag", "noindex, follow, noarchive");
       }
