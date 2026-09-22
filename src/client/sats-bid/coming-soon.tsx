@@ -1,6 +1,6 @@
 import { SponsorInventory } from "./inventory.js";
 import { BidShell } from "./components.js";
-import siteContent from "../../shared/site-content.json";
+import { WaitlistForm } from "./waitlist-form.js";
 
 export function SponsorExplanation() {
   return (
@@ -43,37 +43,6 @@ export function SponsorExplanation() {
   );
 }
 
-function WaitlistForm() {
-  return (
-    <div className="bid-waitlist">
-      <div className="bid-waitlist-intro">
-        <strong>PAYMENTS OPENING — JOIN THE LIST</strong>
-        <p>
-          Lightning payments are coming soon. Contact us to join the waitlist.
-        </p>
-      </div>
-      <div className="bid-waitlist-links">
-        <a 
-          href={`mailto:${siteContent.contactEmail}?subject=Sponsor%20Waitlist&body=I%20want%20to%20join%20the%20sponsor%20waitlist.%0A%0AEmail%3A%20%0AX%2FTwitter%3A%20%0A`}
-          className="bid-button"
-        >
-          Email us →
-        </a>
-        <a 
-          href="https://x.com/intent/post?text=@pricebtc%20I%20want%20to%20join%20the%20sponsor%20waitlist"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="bid-button bid-button--secondary"
-        >
-          Post on X →
-        </a>
-      </div>
-      <p className="bid-caption">
-        We'll reply once when Lightning payments open.
-      </p>
-    </div>
-  );
-}
 
 function EmptyLaunchRanking() {
   return (
@@ -87,7 +56,7 @@ function EmptyLaunchRanking() {
           <li key={i} className="bid-empty-slot">
             <span className="bid-rank">{String(i + 1).padStart(2, "0")}</span>
             <div className="bid-entry-copy">
-              <p>Available sponsor spot</p>
+              <p>Open — claim this spot</p>
             </div>
             <a href="#waitlist" className="bid-claim-button">
               Join waitlist →
@@ -96,7 +65,7 @@ function EmptyLaunchRanking() {
         ))}
       </ol>
       <div className="bid-board-footer">
-        <span>21 SPOTS AVAILABLE</span>
+        <span>21 spots open</span>
         <a href="/leaderboard">VIEW LEADERBOARD ↗</a>
       </div>
     </div>

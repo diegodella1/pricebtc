@@ -21,6 +21,7 @@ import { createPricePayload } from "./services/pricing.js";
 import { StreamCapacityError, type StreamRegistry } from "./services/sse-hub.js";
 import type { BidService } from "./sats-bid/service.js";
 import { registerBidRoutes } from "./sats-bid/routes.js";
+import { registerWaitlistRoutes } from "./waitlist.js";
 
 const CURRENCY_SCHEMA = z.string().trim().toUpperCase().regex(/^[A-Z]{3}$/).default("USD");
 const RANGE_SCHEMA = z.enum(HISTORY_RANGES).default("24h");
@@ -52,6 +53,7 @@ interface BuildAppOptions {
   streams: StreamRegistry;
   serveFrontend?: boolean;
   logger?: FastifyServerOptions["logger"];
+  dataDir?: string;
 }
 
 export function buildApp(options: BuildAppOptions): FastifyInstance {
@@ -136,6 +138,10 @@ function registerResponsePolicies(app: FastifyInstance): void {
 }
 
 function registerApplicationRoutes(app: FastifyInstance, options: BuildAppOptions): void {
+  if (options.dataDir) {
+    void app.register(async instance => registerWaitlistRoutes(instance, options.dataDir!));
+  }
+  
   if (options.bidding) {
     void app.register(async instance => registerBidRoutes(instance, options.bidding!));
   } else {

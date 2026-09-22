@@ -6,6 +6,7 @@
   --bid-muted: #586052;
   --bid-white: #fff;
   --bid-alert: #84331c;
+  --bid-link: #2aa198;
 }
 .bid-launch-notice {
   display: flex;
@@ -830,18 +831,12 @@
   padding: 32px;
   margin: 32px 0;
 }
-.bid-waitlist-intro {
-  margin-bottom: 24px;
-}
-.bid-waitlist-intro strong {
+.bid-waitlist-heading {
   font:
-    600 12px "IBM Plex Mono",
-    monospace;
-  display: block;
-  margin-bottom: 8px;
-}
-.bid-waitlist-intro p {
-  font-size: 16px;
+    600 24px "IBM Plex Sans",
+    sans-serif;
+  margin-bottom: 24px;
+  color: var(--bid-ink);
 }
 .bid-waitlist-form {
   display: flex;
@@ -867,6 +862,92 @@
   background: var(--bid-white);
   font-size: 14px;
   min-height: 48px;
+  font-family: inherit;
+}
+.bid-waitlist-fields input:focus {
+  outline: 2px solid var(--bid-accent);
+  outline-offset: 2px;
+}
+.bid-waitlist-fields input[aria-invalid="true"] {
+  border-color: var(--bid-accent);
+}
+.bid-field-error {
+  color: var(--bid-accent);
+  font-size: 12px;
+  margin-top: 4px;
+}
+.bid-waitlist-submit {
+  padding: 14px 24px;
+  background: var(--bid-accent);
+  color: var(--bid-ink);
+  border: none;
+  font:
+    600 14px "IBM Plex Mono",
+    monospace;
+  cursor: pointer;
+  min-height: 48px;
+  transition: opacity 0.2s;
+  align-self: flex-start;
+}
+.bid-waitlist-submit:hover:not(:disabled) {
+  opacity: 0.9;
+}
+.bid-waitlist-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.bid-waitlist-privacy {
+  font-size: 13px;
+  color: var(--bid-muted);
+  margin: 0;
+}
+.bid-waitlist-privacy a {
+  color: var(--bid-link);
+  text-decoration: underline;
+}
+.bid-waitlist-error {
+  color: var(--bid-accent);
+  font:
+    600 13px "IBM Plex Mono",
+    monospace;
+  margin: 0;
+}
+.bid-waitlist-success {
+  padding: 20px 0;
+}
+.bid-waitlist-success-message {
+  font:
+    600 18px "IBM Plex Sans",
+    sans-serif;
+  margin-bottom: 8px;
+  color: var(--bid-ink);
+}
+.bid-waitlist-success-detail {
+  font-size: 14px;
+  color: var(--bid-muted);
+}
+.bid-waitlist-secondary {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--bid-line);
+}
+.bid-waitlist-secondary > p {
+  font-size: 13px;
+  color: var(--bid-muted);
+  margin-bottom: 12px;
+}
+.bid-waitlist-links {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 14px;
+}
+.bid-link-secondary {
+  color: var(--bid-link);
+  text-decoration: underline;
+}
+.bid-link-secondary:hover {
+  opacity: 0.8;
 }
 @media (max-width: 700px) {
   .bid-waitlist {
@@ -874,6 +955,9 @@
   }
   .bid-waitlist-fields {
     grid-template-columns: 1fr;
+  }
+  .bid-waitlist-submit {
+    width: 100%;
   }
 }
 
@@ -954,17 +1038,3 @@
   text-overflow: ellipsis;
 }
 
-.bid-waitlist-links {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-.bid-button--secondary {
-  background: var(--bid-paper);
-  color: var(--bid-ink);
-  border: 2px solid var(--bid-ink);
-}
-.bid-button--secondary:hover {
-  background: var(--bid-accent);
-  color: var(--bid-ink);
-}
