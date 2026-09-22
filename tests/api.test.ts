@@ -64,8 +64,12 @@ describe("public API", () => {
     process.env.PRICEBTC_FRONTEND_DIR = directory;
     try {
       await writeFile(join(directory, "og-image.png"), "static fallback");
+      await writeFile(join(directory, "index.html"), "<html>Application shell</html>");
       const app = createTestApp(true);
       await app.ready();
+      const apiPage = await app.inject({ method: "GET", url: "/api" });
+      expect(apiPage.statusCode).toBe(200);
+      expect(apiPage.body).toBe("<html>Application shell</html>");
       const response = await app.inject({ method: "GET", url: "/og-image.png?currency=USD" });
       expect(response.statusCode).toBe(200);
       expect(response.headers["content-type"]).toBe("image/png");
@@ -75,7 +79,7 @@ describe("public API", () => {
       else process.env.PRICEBTC_FRONTEND_DIR = previous;
       await rm(directory, { recursive: true, force: true });
     }
-  });
+  }, 15_000); // Native font initialization can exceed five seconds on the Pi.
   it("redirects the live subdomain permanently, including forwarded hostname and query parameters", async () => {
     const app = createTestApp();
     for (const headers of [

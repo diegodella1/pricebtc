@@ -7,6 +7,7 @@ import { renderPriceSnapshot } from "../src/server/seo.js";
 import type { MarketSnapshot } from "../src/shared/contracts.js";
 
 const cleanup: (() => Promise<unknown>)[] = [];
+const applicationShell = '<html><h1>Live Bitcoin price</h1><!--PRICE_SNAPSHOT--><script type="module" src="/assets/app.js"></script></html>';
 afterEach(async () => { for (const task of cleanup.reverse()) await task(); cleanup.length = 0; });
 
 async function frontend(snapshot: MarketSnapshot | null, state: "live" | "degraded" = "live") {
@@ -14,7 +15,7 @@ async function frontend(snapshot: MarketSnapshot | null, state: "live" | "degrad
   const previous = process.env.PRICEBTC_FRONTEND_DIR;
   process.env.PRICEBTC_FRONTEND_DIR = root;
   cleanup.push(async () => { if (previous === undefined) delete process.env.PRICEBTC_FRONTEND_DIR; else process.env.PRICEBTC_FRONTEND_DIR = previous; await rm(root, { recursive: true }); });
-  await writeFile(join(root, "index.html"), '<html><h1>Live Bitcoin price</h1><!--PRICE_SNAPSHOT--></html>');
+  await writeFile(join(root, "index.html"), applicationShell);
   await mkdir(join(root, "api"));
   await writeFile(join(root, "api/index.html"), '<html><h1>PRICEB.TC Bitcoin Price API</h1><!--API_OBSERVATION--></html>');
   await mkdir(join(root, "about"));
@@ -86,7 +87,7 @@ describe("crawlable price documents", () => {
     expect((await app.inject("/leaderboard")).headers["x-robots-tag"]).toContain("noindex");
     expect((await app.inject("/day/2026-09-07")).headers["x-robots-tag"]).toContain("noindex");
   });
-  it("keeps API compatibility and uses the same observation for HTML and Markdown", async () => {
+  it("keeps JSON and Markdown compatible while the API landing serves the React application", async () => {
     const timestamp = new Date().toISOString();
     const snapshot = { priceUsd: "91234.56789", change24h: -2.5, marketTimestamp: timestamp, receivedAt: timestamp, sequence: 1, high24h: null, low24h: null, volume24h: null };
     const app = await frontend(snapshot);
@@ -98,8 +99,9 @@ describe("crawlable price documents", () => {
     expect(md.body).toContain("91234.56789 USD");
     expect(md.body).toContain(timestamp);
     const doc = await app.inject("/api");
-    expect(doc.body).toContain("91234.56789");
-    expect(doc.body).toContain("sourceDetails");
+    expect(doc.statusCode).toBe(200);
+    expect(doc.headers["cache-control"]).toBe("no-cache");
+    expect(doc.body).toBe(applicationShell);
     snapshot.priceUsd = "92345.6789";
     expect((await app.inject("/bitcoin-price.md")).body).toContain("92345.6789 USD");
     expect((await app.inject("/")).body).toContain("$92,345.68");

@@ -149,7 +149,7 @@ print(f"BTC/{selectedCurrency}: {data['price']}")`;
             
             <div className="api-response">
               <div className="api-response__tabs" role="tablist">
-                {CURRENCIES.map(({ code, name }) => (
+                {CURRENCIES.map(({ code }) => (
                   <button
                     key={code}
                     type="button"

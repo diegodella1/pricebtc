@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import seoPages from "../shared/seo-pages.json";
-import { renderPriceSnapshot, renderPriceMarkdown, escapeHtml, injectOgMeta } from "./seo.js";
+import { renderPriceSnapshot, renderPriceMarkdown, injectOgMeta } from "./seo.js";
 import { generateOgImage } from "./og-image.js";
 import { join } from "node:path";
 
@@ -314,11 +314,6 @@ function registerFrontend(app: FastifyInstance, options: BuildAppOptions): void 
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return reply.code(404).send();
     reply.header("Cache-Control", "no-cache");
     return reply.sendFile("day/index.html", { cacheControl: false });
-  });
-
-  app.get("/api", async (request, reply) => {
-    reply.header("Cache-Control", "no-cache");
-    return reply.sendFile("index.html", { cacheControl: false });
   });
 
   app.setNotFoundHandler((request, reply) => {
