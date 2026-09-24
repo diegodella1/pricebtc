@@ -54,22 +54,11 @@ const PRICING_TIERS: PricingTier[] = [
 ];
 
 export function PricingPage() {
-  const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>("monthly");
-
   const handleCheckout = async (tier: PricingTier) => {
     if (tier.ctaLink) {
       window.location.href = tier.ctaLink;
       return;
     }
-  };
-
-  const formatPrice = (price: number, period: BillingPeriod) => {
-    if (price === 0) return "$0";
-    if (period === "yearly") {
-      const monthlyEquivalent = Math.floor(price / 12);
-      return `$${monthlyEquivalent}`;
-    }
-    return `$${price}`;
   };
 
   return (

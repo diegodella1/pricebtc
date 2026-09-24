@@ -1,147 +1,71 @@
-import { SponsorInventory } from "./inventory.js";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import {
-  bidApi,
-  type Board,
-  type CurrentRound,
-  recordEvent,
-  sats,
-} from "./api.js";
-import { Ranking, TopSpot, EmptySponsorCTA } from "./components.js";
-import { ComingSoonHome } from "./coming-soon.js";
+import { TopSpot, EmptySponsorCTA } from "./components.js";
+import { bidApi } from "./api.js";
+import "./sats-bid.css";
+
+interface CryptoLeader {
+  id: string;
+  name: string;
+  description: string;
+  url: string;
+  normalized_domain: string;
+  logo_asset_id: string | null;
+  total_usd: string;
+  position: number;
+}
+
+interface CryptoConfig {
+  enabled: boolean;
+  assets: any[];
+}
+
 export default function BidHome() {
-  const [round, setRound] = useState<CurrentRound | null>(null);
-  const [board, setBoard] = useState<Board | null>(null);
-  const [error, setError] = useState(false);
+  const [leader, setLeader] = useState<CryptoLeader | null>(null);
+  const [cryptoEnabled, setCryptoEnabled] = useState(false);
+  const [loading, setLoading] = useState(true);
+  
   useEffect(() => {
-    let stopped = false;
-    let tracked = false;
-    const refresh = async () => {
-      if (document.hidden) return;
+    async function load() {
       try {
-        const current = await bidApi<CurrentRound>("/round/current");
-        if (stopped) return;
-        setRound(current);
-        setError(false);
-        if (!current.enabled) return;
-        if (!tracked) {
-          recordEvent("homepage_view");
-          tracked = true;
-        }
-        const next = await bidApi<Board>("/leaderboard");
-        if (!stopped) {
-          setBoard(next);
-          setError(false);
-        }
+        const [config, leaderboard] = await Promise.all([
+          bidApi<CryptoConfig>("/crypto-sponsors/config", { method: "GET" }),
+          bidApi<{ leader: CryptoLeader | null }>("/crypto-sponsors/leaderboard", { method: "GET" }),
+        ]);
+        setCryptoEnabled(config.enabled && config.assets.length > 0);
+        setLeader(leaderboard.leader);
       } catch {
-        if (!stopped) setError(true);
+        setCryptoEnabled(false);
+        setLeader(null);
+      } finally {
+        setLoading(false);
       }
-    };
-    void refresh();
-    const timer = setInterval(() => void refresh(), 5000);
-    document.addEventListener("visibilitychange", refresh);
-    return () => {
-      stopped = true;
-      clearInterval(timer);
-      document.removeEventListener("visibilitychange", refresh);
-    };
+    }
+    void load();
   }, []);
   
   const slot = document.getElementById("bid-top-slot");
   
-  if (!round && !error) {
+  if (loading) {
     return (
       <>
-        {slot && createPortal(<EmptySponsorCTA />, slot)}
-        <div className="sponsor-presentation-loading" role="status">Loading sponsor space…</div>
+        {slot && createPortal(<div className="sponsor-presentation-loading" role="status">Loading...</div>, slot)}
       </>
     );
   }
   
-  if (round?.coming_soon) {
-    return (
-      <>
-        {slot && createPortal(<EmptySponsorCTA />, slot)}
-        <ComingSoonHome />
-      </>
-    );
-  }
+  const mappedLeader = leader ? {
+    id: leader.id,
+    name: leader.name,
+    description: leader.description,
+    url: leader.url,
+    normalized_domain: leader.normalized_domain,
+    logo_asset_id: leader.logo_asset_id,
+    total_usd: leader.total_usd,
+    position: leader.position,
+  } : null;
   
-  const enabled = round?.enabled ?? false;
-  const showEmptySlot = !enabled || error || !board;
+  const content = mappedLeader ? <TopSpot leader={mappedLeader} /> : <EmptySponsorCTA cryptoEnabled={cryptoEnabled} />;
   
-  if (showEmptySlot) {
-    return (
-      <section id="sats-bid" className="public-section">
-        {slot && createPortal(<EmptySponsorCTA />, slot)}
-        {error && (!enabled || !board) && (
-          <p className="public-notice" role="status">
-            Sponsor space is temporarily unavailable. Please try again shortly.
-          </p>
-        )}
-        {!error && !enabled && (
-          <p className="public-notice" role="status">
-            Sponsorship is currently unavailable.
-          </p>
-        )}
-      </section>
-    );
-  }
-  
-  if (!round) return null;
-  
-  return (
-    <section
-      className="bid-home"
-      id="sats-bid"
-      aria-labelledby="sats-bid-heading"
-    >
-      <div className="bid-home-heading">
-        <div>
-          <p className="bid-eyebrow">SPONSORS / TOP 21</p>
-          <h2 id="sats-bid-heading">
-            PAY SATS.
-            <br />
-            <em>RANK TOP 21.</em>
-          </h2>
-          <p>Cumulative leaderboard. Outbid anytime. No resets.</p>
-        </div>
-        <div className="bid-reset">
-          <a href="/rules" className="bid-button">How it works ↗</a>
-        </div>
-      </div>
-      {error && (
-        <p role="status" className="bid-alert">
-          Leaderboard updates delayed. Positions below may have changed.
-        </p>
-      )}
-      <SponsorInventory />
-      <div className="bid-home-grid bid-home-grid--ranking">
-        {slot && board ? (
-          createPortal(board.leader ? <TopSpot leader={board.leader} delayed={error} /> : <EmptySponsorCTA />, slot)
-        ) : !slot && board ? (
-          board.leader ? <TopSpot leader={board.leader} delayed={error} /> : <EmptySponsorCTA />
-        ) : null}
-        <div className="bid-board">
-          <header className="bid-board-heading">
-            <h3>Top 21 Leaderboard</h3>
-            <span>{board?.participant_count ?? 0} PARTICIPANTS</span>
-          </header>
-          <Ranking entries={board?.participants ?? []} />
-          <div className="bid-board-footer">
-            <a href="/leaderboard">VIEW FULL LEADERBOARD ↗</a>
-          </div>
-          <p className="bid-caption">
-            {sats(board?.total_sats ?? "0")} sats · All confirmed cumulative
-            payments. Top 21 visible. Others can claim your spot anytime.
-          </p>
-        </div>
-      </div>
-      <p className="bid-caption">
-        Cumulative model: payments add to your all-time total. No guaranteed position or display
-        time. No refunds when outbid.
-      </p>
-    </section>
-  );
+  return slot ? createPortal(content, slot) : null;
 }
