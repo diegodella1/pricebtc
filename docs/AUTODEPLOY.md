@@ -23,6 +23,25 @@ the latest `origin/main`, so delayed events never intentionally downgrade produc
 
 ## Deployment guarantees
 
+GitHub Actions `CI / Validate` runs on pull requests and pushes to `main`: clean
+dependency installation, typecheck, lint, all tests (including PostgreSQL integration
+and schema-upgrade tests), deployment tests and build. Require `Validate` in the
+branch protection for `main`. The installed runner independently waits up to 20
+minutes for a successful `ci.yml` push/manual run on the exact target SHA before
+updating the checkout or building. Failed, cancelled, missing or inaccessible CI
+results cannot publish. The runner's GitHub CLI login needs Actions read and commit
+statuses write access; credentials are never passed to GitHub Actions from this host.
+
+The `pricebtc/production` commit status distinguishes waiting/building, failed or
+migration-blocked, and published/verified releases. Status reporting failures are
+logged but never prevent rollback. A GitHub Actions monitor checks the latest main
+status and public market health approximately every 30 minutes; missing/failed
+statuses or pending statuses older than 30 minutes fail the monitor run. Configure
+GitHub Actions notification preferences to receive these failures. Scheduled Actions
+can be delayed; this is a backup check, not a real-time paging service. The monitor
+does not independently verify the live SHA; publication status is written only after
+the release's local/public asset checks pass.
+
 The runner requires a clean `main` checkout and a fast-forward update. It does not
 discard local changes or fix failing code. Manual and automatic releases share an
 exclusive lock. Do not edit the checkout during an automatic build.
@@ -59,6 +78,11 @@ systemd units and environment already installed, Node 22+, Git, npm, RTK, and th
 existing operator's noninteractive sudo access. GitHub CLI must have repository
 webhook management permission for registration.
 
+The installed runner also needs GitHub CLI authentication with Actions read and
+commit statuses write access. After adding CI, wait for a passing main run before
+bootstrapping a manual release. Schema changes remain an explicit manual operation;
+CI validates them against an isolated PostgreSQL database, never production.
+
 1. Commit the tested implementation, including local fixes needed for a clean
    validation run. For initial activation, install and register first, then push
    the implementation to exercise a real delivery.
@@ -93,6 +117,20 @@ script or redeliver with a new GitHub delivery ID; an already-seen ID is ignored
 Do not automatically retry a commit that failed tests. Build and release directories
 are retained for diagnosis/rollback; monitor disk usage and prune only inactive
 directories after confirming the current and previous releases.
+
+For a reviewed manual release, take and verify a backup of any configured production
+database first. Run `bash scripts/deploy_release.sh` from a clean, CI-validated
+checkout. This applies migrations only when production has `DATABASE_URL`; without
+one it publishes the application with database/payment features disabled. After a
+successful manual release, record its exact `dist/REVISION` using
+`node scripts/deployment-github.mjs status SHA success 'Manual release verified'`.
+On failure, record a failure status instead. Never update `REVISION` or the migration
+baseline just to bypass the migration guard. Application rollback does not undo SQL.
+
+To retry after CI infrastructure recovery, rerun CI for the same main SHA, wait for
+success, then use the reviewed manual release path or a new push. A CI rerun alone
+does not enqueue a deployment. Do not mark `pricebtc/production` as a required merge
+check: production deployment necessarily follows the merge. Require `Validate`.
 
 To pause new deployments, disable the webhook in GitHub first and allow the running
 deployment to finish, then stop `pricebtc-deploy.service`. The app remains running.

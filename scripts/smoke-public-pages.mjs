@@ -28,7 +28,7 @@ export async function verifyPublicPages(base) {
     console.log("Browser OK: home — one sponsor, GA4 configuration/CSP, waitlist validation");
     for (const [path, heading] of [
       ["/terms", "Terms of Service"], ["/privacy", "Privacy Policy"],
-      ["/status", "Service Health"], ["/pricing", "Pricing"],
+      ["/status", "Service Health"], ["/pricing", "Bitcoin price tools that scale with your business."],
       ["/sponsors", null], ["/api", "Free JSON API"],
       ["/studio", "Widget Studio"],
     ]) {

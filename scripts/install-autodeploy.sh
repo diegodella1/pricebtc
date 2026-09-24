@@ -9,7 +9,7 @@ fi
 sudo -n install -d -o root -g root -m 0755 /usr/local/lib/pricebtc-deploy
 sudo -n install -d -o diego -g diego -m 0700 /var/lib/pricebtc-deploy
 sudo -n install -d -o root -g root -m 0755 /etc/pricebtc
-sudo -n install -o root -g root -m 0644 scripts/deploy-webhook.mjs scripts/auto-deploy.sh /usr/local/lib/pricebtc-deploy/
+sudo -n install -o root -g root -m 0644 scripts/deploy-webhook.mjs scripts/auto-deploy.sh scripts/deployment-github.mjs /usr/local/lib/pricebtc-deploy/
 sudo -n install -o root -g root -m 0644 deploy/pricebtc-deploy.service /etc/systemd/system/
 tunnel_change="$(sudo -n python3 - <<'PY'
 from pathlib import Path

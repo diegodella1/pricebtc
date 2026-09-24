@@ -76,7 +76,7 @@ export function EntryLogo({ entry }: { entry: Entry }) {
     </span>
   );
 }
-export function Ranking({ entries, comingSoon = false }: { entries: Entry[]; comingSoon?: boolean }) {
+export function Ranking({ entries }: { entries: Entry[] }) {
   const LEADERBOARD_SIZE = 21;
   const emptySlots = Math.max(0, LEADERBOARD_SIZE - entries.length);
   
@@ -167,7 +167,7 @@ export function TopSpot({
   );
 }
 
-export function EmptySponsorCTA({ comingSoon = false }: { comingSoon?: boolean }) {
+export function EmptySponsorCTA() {
   return (
     <a href="/sponsors#waitlist" className="sponsor-empty-cta">
       <h3 className="sponsor-empty-cta__title">Your project here</h3>

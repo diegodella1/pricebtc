@@ -8,10 +8,51 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { DeploymentQueue, validSignature, webhookServer } from "./deploy-webhook.mjs";
 import { verifyRelease } from "./verify-release.mjs";
+import { ciResult, waitForCI, publicationProblem, context } from "./deployment-github.mjs";
 
 const secret = "test-secret-with-at-least-32-characters";
 const sha = "a".repeat(40);
 const signature = body => `sha256=${createHmac("sha256", secret).update(body).digest("hex")}`;
+
+const successfulRun = { id: 1, head_sha: sha, head_branch: "main", event: "push", head_repository: { full_name: "diegodella1/pricebtc" }, status: "completed", conclusion: "success" };
+
+test("CI gate requires the exact revision, main branch, and trusted event/repository", () => {
+  assert.equal(ciResult([successfulRun], sha), "success");
+  for (const patch of [{ head_sha: "b".repeat(40) }, { head_branch: "feature" }, { event: "pull_request" }, { head_repository: { full_name: "other/repo" } }]) {
+    assert.equal(ciResult([{ ...successfulRun, ...patch }], sha), "pending");
+  }
+  for (const conclusion of ["failure", "cancelled", "skipped", "timed_out", null]) {
+    assert.equal(ciResult([{ ...successfulRun, conclusion }], sha), "failure");
+  }
+  assert.equal(ciResult([successfulRun, { ...successfulRun, id: 2, status: "in_progress" }], sha), "pending");
+});
+
+test("CI gate waits for completion and fails closed on failure, timeout or API errors", async () => {
+  let attempts = 0;
+  await waitForCI(sha, {
+    request: () => ({ workflow_runs: ++attempts === 1 ? [] : [successfulRun] }), sleep: async () => {},
+  });
+  assert.equal(attempts, 2);
+  await assert.rejects(waitForCI(sha, {
+    request: () => ({ workflow_runs: [{ ...successfulRun, conclusion: "failure" }] }),
+  }), /CI did not pass/);
+  let clock = 0;
+  await assert.rejects(waitForCI(sha, {
+    request: () => ({ workflow_runs: [] }), now: () => clock, timeout: 1,
+    sleep: async () => { clock = 2; },
+  }), /Timed out/);
+  await assert.rejects(waitForCI(sha, { request: () => { throw new Error("API unavailable"); } }), /API unavailable/);
+});
+
+test("monitor detects missing, failed and stuck publications while allowing a running deployment", () => {
+  const now = Date.now();
+  const status = { context, state: "pending", updated_at: new Date(now).toISOString(), description: "Building" };
+  assert.match(publicationProblem([]), /No production status/);
+  assert.equal(publicationProblem([status], now), null);
+  assert.match(publicationProblem([status], now + 31 * 60_000), /pending/);
+  assert.match(publicationProblem([{ ...status, state: "failure" }], now), /failure/);
+  assert.equal(publicationProblem([{ ...status, state: "success" }], now), null);
+});
 
 test("rejects modified payloads and malformed signatures", () => {
   const body = Buffer.from("original");
@@ -133,6 +174,48 @@ test("a failed build never stops production or replaces its release", t => {
   assert.equal(result.status, 1, result.stderr);
   assert.equal(readlinkSync(join(fixture.root, "dist")), fixture.old);
   assert.equal(existsSync(join(fixture.root, ".data/systemctl.log")), false);
+});
+
+test("automatic runner stops on failed CI and migrations, and reports verified success", t => {
+  const fixture = releaseFixture(t);
+  const { root, git } = fixture;
+  const script = readFileSync(new URL("./auto-deploy.sh", import.meta.url), "utf8")
+    .replace('export PATH="/home/diego/.local/bin:/usr/local/bin:/usr/bin:/bin"', 'export PATH="$PRICEBTC_TEST_BIN:/usr/bin:/bin"')
+    .replace("cd /home/diego/Documents/pricebtc", 'cd "$PRICEBTC_TEST_ROOT"');
+  writeFileSync(join(root, "scripts/auto-deploy.sh"), script);
+  writeFileSync(join(root, "scripts/deploy_release.sh"), 'echo deployed >> .data/activated\n');
+  writeFileSync(join(root, "mock-bin/node"), `#!/bin/bash
+    echo "$*" >> "$PRICEBTC_TEST_ROOT/.data/github.log"
+    if [ "$2" = wait ] && [ "\${FAIL_CI:-}" = yes ]; then exit 1; fi
+  `, { mode: 0o755 });
+  git("add", ".");
+  git("-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "automatic runner fixture");
+  const previous = git("rev-parse", "HEAD").toString().trim();
+  writeFileSync(join(fixture.old, "REVISION"), previous);
+  mkdirSync(join(root, "migrations"));
+  writeFileSync(join(root, "migrations/005.sql"), "SELECT 1;\n");
+  git("add", ".");
+  git("-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "schema change");
+  const target = git("rev-parse", "HEAD").toString().trim();
+  git("remote", "add", "origin", root);
+  const run = extra => spawnSync("bash", [join(root, "scripts/auto-deploy.sh"), target], {
+    cwd: root, encoding: "utf8", timeout: 15_000,
+    env: { ...process.env, PRICEBTC_TEST_BIN: join(root, "mock-bin"), PRICEBTC_TEST_ROOT: root, ...extra },
+  });
+  let result = run({ FAIL_CI: "yes" });
+  assert.equal(result.status, 1, result.stderr);
+  assert.equal(existsSync(join(root, ".data/activated")), false);
+  assert.match(readFileSync(join(root, ".data/github.log"), "utf8"), /status .* failure CI failed/);
+  result = run({});
+  assert.equal(result.status, 1, result.stderr);
+  assert.match(result.stdout, /Migration changes require a manual deployment/);
+  assert.equal(existsSync(join(root, ".data/activated")), false);
+  // A completed manual release advances the baseline; normal automatic builds resume.
+  writeFileSync(join(fixture.old, "REVISION"), target);
+  result = run({});
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(readFileSync(join(root, ".data/activated"), "utf8").trim(), "deployed");
+  assert.match(readFileSync(join(root, ".data/github.log"), "utf8"), /status .* success Published/);
 });
 
 test("a candidate startup failure leaves production untouched", t => {

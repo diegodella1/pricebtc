@@ -123,7 +123,7 @@ export default function ArchivePage() {
                     ? "Provisional — confirming payments"
                     : "Paid participation. Positions can change."}
             </p>
-            <Ranking entries={board.participants} comingSoon={comingSoon} />
+            <Ranking entries={board.participants} />
             <p className="bid-caption">
               {sats(board.total_sats)} sats · All confirmed participation
               payments, including moderated entries.

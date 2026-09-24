@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17-bookworm
+        env:
+          POSTGRES_USER: pricebtc
+          POSTGRES_PASSWORD: ci-only
+          POSTGRES_DB: pricebtc_test
+        ports: [5432:5432]
+        options: >-
+          --health-cmd "pg_isready -U pricebtc -d pricebtc_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      SATS_TEST_DATABASE_URL: postgresql://pricebtc:ci-only@127.0.0.1:5432/pricebtc_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npm run test:deployment
+      - run: npm run build
+

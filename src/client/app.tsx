@@ -1,6 +1,5 @@
 import { HomePage } from "./pages/home-page.js";
 import { RendererPage } from "./pages/renderer-page.js";
-import { PlaceholderPage } from "./pages/placeholder-page.js";
 import { TermsPage } from "./pages/terms-page.js";
 import { PrivacyPage } from "./pages/privacy-page.js";
 import { StatusPage } from "./pages/status-page.js";

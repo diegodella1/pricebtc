@@ -53,7 +53,7 @@ export default function BidHome() {
   if (!round && !error) {
     return (
       <>
-        {slot && createPortal(<EmptySponsorCTA comingSoon={false} />, slot)}
+        {slot && createPortal(<EmptySponsorCTA />, slot)}
         <div className="sponsor-presentation-loading" role="status">Loading sponsor space…</div>
       </>
     );
@@ -62,20 +62,19 @@ export default function BidHome() {
   if (round?.coming_soon) {
     return (
       <>
-        {slot && createPortal(<EmptySponsorCTA comingSoon={true} />, slot)}
+        {slot && createPortal(<EmptySponsorCTA />, slot)}
         <ComingSoonHome />
       </>
     );
   }
   
   const enabled = round?.enabled ?? false;
-  const comingSoon = round?.coming_soon ?? false;
   const showEmptySlot = !enabled || error || !board;
   
   if (showEmptySlot) {
     return (
       <section id="sats-bid" className="public-section">
-        {slot && createPortal(<EmptySponsorCTA comingSoon={comingSoon} />, slot)}
+        {slot && createPortal(<EmptySponsorCTA />, slot)}
         {error && (!enabled || !board) && (
           <p className="public-notice" role="status">
             Sponsor space is temporarily unavailable. Please try again shortly.
@@ -120,16 +119,16 @@ export default function BidHome() {
       <SponsorInventory />
       <div className="bid-home-grid bid-home-grid--ranking">
         {slot && board ? (
-          createPortal(board.leader ? <TopSpot leader={board.leader} delayed={error} /> : <EmptySponsorCTA comingSoon={comingSoon} />, slot)
+          createPortal(board.leader ? <TopSpot leader={board.leader} delayed={error} /> : <EmptySponsorCTA />, slot)
         ) : !slot && board ? (
-          board.leader ? <TopSpot leader={board.leader} delayed={error} /> : <EmptySponsorCTA comingSoon={comingSoon} />
+          board.leader ? <TopSpot leader={board.leader} delayed={error} /> : <EmptySponsorCTA />
         ) : null}
         <div className="bid-board">
           <header className="bid-board-heading">
             <h3>Top 21 Leaderboard</h3>
             <span>{board?.participant_count ?? 0} PARTICIPANTS</span>
           </header>
-          <Ranking entries={board?.participants ?? []} comingSoon={comingSoon} />
+          <Ranking entries={board?.participants ?? []} />
           <div className="bid-board-footer">
             <a href="/leaderboard">VIEW FULL LEADERBOARD ↗</a>
           </div>
