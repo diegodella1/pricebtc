@@ -34,8 +34,8 @@ For reference, these are the addresses currently set in production:
 
 ```
 SPONSOR_ADDR_USDC_SOL=6qRGFDj5ySnqYu5KDpDpUenqxzS2dtnyRLhmKtAGvoMs
+SPONSOR_ADDR_USDT_TRC20=TLK41RcGbtQiFP8XnTyF3YKaqzNyVbbxm3
 SPONSOR_ADDR_BTC=bc1qpcf3cludfwwu3jez7j7f406ck8psmne5cypkhf
-SPONSOR_ADDR_USDT_TRC20=(not yet configured - asset disabled until set)
 ```
 
 **⚠️ Note**: These addresses are documented here for operational reference only. NEVER hardcode them in client-side code. The UI must always fetch addresses from the backend API (`/crypto-sponsors/config`).
