@@ -8,7 +8,7 @@ import {
   getAvailableAssets,
 } from "./crypto-sponsors.js";
 
-async function ensureCryptoParticipant(
+export async function ensureCryptoParticipant(
   pool: pg.Pool,
   config: BidConfig,
   sponsor: {
@@ -233,7 +233,7 @@ export async function runCryptoValidationWorker(
         );
 
         const sponsorRow = sponsor.rows[0];
-        const hasProfile = sponsorRow.name && sponsorRow.description && sponsorRow.url;
+        const hasProfile = sponsorRow.name && sponsorRow.name.trim().length > 0;
 
         if (hasProfile) {
           const participantId = await ensureCryptoParticipant(

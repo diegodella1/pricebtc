@@ -120,7 +120,7 @@ export function ComingSoonPage({ archive = false }: { archive?: boolean }) {
           <EmptyLaunchRanking />
         </>
       )}
-      <a className="bid-text-button" href="/#sats-bid">
+      <a className="bid-text-button" href="/sponsors#claim">
         View sponsor space on homepage ↗
       </a>
     </BidShell>

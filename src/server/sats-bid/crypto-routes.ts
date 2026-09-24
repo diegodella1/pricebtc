@@ -9,6 +9,7 @@ import {
   getAvailableAssets,
   type AssetType,
 } from "./crypto-sponsors.js";
+import { ensureCryptoParticipant } from "./crypto-validation-worker.js";
 
 const uuid = z.string().uuid();
 
@@ -159,6 +160,50 @@ export async function registerCryptoRoutes(
        WHERE id = $6`,
       [profile.name, profile.description, profile.url, profile.normalized_domain, input.logo_asset_id || null, id]
     );
+
+    if (payment.validation_status === "confirmed" && !payment.participant_id && profile.name.trim().length > 0) {
+      await pool.query("BEGIN");
+      try {
+        const updatedPayment = await getCryptoPayment(pool, id);
+        if (updatedPayment) {
+          const participantId = await ensureCryptoParticipant(
+            pool,
+            config,
+            {
+              id: updatedPayment.id,
+              session_id: updatedPayment.session_id,
+              name: profile.name,
+              description: profile.description,
+              url: profile.url,
+              normalized_domain: profile.normalized_domain,
+              logo_asset_id: input.logo_asset_id || null,
+            },
+            clock,
+          );
+
+          await pool.query(
+            "UPDATE crypto_sponsors SET participant_id=$2 WHERE id=$1",
+            [id, participantId],
+          );
+
+          const amountUsd = parseFloat(updatedPayment.amount_usd);
+          await pool.query(
+            `INSERT INTO sponsor_usd_totals (participant_id, total_usd, payment_count, last_payment_at, updated_at)
+             VALUES ($1, $2, 1, $3, $3)
+             ON CONFLICT (participant_id) DO UPDATE
+             SET total_usd = sponsor_usd_totals.total_usd + EXCLUDED.total_usd,
+                 payment_count = sponsor_usd_totals.payment_count + 1,
+                 last_payment_at = EXCLUDED.last_payment_at,
+                 updated_at = EXCLUDED.updated_at`,
+            [participantId, amountUsd.toFixed(2), clock()],
+          );
+        }
+        await pool.query("COMMIT");
+      } catch (error) {
+        await pool.query("ROLLBACK");
+        throw error;
+      }
+    }
 
     return { success: true };
   });
