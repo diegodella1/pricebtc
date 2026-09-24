@@ -46,7 +46,7 @@ export function WaitlistForm({ context = "default" }: { context?: string }) {
     <div className="bid-waitlist" id="waitlist">
       <h2 className="bid-waitlist-heading">Get notified when sponsorship launches</h2>
       <p className="bid-waitlist-intro">
-        Be among the first to claim a Top 21 spot. Lightning payments open soon.
+        Be among the first to claim a Top 21 spot. Crypto payments opening soon.
       </p>
       
       {submitState === "success" ? (
@@ -55,7 +55,7 @@ export function WaitlistForm({ context = "default" }: { context?: string }) {
             <strong>You're on the list.</strong>
           </p>
           <p className="bid-waitlist-success-detail">
-            We'll email you once when Lightning payments open.
+            We'll email you when crypto payments open.
           </p>
         </div>
       ) : (

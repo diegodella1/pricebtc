@@ -33,7 +33,7 @@ export function PrivacyPage() {
           <p>If you participate in paid features (e.g., sponsorship), we may collect:</p>
           <ul>
             <li>Email addresses or contact information provided during registration</li>
-            <li>Payment transaction identifiers (we do not store credit card numbers or Lightning wallet keys)</li>
+            <li>Payment transaction identifiers (we do not store credit card numbers or crypto wallet private keys)</li>
             <li>Sponsorship preferences and advertising content you submit</li>
           </ul>
 

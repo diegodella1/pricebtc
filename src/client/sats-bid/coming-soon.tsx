@@ -10,7 +10,7 @@ export function SponsorExplanation({ showStats = false }: { showStats?: boolean 
     <>
       <p className="bid-intro">
         Sponsor PRICEB.TC and display your project beside the live Bitcoin price.
-        Pay Lightning sats, rank in the Top 21, and reach builders watching the signal.
+        Pay crypto (USDT, USDC, BTC), rank in the Top 21, and reach builders watching the signal.
         {showStats && stats && Number.isFinite(stats.visitors) && <span className="bid-intro-stats"> · {stats.visitors.toLocaleString()} visitors last 30 days</span>}
       </p>
       <ol className="bid-how-it-works">
@@ -19,14 +19,14 @@ export function SponsorExplanation({ showStats = false }: { showStats?: boolean 
           <h3>Name, logo, and one-line pitch.</h3>
           <p>
             Create your sponsor profile with your project name, website, logo, and 
-            a 100-character description. Preview your entry before paying a single sat.
+            a 100-character description. Preview your entry before paying.
           </p>
         </li>
         <li>
-          <span>02 / PAY LIGHTNING SATS</span>
+          <span>02 / PAY CRYPTO</span>
           <h3>Cumulative ranking. No resets.</h3>
           <p>
-            Every confirmed Lightning payment adds to your all-time total.
+            Every confirmed crypto payment adds to your all-time total in USD.
             The top 21 cumulative totals rank on the public leaderboard. No daily resets.
           </p>
         </li>
@@ -87,7 +87,7 @@ export function ComingSoonHome() {
         <div>
           <p className="bid-eyebrow">SPONSORS / TOP 21 CUMULATIVE</p>
           <h2 id="sats-bid-heading">Sponsor PRICEB.TC.<br />Rank beside Bitcoin.</h2>
-          <p className="bid-home-subtitle">Lightning payments launch soon. Join the waitlist to claim a Top 21 spot.</p>
+          <p className="bid-home-subtitle">Crypto payments launching soon. Join the waitlist to claim a Top 21 spot.</p>
         </div>
       </div>
       <div id="waitlist">
@@ -103,7 +103,7 @@ export function ComingSoonHome() {
 export function ComingSoonPage({ archive = false }: { archive?: boolean }) {
   return (
     <BidShell
-      title={archive ? "The story starts soon." : "Pay sats. Rank Top 21. Stay visible."}
+      title={archive ? "The story starts soon." : "Pay crypto. Rank Top 21. Stay visible."}
       eyebrow="SPONSORS / TOP 21 CUMULATIVE"
     >
       <div id="waitlist">
