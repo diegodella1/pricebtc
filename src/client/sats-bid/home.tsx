@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { TopSpot, EmptySponsorCTA } from "./components.js";
+import { TopSpot, EmptySponsorCTA, SponsorStrip } from "./components.js";
 import { bidApi } from "./api.js";
 import "./sats-bid.css";
 
@@ -32,6 +32,7 @@ interface CryptoConfig {
 
 export default function BidHome() {
   const [leader, setLeader] = useState<CryptoLeader | null>(null);
+  const [rank2, setRank2] = useState<CryptoLeader | null>(null);
   const [cryptoEnabled, setCryptoEnabled] = useState(false);
   const [loading, setLoading] = useState(true);
   
@@ -40,13 +41,15 @@ export default function BidHome() {
       try {
         const [config, leaderboard] = await Promise.all([
           bidApi<CryptoConfig>("/crypto-sponsors/config", { method: "GET" }),
-          bidApi<{ leader: CryptoLeader | null }>("/crypto-sponsors/leaderboard", { method: "GET" }),
+          bidApi<{ participants: CryptoLeader[] }>("/crypto-sponsors/leaderboard", { method: "GET" }),
         ]);
         setCryptoEnabled(config.enabled && config.assets.length > 0);
-        setLeader(leaderboard.leader);
+        setLeader(leaderboard.participants?.[0] ?? null);
+        setRank2(leaderboard.participants?.[1] ?? null);
       } catch {
         setCryptoEnabled(false);
         setLeader(null);
+        setRank2(null);
       } finally {
         setLoading(false);
       }
@@ -55,27 +58,24 @@ export default function BidHome() {
   }, []);
   
   const slot = document.getElementById("bid-top-slot");
+  const stripSlot = document.getElementById("bid-strip-slot");
   
   if (loading) {
     return (
       <>
-        {slot && createPortal(<div className="sponsor-presentation-loading" role="status">Loading...</div>, slot)}
+        {slot && createPortal(<EmptySponsorCTA cryptoEnabled={cryptoEnabled} />, slot)}
+        {stripSlot && createPortal(<SponsorStrip sponsor={null} cryptoEnabled={cryptoEnabled} />, stripSlot)}
       </>
     );
   }
   
-  const mappedLeader = leader ? {
-    id: leader.id,
-    name: leader.name,
-    description: leader.description,
-    url: leader.url,
-    normalized_domain: leader.normalized_domain,
-    logo_asset_id: leader.logo_asset_id,
-    total_usd: leader.total_usd,
-    position: leader.position,
-  } : null;
+  const content = leader ? <TopSpot leader={leader} /> : <EmptySponsorCTA cryptoEnabled={cryptoEnabled} />;
+  const stripContent = <SponsorStrip sponsor={rank2} cryptoEnabled={cryptoEnabled} />;
   
-  const content = mappedLeader ? <TopSpot leader={mappedLeader} /> : <EmptySponsorCTA cryptoEnabled={cryptoEnabled} />;
-  
-  return slot ? createPortal(content, slot) : null;
+  return (
+    <>
+      {slot && createPortal(content, slot)}
+      {stripSlot && createPortal(stripContent, stripSlot)}
+    </>
+  );
 }

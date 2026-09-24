@@ -68,9 +68,10 @@ export function EntryLogo({ entry }: { entry: Entry }) {
     <img
       className="bid-logo"
       src={`${BID_API}/assets/${entry.logo_asset_id}`}
+      srcSet={`${BID_API}/assets/${entry.logo_asset_id} 1x, ${BID_API}/assets/${entry.logo_asset_id} 2x`}
       alt=""
-      width={56}
-      height={56}
+      width={64}
+      height={64}
     />
   ) : (
     <span className="bid-logo" aria-hidden="true">
@@ -129,6 +130,7 @@ export function Ranking({ entries, cryptoEnabled = false }: { entries: Entry[]; 
     </ol>
   );
 }
+
 export function TopSpot({
   leader,
   delayed = false,
@@ -138,12 +140,6 @@ export function TopSpot({
   delayed?: boolean;
   comingSoon?: boolean;
 }) {
-  const formatAmount = (totalUsd: string) => {
-    const num = parseFloat(totalUsd);
-    if (isNaN(num)) return "$0.00";
-    return `$${num.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  };
-  
   return (
     <article className={`bid-top${leader ? " has-leader" : ""}`}>
       <header>
@@ -157,9 +153,19 @@ export function TopSpot({
       )}
       {leader ? (
         <>
-          <div className="bid-top-identity">
-            <EntryLogo entry={leader} />
-            <span>{leader.normalized_domain}</span>
+          <div className="bid-top-logo-container">
+            {leader.logo_asset_id ? (
+              <img
+                className="bid-top-logo"
+                src={`${BID_API}/assets/${leader.logo_asset_id}`}
+                srcSet={`${BID_API}/assets/${leader.logo_asset_id} 1x, ${BID_API}/assets/${leader.logo_asset_id} 2x`}
+                alt=""
+              />
+            ) : (
+              <span className="bid-top-logo bid-top-monogram" aria-hidden="true">
+                {leader.name.slice(0, 2).toUpperCase()}
+              </span>
+            )}
           </div>
           <a
             className="bid-top-name"
@@ -171,10 +177,10 @@ export function TopSpot({
             {leader.name}
             <span>↗</span>
           </a>
-          <p>{leader.description}</p>
-          <div className="bid-top-total">
-            {formatAmount(leader.total_usd)} <small>USD</small>
-          </div>
+          <p className="bid-top-desc">{leader.description}</p>
+          {leader.normalized_domain && (
+            <span className="bid-top-domain">{leader.normalized_domain}</span>
+          )}
         </>
       ) : null}
     </article>
@@ -189,6 +195,56 @@ export function EmptySponsorCTA({ cryptoEnabled = false }: { cryptoEnabled?: boo
       <span className="sponsor-empty-cta__button">
         {cryptoEnabled ? "Claim a spot →" : "Join the waitlist →"}
       </span>
+    </a>
+  );
+}
+
+export function SponsorStrip({
+  sponsor,
+  cryptoEnabled = false,
+}: {
+  sponsor: Entry | null;
+  cryptoEnabled?: boolean;
+  comingSoon?: boolean;
+}) {
+  if (!sponsor) {
+    return (
+      <a href={cryptoEnabled ? "/sponsors#claim" : "/sponsors#waitlist"} className="sponsor-strip sponsor-strip--empty">
+        <span className="sponsor-strip__text">Open spot #02 — claim this spot</span>
+        <span className="sponsor-strip__cta">{cryptoEnabled ? "Claim" : "Waitlist"} →</span>
+      </a>
+    );
+  }
+
+  return (
+    <a
+      href={sponsor.url}
+      target="_blank"
+      rel="sponsored ugc noopener noreferrer"
+      className="sponsor-strip"
+      onClick={() => recordEvent("strip_sponsor_clicked")}
+    >
+      <div className="sponsor-strip__identity">
+        {sponsor.logo_asset_id ? (
+          <img
+            className="sponsor-strip__logo"
+            src={`${BID_API}/assets/${sponsor.logo_asset_id}`}
+            srcSet={`${BID_API}/assets/${sponsor.logo_asset_id} 1x, ${BID_API}/assets/${sponsor.logo_asset_id} 2x`}
+            alt=""
+            width={56}
+            height={56}
+          />
+        ) : (
+          <span className="sponsor-strip__logo sponsor-strip__monogram" aria-hidden="true">
+            {sponsor.name.slice(0, 2).toUpperCase()}
+          </span>
+        )}
+        <div className="sponsor-strip__info">
+          <strong className="sponsor-strip__name">{sponsor.name}</strong>
+          <span className="sponsor-strip__meta">Sponsored · #02</span>
+        </div>
+      </div>
+      <span className="sponsor-strip__arrow">↗</span>
     </a>
   );
 }
