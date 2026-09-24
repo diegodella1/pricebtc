@@ -1,16 +1,18 @@
 import { SiteHeader } from "../components/site-header.js";
 import { useEffect, useState } from "react";
-import { BID_API, type Entry, sats, recordEvent } from "./api.js";
+import { BID_API, type Entry, recordEvent } from "./api.js";
 import "./sats-bid.css";
 
 export function BidShell({
   children,
   title,
   eyebrow = "SPONSORS / TOP 21",
+  footerCopy = "TOP 21 · CUMULATIVE USD · OUTBID ANYTIME",
 }: {
   children: React.ReactNode;
   title: string;
   eyebrow?: string;
+  footerCopy?: string;
 }) {
   return (
     <div className={`bid-shell${window.location.pathname === "/admin" ? "" : " public-bid"}`}>
@@ -21,7 +23,7 @@ export function BidShell({
         {children}
       </main>
       <footer className="bid-footer">
-        <span>TOP 21 · CUMULATIVE SATS · OUTBID ANYTIME</span>
+        <span>{footerCopy}</span>
         <a href="/rules">Rules & payments</a>
         <a href="/">PRICEB.TC ↗</a>
       </footer>
@@ -76,9 +78,15 @@ export function EntryLogo({ entry }: { entry: Entry }) {
     </span>
   );
 }
-export function Ranking({ entries }: { entries: Entry[] }) {
+export function Ranking({ entries, cryptoEnabled = false }: { entries: Entry[]; cryptoEnabled?: boolean }) {
   const LEADERBOARD_SIZE = 21;
   const emptySlots = Math.max(0, LEADERBOARD_SIZE - entries.length);
+  
+  const formatAmount = (totalUsd: string) => {
+    const num = parseFloat(totalUsd);
+    if (isNaN(num)) return "$0.00";
+    return `$${num.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
   
   return (
     <ol className="bid-ranking">
@@ -100,8 +108,8 @@ export function Ranking({ entries }: { entries: Entry[] }) {
             <small>{entry.normalized_domain}</small>
           </div>
           <strong>
-            {sats(entry.total_sats)}
-            <small>SATS</small>
+            {formatAmount(entry.total_usd)}
+            <small>USD</small>
           </strong>
         </li>
       ))}
@@ -111,10 +119,10 @@ export function Ranking({ entries }: { entries: Entry[] }) {
             {String(entries.length + i + 1).padStart(2, "0")}
           </span>
           <div className="bid-entry-copy">
-            <p>Available — Your project here</p>
+            <p>Open — claim this spot</p>
           </div>
-          <a href="/sponsors#waitlist" className="bid-claim-button">
-            Join the waitlist →
+          <a href={cryptoEnabled ? "/sponsors#claim" : "/sponsors#waitlist"} className="bid-claim-button">
+            {cryptoEnabled ? "Claim this spot →" : "Join waitlist →"}
           </a>
         </li>
       ))}
@@ -130,6 +138,12 @@ export function TopSpot({
   delayed?: boolean;
   comingSoon?: boolean;
 }) {
+  const formatAmount = (totalUsd: string) => {
+    const num = parseFloat(totalUsd);
+    if (isNaN(num)) return "$0.00";
+    return `$${num.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
+  
   return (
     <article className={`bid-top${leader ? " has-leader" : ""}`}>
       <header>
@@ -159,7 +173,7 @@ export function TopSpot({
           </a>
           <p>{leader.description}</p>
           <div className="bid-top-total">
-            {sats(leader.total_sats)} <small>SATS</small>
+            {formatAmount(leader.total_usd)} <small>USD</small>
           </div>
         </>
       ) : null}
@@ -167,13 +181,13 @@ export function TopSpot({
   );
 }
 
-export function EmptySponsorCTA() {
+export function EmptySponsorCTA({ cryptoEnabled = false }: { cryptoEnabled?: boolean }) {
   return (
-    <a href="/sponsors#waitlist" className="sponsor-empty-cta">
+    <a href={cryptoEnabled ? "/sponsors#claim" : "/sponsors#waitlist"} className="sponsor-empty-cta">
       <h3 className="sponsor-empty-cta__title">Your project here</h3>
-      <p className="sponsor-empty-cta__desc">Pay sats · Rank Top 21 · Stay visible</p>
+      <p className="sponsor-empty-cta__desc">Pay crypto · Rank Top 21 · Stay visible</p>
       <span className="sponsor-empty-cta__button">
-        Join the waitlist →
+        {cryptoEnabled ? "Claim a spot →" : "Join the waitlist →"}
       </span>
     </a>
   );

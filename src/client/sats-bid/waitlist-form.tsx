@@ -1,7 +1,7 @@
 import { useState, useTransition, type FormEvent } from "react";
 import siteContent from "../../shared/site-content.json";
 
-export function WaitlistForm() {
+export function WaitlistForm({ context = "default" }: { context?: string }) {
   const [email, setEmail] = useState("");
   const [xHandle, setXHandle] = useState("");
   const [emailError, setEmailError] = useState(false);
@@ -24,7 +24,8 @@ export function WaitlistForm() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ 
             email: email.trim(), 
-            xHandle: xHandle.trim() || undefined 
+            xHandle: xHandle.trim() || undefined,
+            context 
           }),
         });
 
@@ -45,7 +46,7 @@ export function WaitlistForm() {
     <div className="bid-waitlist" id="waitlist">
       <h2 className="bid-waitlist-heading">Get notified when sponsorship launches</h2>
       <p className="bid-waitlist-intro">
-        Be among the first to claim a Top 21 spot. Lightning payments open soon.
+        Be among the first to claim a Top 21 spot. Crypto payments opening soon.
       </p>
       
       {submitState === "success" ? (
@@ -54,7 +55,7 @@ export function WaitlistForm() {
             <strong>You're on the list.</strong>
           </p>
           <p className="bid-waitlist-success-detail">
-            We'll email you once when Lightning payments open.
+            We'll email you when crypto payments open.
           </p>
         </div>
       ) : (

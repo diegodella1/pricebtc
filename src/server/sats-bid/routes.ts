@@ -554,4 +554,7 @@ export async function registerBidRoutes(
     );
     return reply.code(202).send({ received: true });
   });
+
+  const { registerCryptoRoutes } = await import("./crypto-routes.js");
+  await registerCryptoRoutes(app, service.pool, service.config, session, quota, csrf, service.clock);
 }

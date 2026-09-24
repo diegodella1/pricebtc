@@ -44,6 +44,20 @@ const schema = z.object({
   PRICEBTC_DATA_DIR: z.string().default(".data"),
   ANALYTICS_EXPORT_URL: z.string().url().or(z.literal("")).default(""),
   ANALYTICS_EXPORT_TOKEN: z.string().default(""),
+  SPONSOR_ADDR_USDT_TRC20: z.string().default(""),
+  SPONSOR_ADDR_USDC_SOL: z.string().default(""),
+  SPONSOR_ADDR_BTC: z.string().default(""),
+  SPONSOR_MIN_USD_USDT: z.coerce.number().positive().default(10),
+  SPONSOR_MIN_USD_USDC: z.coerce.number().positive().default(10),
+  SPONSOR_MIN_USD_BTC: z.coerce.number().positive().default(10),
+  SPONSOR_CONFIRM_USDT_TRC20: z.coerce.number().int().positive().default(19),
+  SPONSOR_CONFIRM_USDC_SOL: z.coerce.number().int().positive().default(32),
+  SPONSOR_CONFIRM_BTC: z.coerce.number().int().positive().default(3),
+  TRONSCAN_API_URL: z.string().url().default("https://apilist.tronscan.org"),
+  TRONSCAN_API_KEY: z.string().default(""),
+  SOLANA_RPC_URL: z.string().url().default("https://api.mainnet-beta.solana.com"),
+  SOLANA_RPC_TOKEN: z.string().default(""),
+  BITCOIN_EXPLORER_URL: z.string().url().default("https://mempool.space/api"),
 });
 export type BidConfig = z.infer<typeof schema>;
 export function bidConfig(env: NodeJS.ProcessEnv = process.env): BidConfig {

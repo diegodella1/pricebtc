@@ -2,7 +2,9 @@ import { bidConfig } from "./config.js";
 import { database } from "./db.js";
 import { BTCPayPaymentProvider, MockPaymentProvider } from "./provider.js";
 import { BidService } from "./service.js";
-export function createBidRuntime() {
+import { startCryptoValidationWorker } from "./crypto-validation-worker.js";
+
+export function createBidRuntime(getBtcPrice?: () => Promise<number>) {
   const config = bidConfig();
   if (!config.DATABASE_URL) return null;
   const pool = database(config.DATABASE_URL);
@@ -13,5 +15,17 @@ export function createBidRuntime() {
     config.PAYMENT_PROVIDER === "mock"
       ? new MockPaymentProvider(pool, config.MOCK_WEBHOOK_SECRET)
       : new BTCPayPaymentProvider(config);
-  return new BidService(pool, config, provider);
+  const service = new BidService(pool, config, provider);
+  
+  const stopCryptoWorker = getBtcPrice
+    ? startCryptoValidationWorker(pool, config, getBtcPrice)
+    : () => {};
+  
+  return {
+    service,
+    pool,
+    stop: () => {
+      stopCryptoWorker();
+    },
+  };
 }

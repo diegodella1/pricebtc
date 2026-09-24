@@ -67,7 +67,7 @@ export default function BidPage() {
   }, [refresh]);
   const minimum = BigInt(round?.minimum_sats ?? "1000");
   const maximum = BigInt(round?.maximum_sats ?? "1000000");
-  const leaderTotal = BigInt(board?.leader?.total_sats ?? "0");
+  const leaderTotal = BigInt(board?.leader?.total_usd ?? "0");
   const ownTotal = BigInt(own?.total_sats ?? "0");
   const suggested =
     leaderTotal - ownTotal + 1n > minimum

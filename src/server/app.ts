@@ -3,6 +3,7 @@ import seoPages from "../shared/seo-pages.json";
 import { renderPriceSnapshot, renderPriceMarkdown, injectOgMeta } from "./seo.js";
 import { generateOgImage } from "./og-image.js";
 import { join } from "node:path";
+import type { Pool } from "pg";
 
 import helmet from "@fastify/helmet";
 import rateLimit from "@fastify/rate-limit";
@@ -49,7 +50,7 @@ interface HistoryReader {
 }
 
 interface BuildAppOptions {
-  bidding?: BidService | null;
+  bidding?: { service: BidService; pool: Pool; stop: () => void } | null;
   stripe?: StripeRuntime | null;
   market: MarketReader;
   fx: FxReader;
@@ -150,7 +151,7 @@ function registerApplicationRoutes(app: FastifyInstance, options: BuildAppOption
   }
   
   if (options.bidding) {
-    void app.register(async instance => registerBidRoutes(instance, options.bidding!));
+    void app.register(async instance => registerBidRoutes(instance, options.bidding!.service));
   } else {
     app.get("/api/sats-bid/round/current", async () => ({ enabled: false, bids_open: false, coming_soon: true }));
   }
