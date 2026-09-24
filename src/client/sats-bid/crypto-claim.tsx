@@ -53,7 +53,6 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [selectedAsset, setSelectedAsset] = useState<AssetConfig | null>(null);
   const [txHash, setTxHash] = useState("");
-  const [paymentId, setPaymentId] = useState<string | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus | null>(null);
   const [qrCode, setQrCode] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -128,7 +127,7 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
       });
       setQrCode(code);
       setStep("payment");
-    } catch (e) {
+    } catch {
       setError("Failed to generate QR code");
     }
   };
@@ -161,8 +160,6 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
         },
       );
 
-      setPaymentId(result.id);
-      
       // Seed initial pending state
       setPaymentStatus({
         id: result.id,
@@ -470,7 +467,6 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
                 className="crypto-back-button"
                 onClick={() => {
                   setStep("payment");
-                  setPaymentId(null);
                   setPaymentStatus(null);
                   if (pollInterval.current) {
                     clearInterval(pollInterval.current);

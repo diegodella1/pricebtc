@@ -4,25 +4,37 @@ import { CryptoClaimFlow } from "./crypto-claim.js";
 import { WaitlistForm } from "./waitlist-form.js";
 import { bidApi } from "./api.js";
 
+interface CryptoParticipant {
+  id: string;
+  name: string;
+  description: string;
+  url: string;
+  normalized_domain: string;
+  logo_asset_id: string | null;
+  total_usd: string;
+  position: number;
+}
+
+interface AssetConfig {
+  type: string;
+  address: string;
+  label: string;
+  network: string;
+  minUsd: number;
+  confirmations: number;
+  warningMessage: string;
+}
+
 interface CryptoLeaderboard {
-  participants: Array<{
-    id: string;
-    name: string;
-    description: string;
-    url: string;
-    normalized_domain: string;
-    logo_asset_id: string | null;
-    total_usd: string;
-    position: number;
-  }>;
-  leader: any;
+  participants: CryptoParticipant[];
+  leader: CryptoParticipant | null;
   total_usd: string;
   participant_count: number;
 }
 
 interface CryptoConfig {
   enabled: boolean;
-  assets: any[];
+  assets: AssetConfig[];
 }
 
 export function SponsorsPage() {

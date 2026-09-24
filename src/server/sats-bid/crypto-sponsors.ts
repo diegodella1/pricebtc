@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import type pg from "pg";
 import { BidError } from "./domain.js";
 import type { BidConfig } from "./config.js";
-import { transaction, type Sql } from "./db.js";
+import { transaction } from "./db.js";
 
 export type AssetType = "USDT_TRC20" | "USDC_SOL" | "BTC";
 

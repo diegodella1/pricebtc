@@ -9,7 +9,6 @@ import { PricingPage } from "./pages/pricing-page.js";
 import { lazy, Suspense } from "react";
 import { IS_STATIC_BUILD } from "./lib/api.js";
 const StudioPage = lazy(() => import("./pages/studio-page.js").then(module => ({ default: module.StudioPage })));
-const BidPage = lazy(() => import("./sats-bid/bid-page.js"));
 const ArchivePage = lazy(() => import("./sats-bid/archive.js"));
 const RulesPage = lazy(() => import("./sats-bid/rules.js"));
 const AdminPage = lazy(() => import("./sats-bid/admin.js"));

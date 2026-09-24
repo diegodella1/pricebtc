@@ -9,7 +9,6 @@ import {
   getAvailableAssets,
   type AssetType,
 } from "./crypto-sponsors.js";
-import { hash } from "./service.js";
 
 const uuid = z.string().uuid();
 

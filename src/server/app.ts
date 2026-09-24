@@ -3,6 +3,7 @@ import seoPages from "../shared/seo-pages.json";
 import { renderPriceSnapshot, renderPriceMarkdown, injectOgMeta } from "./seo.js";
 import { generateOgImage } from "./og-image.js";
 import { join } from "node:path";
+import type { Pool } from "pg";
 
 import helmet from "@fastify/helmet";
 import rateLimit from "@fastify/rate-limit";
@@ -49,7 +50,7 @@ interface HistoryReader {
 }
 
 interface BuildAppOptions {
-  bidding?: { service: BidService; pool: any; stop: () => void } | null;
+  bidding?: { service: BidService; pool: Pool; stop: () => void } | null;
   stripe?: StripeRuntime | null;
   market: MarketReader;
   fx: FxReader;

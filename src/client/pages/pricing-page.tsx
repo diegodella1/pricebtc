@@ -1,8 +1,5 @@
-import { useState } from "react";
 import { SiteHeader } from "../components/site-header.js";
 import siteContent from "../../shared/site-content.json";
-
-type BillingPeriod = "monthly" | "yearly";
 
 interface PricingTier {
   name: string;

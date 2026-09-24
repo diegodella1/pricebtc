@@ -15,9 +15,19 @@ interface CryptoLeader {
   position: number;
 }
 
+interface AssetConfig {
+  type: string;
+  address: string;
+  label: string;
+  network: string;
+  minUsd: number;
+  confirmations: number;
+  warningMessage: string;
+}
+
 interface CryptoConfig {
   enabled: boolean;
-  assets: any[];
+  assets: AssetConfig[];
 }
 
 export default function BidHome() {

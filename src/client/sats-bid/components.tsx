@@ -1,6 +1,6 @@
 import { SiteHeader } from "../components/site-header.js";
 import { useEffect, useState } from "react";
-import { BID_API, type Entry, sats, recordEvent } from "./api.js";
+import { BID_API, type Entry, recordEvent } from "./api.js";
 import "./sats-bid.css";
 
 export function BidShell({
@@ -78,7 +78,7 @@ export function EntryLogo({ entry }: { entry: Entry }) {
     </span>
   );
 }
-export function Ranking({ entries, comingSoon = false, cryptoEnabled = false }: { entries: Entry[]; comingSoon?: boolean; cryptoEnabled?: boolean }) {
+export function Ranking({ entries, cryptoEnabled = false }: { entries: Entry[]; cryptoEnabled?: boolean }) {
   const LEADERBOARD_SIZE = 21;
   const emptySlots = Math.max(0, LEADERBOARD_SIZE - entries.length);
   
@@ -181,7 +181,7 @@ export function TopSpot({
   );
 }
 
-export function EmptySponsorCTA({ comingSoon = false, cryptoEnabled = false }: { comingSoon?: boolean; cryptoEnabled?: boolean }) {
+export function EmptySponsorCTA({ cryptoEnabled = false }: { cryptoEnabled?: boolean }) {
   return (
     <a href={cryptoEnabled ? "/sponsors#claim" : "/sponsors#waitlist"} className="sponsor-empty-cta">
       <h3 className="sponsor-empty-cta__title">Your project here</h3>
