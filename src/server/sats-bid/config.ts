@@ -85,7 +85,7 @@ export function bidConfig(env: NodeJS.ProcessEnv = process.env): BidConfig {
     throw new Error("Invalid invoice timing");
   if (
     config.APP_ENV === "production" &&
-    (config.SATS_BID_ENABLED || config.BIDS_ENABLED || !!config.DATABASE_URL)
+    (config.SATS_BID_ENABLED || config.BIDS_ENABLED)
   ) {
     if (
       !config.PUBLIC_SITE_URL.startsWith("https://") ||

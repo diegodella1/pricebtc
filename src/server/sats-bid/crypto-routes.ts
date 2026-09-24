@@ -21,7 +21,7 @@ export async function registerCryptoRoutes(
   csrf: (request: FastifyRequest) => void,
   clock: () => Date = () => new Date(),
 ) {
-  const prefix = "/api/crypto-sponsors";
+  const prefix = "/api/sats-bid/crypto-sponsors";
 
   app.get(`${prefix}/config`, async () => {
     const assets = getAvailableAssets(config);
