@@ -53,7 +53,7 @@ export async function verifyPublicPages(base, { offline = false } = {}) {
     for (const [path, heading] of [
       ["/terms", "Terms of Service"], ["/privacy", "Privacy Policy"],
       ["/status", "Service Health"], ["/pricing", "Free API. Sponsor-supported."],
-      ["/sponsors", "TOP 21 SPONSORS."], ["/sponsors#waitlist", "JOIN THE WAITLIST."], ["/api", "Free JSON API"],
+      ["/sponsors", "CLAIM YOUR SPOT."], ["/sponsors#board", "TOP 21 SPONSORS."], ["/api", "Free JSON API"],
       ["/studio", "Widget Studio"],
     ]) {
       const response = await page.goto(`${base}${path}`, { waitUntil: "domcontentloaded" });
@@ -61,15 +61,8 @@ export async function verifyPublicPages(base, { offline = false } = {}) {
       else assert.ok(path.includes("#"), `${path}: expected a document response`);
       const title = page.getByRole("heading", heading ? { level: 1, name: heading, exact: true } : { level: 1 });
       await expect(title).toBeVisible({ timeout: 15_000 });
-      if (path === "/sponsors") {
+      if (path === "/sponsors#board") {
         await expect(page.locator('.bid-ranking > li')).toHaveCount(21);
-      }
-      if (path === "/sponsors#waitlist") {
-        const waitlist = page.locator('.bid-waitlist-form');
-        await expect(waitlist).toBeVisible();
-        await waitlist.getByRole('button', { name: 'Join the waitlist', exact: true }).click();
-        await expect(waitlist.getByText('Enter a valid email.', { exact: true })).toBeVisible();
-        await expect(waitlist.locator('input[type="email"]')).toHaveAttribute('aria-invalid', 'true');
       }
       if (path === "/api") {
         await expect(page.getByRole("link", { name: /Get started free/ })).toBeVisible();
