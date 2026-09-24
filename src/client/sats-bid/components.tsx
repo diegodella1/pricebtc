@@ -248,3 +248,97 @@ export function SponsorStrip({
     </a>
   );
 }
+
+interface LogoRailCell {
+  sponsor: Entry | null;
+  position: number;
+  cryptoEnabled: boolean;
+}
+
+function LogoRailCell({ sponsor, position, cryptoEnabled }: LogoRailCell) {
+  const rankLabel = String(position).padStart(2, "0");
+  
+  if (!sponsor) {
+    return (
+      <a
+        href={cryptoEnabled ? "/sponsors#claim" : "/sponsors#waitlist"}
+        className="logo-rail__cell logo-rail__cell--empty"
+        title={`Open spot #${rankLabel}`}
+        role="listitem"
+      >
+        <div className="logo-rail__empty-box" aria-hidden="true">
+          <span className="logo-rail__plus">+</span>
+        </div>
+        <span className="logo-rail__rank">#{rankLabel}</span>
+      </a>
+    );
+  }
+
+  return (
+    <a
+      href={sponsor.url}
+      target="_blank"
+      rel="sponsored ugc noopener noreferrer"
+      className="logo-rail__cell"
+      title={sponsor.name}
+      role="listitem"
+      onClick={() => recordEvent("logo_rail_clicked")}
+    >
+      {sponsor.logo_asset_id ? (
+        <img
+          className="logo-rail__logo"
+          src={`${BID_API}/assets/${sponsor.logo_asset_id}`}
+          srcSet={`${BID_API}/assets/${sponsor.logo_asset_id} 1x, ${BID_API}/assets/${sponsor.logo_asset_id} 2x`}
+          alt=""
+          width={40}
+          height={40}
+        />
+      ) : (
+        <span className="logo-rail__logo logo-rail__monogram" aria-hidden="true">
+          {sponsor.name.slice(0, 2).toUpperCase()}
+        </span>
+      )}
+      <span className="logo-rail__rank">#{rankLabel}</span>
+    </a>
+  );
+}
+
+export function LogoRail({
+  sponsors,
+  cryptoEnabled = false,
+  loading = false,
+}: {
+  sponsors: (Entry | null)[];
+  cryptoEnabled?: boolean;
+  loading?: boolean;
+}) {
+  if (loading) {
+    return (
+      <div className="logo-rail" role="status" aria-label="Loading sponsor rail">
+        {Array.from({ length: 5 }, (_, i) => (
+          <div key={i} className="logo-rail__cell logo-rail__cell--loading">
+            <div className="logo-rail__skeleton" />
+            <span className="logo-rail__rank">#{String(i + 3).padStart(2, "0")}</span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="logo-rail">
+      {Array.from({ length: 5 }, (_, i) => {
+        const position = i + 3;
+        const sponsor = sponsors[i] || null;
+        return (
+          <LogoRailCell
+            key={position}
+            sponsor={sponsor}
+            position={position}
+            cryptoEnabled={cryptoEnabled}
+          />
+        );
+      })}
+    </div>
+  );
+}
