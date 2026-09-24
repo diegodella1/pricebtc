@@ -469,7 +469,24 @@ export async function registerBidRoutes(
     const id = uuid.parse((request.params as { id: string }).id);
     const row = (
       await service.pool.query(
-        "SELECT a.storage_key FROM assets a WHERE a.id=$1 AND EXISTS(SELECT 1 FROM participants p JOIN participant_totals t ON t.participant_id=p.id WHERE p.logo_asset_id=a.id AND NOT p.hidden AND p.moderation_status='approved' AND t.total_sats>0)",
+        `SELECT a.storage_key FROM assets a WHERE a.id=$1 AND (
+          EXISTS(
+            SELECT 1 FROM participants p 
+            JOIN participant_totals t ON t.participant_id=p.id 
+            WHERE p.logo_asset_id=a.id 
+              AND NOT p.hidden 
+              AND p.moderation_status='approved' 
+              AND t.total_sats>0
+          )
+          OR EXISTS(
+            SELECT 1 FROM participants p
+            JOIN sponsor_usd_totals s ON s.participant_id=p.id
+            WHERE p.logo_asset_id=a.id
+              AND NOT p.hidden
+              AND p.moderation_status='approved'
+              AND s.total_usd>0
+          )
+        )`,
         [id],
       )
     ).rows[0];

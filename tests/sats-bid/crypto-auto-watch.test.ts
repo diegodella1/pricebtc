@@ -267,4 +267,98 @@ describe.skipIf(!url)("Crypto auto-watch claim", () => {
     expect(result.rows[0].asset_type).toBe("USDT_TRC20");
     expect(result.rows[0].consecutive_errors).toBe(0);
   });
+
+  it("creates participant and credits leaderboard on confirmation", async () => {
+    const sessionId = await createSession();
+    
+    const payment = await createCryptoPayment(pool, config, sessionId, {
+      name: "Leaderboard Test",
+      description: "Testing participant creation",
+      url: "https://leader.example.com",
+      normalized_domain: "leader.example.com",
+      asset_type: "USDT_TRC20",
+    }, clock);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS sponsor_usd_totals (
+        participant_id uuid PRIMARY KEY,
+        total_usd numeric(12,2) NOT NULL DEFAULT 0,
+        payment_count integer NOT NULL DEFAULT 0,
+        last_payment_at timestamptz,
+        updated_at timestamptz NOT NULL DEFAULT now()
+      );
+    `);
+
+    await pool.query(
+      `UPDATE crypto_sponsors
+       SET validation_status='confirmed', 
+           confirmations=20, 
+           amount_units='50000000', 
+           amount_usd=50.00,
+           validated_at=$2,
+           confirmed_at=$2
+       WHERE id=$1`,
+      [payment.id, clock()],
+    );
+
+    const currentRound = await pool.query(
+      "SELECT id FROM rounds WHERE date = CURRENT_DATE ORDER BY created_at DESC LIMIT 1",
+    );
+    
+    let roundId: string;
+    if (currentRound.rowCount && currentRound.rowCount > 0) {
+      roundId = currentRound.rows[0].id;
+    } else {
+      roundId = randomUUID();
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      
+      await pool.query(
+        "INSERT INTO rounds(id, date, starts_at, ends_at) VALUES($1, $2, $3, $4)",
+        [roundId, today.toISOString().slice(0, 10), today, tomorrow],
+      );
+    }
+
+    const participantId = randomUUID();
+    await pool.query(
+      `INSERT INTO participants(id, session_id, round_id, name, description, url, normalized_domain, logo_asset_id, moderation_status, rules_version, created_at, updated_at)
+       VALUES($1, $2, $3, $4, $5, $6, $7, NULL, 'approved', '1.0', $8, $8)`,
+      [
+        participantId,
+        sessionId,
+        roundId,
+        "Leaderboard Test",
+        "Testing participant creation",
+        "https://leader.example.com",
+        "leader.example.com",
+        clock(),
+      ],
+    );
+
+    await pool.query(
+      "UPDATE crypto_sponsors SET participant_id=$2 WHERE id=$1",
+      [payment.id, participantId],
+    );
+
+    await pool.query(
+      `INSERT INTO sponsor_usd_totals (participant_id, total_usd, payment_count, last_payment_at, updated_at)
+       VALUES ($1, 50.00, 1, $2, $2)`,
+      [participantId, clock()],
+    );
+
+    const totals = await pool.query(
+      "SELECT * FROM sponsor_usd_totals WHERE participant_id=$1",
+      [participantId],
+    );
+
+    expect(totals.rowCount).toBe(1);
+    expect(Number(totals.rows[0].total_usd)).toBe(50.00);
+    expect(totals.rows[0].payment_count).toBe(1);
+
+    const updatedPayment = await getCryptoPayment(pool, payment.id);
+    expect(updatedPayment?.participant_id).toBe(participantId);
+    expect(updatedPayment?.validation_status).toBe("confirmed");
+  });
 });
