@@ -3,6 +3,7 @@ import { database } from "./db.js";
 import { BTCPayPaymentProvider, MockPaymentProvider } from "./provider.js";
 import { BidService } from "./service.js";
 import { startCryptoValidationWorker } from "./crypto-validation-worker.js";
+import { startDepositWatchers } from "./deposit-watchers.js";
 
 export function createBidRuntime(getBtcPrice?: () => Promise<number>) {
   const config = bidConfig();
@@ -21,11 +22,14 @@ export function createBidRuntime(getBtcPrice?: () => Promise<number>) {
     ? startCryptoValidationWorker(pool, config, getBtcPrice)
     : () => {};
   
+  const stopDepositWatchers = startDepositWatchers(pool, config);
+  
   return {
     service,
     pool,
     stop: () => {
       stopCryptoWorker();
+      stopDepositWatchers();
     },
   };
 }

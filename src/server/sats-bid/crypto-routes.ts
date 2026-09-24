@@ -52,7 +52,7 @@ export async function registerCryptoRoutes(
         url: z.string(),
         logo_asset_id: uuid.nullable().optional(),
         asset_type: z.enum(["USDT_TRC20", "USDC_SOL", "BTC"]),
-        tx_hash: z.string(),
+        tx_hash: z.string().optional(),
       })
       .parse(request.body);
 
@@ -66,7 +66,7 @@ export async function registerCryptoRoutes(
       ...profile,
       logo_asset_id: input.logo_asset_id || null,
       asset_type: input.asset_type as AssetType,
-      tx_hash: input.tx_hash,
+      tx_hash: input.tx_hash || null,
     }, clock);
 
     reply.code(202);
