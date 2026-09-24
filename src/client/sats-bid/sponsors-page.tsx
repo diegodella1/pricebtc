@@ -126,7 +126,7 @@ export function SponsorsPage() {
                   url: p.url,
                   normalized_domain: p.normalized_domain,
                   logo_asset_id: p.logo_asset_id,
-                  total_sats: p.total_usd,
+                  total_usd: p.total_usd,
                   position: p.position,
                 }))}
                 cryptoEnabled={hasCryptoAddresses}

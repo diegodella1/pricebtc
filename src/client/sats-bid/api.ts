@@ -32,7 +32,7 @@ export interface Entry {
   url: string;
   normalized_domain: string;
   logo_asset_id: string | null;
-  total_sats: string;
+  total_usd: string;
   position?: number;
 }
 export interface CurrentRound {
