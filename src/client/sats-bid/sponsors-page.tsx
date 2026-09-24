@@ -67,7 +67,7 @@ export function SponsorsPage() {
     return () => window.removeEventListener("hashchange", handleHashChange);
   }, [fetchData]);
 
-  const hasCryptoAddresses = config && config.enabled && config.assets.length > 0;
+  const hasCryptoAddresses = !!(config && config.enabled && config.assets.length > 0);
 
   return (
     <BidShell
@@ -129,19 +129,25 @@ export function SponsorsPage() {
                   total_sats: p.total_usd,
                   position: p.position,
                 }))}
+                cryptoEnabled={hasCryptoAddresses}
               />
             </>
           )}
 
           {(!leaderboard || leaderboard.participants.length === 0) && (
-            <div className="bid-empty-board">
-              <p>No sponsors yet. Be the first to claim a spot.</p>
-              {hasCryptoAddresses && (
-                <a href="#claim" className="bid-cta-primary">
-                  Claim spot #01 →
-                </a>
-              )}
-            </div>
+            <>
+              <div className="bid-leaderboard-header">
+                <h2>Current Rankings</h2>
+                <p className="bid-caption">
+                  No sponsors yet. Be the first to claim spot #01.
+                </p>
+              </div>
+              
+              <Ranking
+                entries={[]}
+                cryptoEnabled={hasCryptoAddresses}
+              />
+            </>
           )}
         </>
       )}

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { BID_API, bidApi } from "./api.js";
 import QRCode from "qrcode";
+import siteContent from "../../shared/site-content.json";
 
 interface AssetConfig {
   type: string;
@@ -404,7 +405,8 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
           <h2>Payment Status</h2>
           
           <div className={`crypto-status-badge crypto-status-${paymentStatus.validation_status}`}>
-            {paymentStatus.validation_status === "pending" && "⏳ Waiting for transaction..."}
+            {paymentStatus.validation_status === "pending" && paymentStatus.confirmations === 0 && "⏳ Waiting for first confirmation..."}
+            {paymentStatus.validation_status === "pending" && paymentStatus.confirmations > 0 && `⏳ ${paymentStatus.confirmations} of ${paymentStatus.required_confirmations} confirmations...`}
             {paymentStatus.validation_status === "validating" && "🔍 Validating transaction..."}
             {paymentStatus.validation_status === "confirmed" && "✅ Confirmed!"}
             {paymentStatus.validation_status === "rejected" && "❌ Rejected"}
@@ -446,9 +448,34 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
             </div>
           )}
 
+          {(paymentStatus.validation_status === "rejected" || paymentStatus.validation_status === "failed") && (
+            <div className="crypto-form-actions">
+              <button
+                type="button"
+                className="crypto-back-button"
+                onClick={() => {
+                  setStep("payment");
+                  setPaymentId(null);
+                  setPaymentStatus(null);
+                  if (pollInterval.current) {
+                    clearInterval(pollInterval.current);
+                    pollInterval.current = null;
+                  }
+                }}
+              >
+                ← Try again
+              </button>
+              <a href={`mailto:${siteContent.contactEmail}?subject=Sponsor%20Payment%20Issue&body=Transaction%20hash:%20${txHash}`} className="crypto-cta-button">
+                Contact support →
+              </a>
+            </div>
+          )}
+
           {(paymentStatus.validation_status === "pending" || paymentStatus.validation_status === "validating") && (
             <p className="crypto-status-note">
-              This page will update automatically when your transaction is confirmed.
+              {paymentStatus.confirmations === 0 
+                ? "Waiting for your transaction to appear on the blockchain. This usually takes a few seconds."
+                : "This page updates automatically as confirmations increase. Keep this tab open."}
             </p>
           )}
         </div>

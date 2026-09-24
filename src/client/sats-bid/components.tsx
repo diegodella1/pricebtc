@@ -78,9 +78,19 @@ export function EntryLogo({ entry }: { entry: Entry }) {
     </span>
   );
 }
+<<<<<<< HEAD
 export function Ranking({ entries }: { entries: Entry[] }) {
+=======
+export function Ranking({ entries, comingSoon = false, cryptoEnabled = false }: { entries: Entry[]; comingSoon?: boolean; cryptoEnabled?: boolean }) {
+>>>>>>> d018e70 (fix: UX bot P0 blockers - SATS → USD, crypto APIs, 21-row board)
   const LEADERBOARD_SIZE = 21;
   const emptySlots = Math.max(0, LEADERBOARD_SIZE - entries.length);
+  
+  const formatAmount = (totalSats: string) => {
+    const num = parseFloat(totalSats);
+    if (isNaN(num)) return "$0.00";
+    return `$${num.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
   
   return (
     <ol className="bid-ranking">
@@ -102,8 +112,8 @@ export function Ranking({ entries }: { entries: Entry[] }) {
             <small>{entry.normalized_domain}</small>
           </div>
           <strong>
-            {sats(entry.total_sats)}
-            <small>SATS</small>
+            {formatAmount(entry.total_sats)}
+            <small>USD</small>
           </strong>
         </li>
       ))}
@@ -115,8 +125,8 @@ export function Ranking({ entries }: { entries: Entry[] }) {
           <div className="bid-entry-copy">
             <p>Available — Your project here</p>
           </div>
-          <a href="/sponsors#claim" className="bid-claim-button">
-            Claim this spot →
+          <a href={cryptoEnabled ? "/sponsors#claim" : "/sponsors#waitlist"} className="bid-claim-button">
+            {cryptoEnabled ? "Claim this spot →" : "Join waitlist →"}
           </a>
         </li>
       ))}
@@ -132,6 +142,12 @@ export function TopSpot({
   delayed?: boolean;
   comingSoon?: boolean;
 }) {
+  const formatAmount = (totalSats: string) => {
+    const num = parseFloat(totalSats);
+    if (isNaN(num)) return "$0.00";
+    return `$${num.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
+  
   return (
     <article className={`bid-top${leader ? " has-leader" : ""}`}>
       <header>
@@ -161,7 +177,7 @@ export function TopSpot({
           </a>
           <p>{leader.description}</p>
           <div className="bid-top-total">
-            {sats(leader.total_sats)} <small>SATS</small>
+            {formatAmount(leader.total_sats)} <small>USD</small>
           </div>
         </>
       ) : null}
@@ -169,13 +185,17 @@ export function TopSpot({
   );
 }
 
+<<<<<<< HEAD
 export function EmptySponsorCTA() {
+=======
+export function EmptySponsorCTA({ comingSoon = false, cryptoEnabled = false }: { comingSoon?: boolean; cryptoEnabled?: boolean }) {
+>>>>>>> d018e70 (fix: UX bot P0 blockers - SATS → USD, crypto APIs, 21-row board)
   return (
-    <a href="/sponsors#waitlist" className="sponsor-empty-cta">
+    <a href={cryptoEnabled ? "/sponsors#claim" : "/sponsors#waitlist"} className="sponsor-empty-cta">
       <h3 className="sponsor-empty-cta__title">Your project here</h3>
-      <p className="sponsor-empty-cta__desc">Pay sats · Rank Top 21 · Stay visible</p>
+      <p className="sponsor-empty-cta__desc">Pay crypto · Rank Top 21 · Stay visible</p>
       <span className="sponsor-empty-cta__button">
-        Join the waitlist →
+        {cryptoEnabled ? "Claim a spot →" : "Join the waitlist →"}
       </span>
     </a>
   );
