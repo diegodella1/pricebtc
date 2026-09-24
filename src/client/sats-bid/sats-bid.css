@@ -315,17 +315,18 @@
   color: var(--bid-muted);
 }
 .bid-logo {
-  width: 48px;
-  height: 48px;
-  flex: 0 0 48px;
-  object-fit: cover;
+  width: 64px;
+  height: 64px;
+  flex: 0 0 64px;
+  object-fit: contain;
   background: var(--bid-ink);
   color: var(--bid-paper);
   display: grid;
   place-items: center;
   font:
-    600 19px "Bricolage Grotesque",
+    600 24px "Bricolage Grotesque",
     sans-serif;
+  border-radius: 8px;
 }
 .bid-entry-copy {
   min-width: 0;
@@ -717,8 +718,8 @@
     gap: 9px;
   }
   .bid-ranking .bid-logo {
-    width: 34px;
-    height: 34px;
+    width: 48px;
+    height: 48px;
     flex-basis: 34px;
     font-size: 14px;
   }

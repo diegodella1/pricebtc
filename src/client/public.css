@@ -63,17 +63,36 @@ body:has(.public-site)::before, body:has(.public-site)::after, body:has(.studio-
 .public-site .bid-top p { color: var(--text-muted); font-size: 14px; line-height: 1.6; margin: 0; }
 .public-site .bid-top .bid-button { margin-top: auto; padding: 10px 14px; min-height: 44px; color: #0d1012; background: var(--accent); border: 0; border-radius: 8px; font: 600 14px var(--font-body); }
 .public-site .bid-top footer { border: 0; margin: 0; padding: 0; font: 11px/1.5 var(--font-mono); color: var(--text-muted); }
-.public-site .bid-top-name { font: 500 30px var(--font-display); color: var(--text); overflow-wrap: anywhere; }
+.public-site .bid-top-logo-container { display: flex; justify-content: center; align-items: center; margin: 8px 0; }
+.public-site .bid-top-logo { width: 320px; height: 320px; max-width: 100%; object-fit: contain; border-radius: 12px; }
+.public-site .bid-top-name { font: 500 28px var(--font-display); color: var(--text); overflow-wrap: anywhere; text-decoration: none; display: flex; align-items: center; gap: 8px; }
+.public-site .bid-top-name:hover { color: var(--accent); }
+.public-site .bid-top-meta { display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
+.public-site .bid-top-domain { font: 12px var(--font-mono); color: var(--text-muted); }
 .public-site .bid-top-total { font: 500 24px var(--font-mono); }
+.public-site .bid-top-total small { font-size: 14px; color: var(--text-muted); margin-left: 6px; }
 .market-stats-24h { display: flex; gap: 24px; flex-wrap: wrap; margin: 16px 0; color: var(--text-muted); font: 12px var(--font-mono); }
 .market-stats-24h strong { color: var(--accent); font-weight: 400; font-size: 16px; }
 .pill-controls { display: inline-flex; padding: 3px; gap: 3px; border: 1px solid var(--line-soft); border-radius: 28px; background: transparent; }
 .pill-controls button { min-height: 44px; padding: 8px 18px; border: 0; border-radius: 24px; background: transparent; color: var(--text-muted); cursor: pointer; font-size: 14px; }
 .pill-controls button[aria-pressed="true"] { background: var(--text); color: #0d1012; }
-.public-site .hero__chart { height: 180px; min-height: 0; margin: 0 0 20px; padding: 0; border: 0; background: transparent; }
+.public-site .hero__chart { height: 180px; min-height: 0; margin: 0 0 0; padding: 0; border: 0; background: transparent; }
 .public-site .hero__chart .price-chart { position: relative; inset: auto; height: 100%; }
 .public-site .price-chart__volume { fill: var(--text-muted); opacity: 0.4; }
 .public-site .price-chart--with-volume .price-chart__volume { opacity: 0.5; }
+#bid-strip-slot { display: block; min-height: 48px; margin: 16px 0 20px; }
+.sponsor-strip { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 20px; min-height: 48px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); text-decoration: none; color: var(--text); transition: all 0.15s ease; }
+.sponsor-strip:hover { border-color: var(--accent); background: #171a1d; }
+.sponsor-strip--empty { justify-content: space-between; }
+.sponsor-strip__label { font: 11px var(--font-mono); color: var(--accent); letter-spacing: .04em; }
+.sponsor-strip__content { display: flex; flex-direction: column; gap: 8px; min-width: 0; flex: 1; }
+.sponsor-strip__identity { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.sponsor-strip__identity .bid-logo { width: 48px; height: 48px; flex-shrink: 0; border-radius: 6px; object-fit: cover; }
+.sponsor-strip__info { display: flex; flex-direction: column; gap: 2px; min-width: 0; overflow: hidden; }
+.sponsor-strip__name { font: 500 16px var(--font-display); color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sponsor-strip__domain { font: 12px var(--font-mono); color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sponsor-strip__arrow { color: var(--accent); font-size: 20px; flex-shrink: 0; }
+.sponsor-strip__cta { font: 600 14px var(--font-body); color: var(--accent); flex-shrink: 0; }
 .volume-legend { display: flex; gap: 8px 20px; flex-wrap: wrap; margin: 0 0 16px; font: 12px/1.6 var(--font-mono); }
 .volume-legend > span::before { content: ""; display: inline-block; width: 9px; height: 9px; margin-right: 7px; background: currentColor; }
 .volume-legend__buy { color: var(--positive); }
