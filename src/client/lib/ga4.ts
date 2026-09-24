@@ -17,6 +17,7 @@ export function trackEvent(eventName: string, params?: Record<string, unknown>):
 export const GA4Events = {
   sponsorsView: () => trackEvent("sponsors_view"),
   claimStart: () => trackEvent("claim_start"),
+  profileSave: () => trackEvent("profile_save"),
   watchingIntent: (assetType?: string) => trackEvent("watching_intent", assetType ? { asset_type: assetType } : undefined),
   depositConfirmed: (assetType?: string, amountUsd?: string) => 
     trackEvent("deposit_confirmed", { 

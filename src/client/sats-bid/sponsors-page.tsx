@@ -108,6 +108,8 @@ export function SponsorsPage() {
     
     if (view === "board") {
       GA4Events.sponsorsView();
+    } else if (view === "claim") {
+      GA4Events.claimStart();
     }
   }, [config, view]);
 

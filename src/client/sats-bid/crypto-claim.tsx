@@ -46,7 +46,6 @@ interface PaymentStatus {
 export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
   const [config, setConfig] = useState<CryptoConfig | null>(null);
   const [step, setStep] = useState<ClaimStep>("identity");
-  const claimStartTracked = useRef(false);
   const [profile, setProfile] = useState<ProfileData>({
     name: "",
     description: "",
@@ -130,12 +129,6 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
     }
   }, [resumePayment, startPolling]);
 
-  useEffect(() => {
-    if (step === "identity" && !claimStartTracked.current) {
-      GA4Events.claimStart();
-      claimStartTracked.current = true;
-    }
-  }, [step]);
 
   const handleLogoChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
@@ -175,6 +168,7 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
     try {
       const logoId = await uploadLogo();
       setProfile({ ...profile, logoAssetId: logoId });
+      GA4Events.profileSave();
       setStep("asset");
     } catch (e) {
       setError((e as Error).message);
