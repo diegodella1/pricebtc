@@ -1454,6 +1454,62 @@
   color: var(--crypto-muted);
 }
 
+.crypto-watch-section {
+  background: var(--crypto-surface);
+  padding: 24px;
+  border-radius: 4px;
+  margin: 32px 0;
+}
+
+.crypto-watch-info {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--crypto-text);
+  margin: 0 0 12px;
+}
+
+.crypto-watch-details {
+  font: 500 12px "IBM Plex Mono", monospace;
+  color: var(--crypto-muted);
+  margin: 0 0 24px;
+}
+
+.crypto-advanced-toggle {
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--crypto-bg);
+}
+
+.crypto-advanced-toggle summary {
+  font: 600 13px "IBM Plex Sans", sans-serif;
+  color: var(--crypto-accent);
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.crypto-advanced-toggle summary::-webkit-details-marker {
+  display: none;
+}
+
+.crypto-advanced-toggle summary:hover {
+  text-decoration: underline;
+}
+
+.crypto-advanced-toggle[open] summary {
+  margin-bottom: 20px;
+}
+
+.crypto-status-watching {
+  background: rgba(147, 161, 161, 0.1);
+  color: var(--crypto-muted);
+  padding: 16px 24px;
+  border-radius: 4px;
+  text-align: center;
+  font: 600 14px "IBM Plex Sans", sans-serif;
+  margin: 24px 0;
+}
+
 .crypto-error {
   background: rgba(203, 75, 22, 0.1);
   border-left: 3px solid var(--crypto-accent);

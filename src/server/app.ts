@@ -50,7 +50,7 @@ interface HistoryReader {
 }
 
 interface BuildAppOptions {
-  bidding?: { service: BidService; pool: Pool; stop: () => void } | null;
+  bidding?: { service: BidService; pool: Pool; getBtcPrice: () => Promise<number>; stop: () => void } | null;
   stripe?: StripeRuntime | null;
   market: MarketReader;
   fx: FxReader;
@@ -151,7 +151,7 @@ function registerApplicationRoutes(app: FastifyInstance, options: BuildAppOption
   }
   
   if (options.bidding) {
-    void app.register(async instance => registerBidRoutes(instance, options.bidding!.service));
+    void app.register(async instance => registerBidRoutes(instance, options.bidding!.service, options.bidding!.getBtcPrice));
   } else {
     app.get("/api/sats-bid/round/current", async () => ({ enabled: false, bids_open: false, coming_soon: true }));
   }

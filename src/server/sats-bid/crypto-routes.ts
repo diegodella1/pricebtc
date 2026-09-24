@@ -20,13 +20,16 @@ export async function registerCryptoRoutes(
   quota: (key: string, max: number, seconds: number, reply: FastifyReply) => Promise<void>,
   csrf: (request: FastifyRequest) => void,
   clock: () => Date = () => new Date(),
+  getBtcPrice?: () => Promise<number>,
 ) {
   const prefix = "/api/sats-bid/crypto-sponsors";
 
   app.get(`${prefix}/config`, async () => {
     const assets = getAvailableAssets(config);
+    const btcPriceUsd = getBtcPrice ? await getBtcPrice() : 0;
     return {
       enabled: assets.length > 0,
+      btcPriceUsd: btcPriceUsd.toFixed(2),
       assets: assets.map((a) => ({
         type: a.type,
         address: a.address,
@@ -35,6 +38,7 @@ export async function registerCryptoRoutes(
         minUsd: a.minUsd,
         confirmations: a.confirmations,
         warningMessage: a.warningMessage,
+        confirmationWaitMessage: a.confirmationWaitMessage,
       })),
     };
   });
