@@ -130,6 +130,7 @@ export function Ranking({ entries, cryptoEnabled = false }: { entries: Entry[]; 
     </ol>
   );
 }
+
 export function TopSpot({
   leader,
   delayed = false,
@@ -139,12 +140,6 @@ export function TopSpot({
   delayed?: boolean;
   comingSoon?: boolean;
 }) {
-  const formatAmount = (totalUsd: string) => {
-    const num = parseFloat(totalUsd);
-    if (isNaN(num)) return "$0.00";
-    return `$${num.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  };
-  
   return (
     <article className={`bid-top${leader ? " has-leader" : ""}`}>
       <header>

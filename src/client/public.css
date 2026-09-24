@@ -56,21 +56,21 @@ body:has(.public-site)::before, body:has(.public-site)::after, body:has(.studio-
 .public-notice { padding: 16px; border: 1px solid var(--line); border-radius: 10px; color: var(--text-muted); }
 #bid-top-slot { min-width: 0; min-height: 240px; }
 #bid-top-slot:empty { border: 1px dashed var(--line); border-radius: 14px; background: var(--surface); }
-.public-site .bid-top { min-height: 0; height: 100%; padding: 24px; background: #171a1d; color: var(--text); border: 1px solid rgba(203, 75, 22, 0.44); border-radius: 14px; display: flex; flex-direction: column; gap: 12px; box-shadow: none; }
+.public-site .bid-top { min-height: 240px; height: 100%; padding: 24px; background: #171a1d; color: var(--text); border: 1px solid rgba(203, 75, 22, 0.44); border-radius: 14px; display: flex; flex-direction: column; gap: 12px; box-shadow: none; }
+.public-site .bid-top.has-leader { border-color: rgba(203, 75, 22, 0.44); }
 .public-site .bid-top header { display: flex; justify-content: space-between; gap: 10px; color: var(--accent); font: 11px var(--font-mono); }
 .public-site .bid-top h2.bid-unclaimed { font: 500 32px/1.12 var(--font-display); letter-spacing: -.04em; margin: 8px 0 0; color: var(--text); }
 .public-site .bid-top .bid-unclaimed em { font-style: normal; color: var(--accent); }
 .public-site .bid-top p { color: var(--text-muted); font-size: 14px; line-height: 1.6; margin: 0; }
-.public-site .bid-top .bid-button { margin-top: auto; padding: 10px 14px; min-height: 44px; color: #0d1012; background: var(--accent); border: 0; border-radius: 8px; font: 600 14px var(--font-body); }
+.public-site .bid-top .bid-button { margin-top: auto; padding: 10px 14px; min-height: 44px; color: #ffffff; background: var(--accent); border: 0; border-radius: 8px; font: 600 14px var(--font-body); }
 .public-site .bid-top footer { border: 0; margin: 0; padding: 0; font: 11px/1.5 var(--font-mono); color: var(--text-muted); }
-.public-site .bid-top-logo-container { display: flex; justify-content: center; align-items: center; margin: 8px 0; }
-.public-site .bid-top-logo { width: 320px; height: 320px; max-width: 100%; object-fit: contain; border-radius: 12px; }
-.public-site .bid-top-name { font: 500 28px var(--font-display); color: var(--text); overflow-wrap: anywhere; text-decoration: none; display: flex; align-items: center; gap: 8px; }
+.public-site .bid-top-logo-container { display: flex; justify-content: center; align-items: center; margin: 12px 0; max-width: 320px; margin-left: auto; margin-right: auto; }
+.public-site .bid-top-logo { width: 100%; height: auto; aspect-ratio: 1; max-width: 320px; object-fit: contain; border-radius: 8px; }
+.public-site .bid-top-monogram { width: 280px; height: 280px; max-width: 100%; display: grid; place-items: center; background: var(--text); color: var(--background); font: 600 72px var(--font-display); border-radius: 8px; }
+.public-site .bid-top-name { font: 500 30px/1.2 var(--font-display); letter-spacing: -.02em; color: var(--text); overflow-wrap: anywhere; text-decoration: none; display: flex; align-items: center; gap: 8px; margin: 8px 0; }
 .public-site .bid-top-name:hover { color: var(--accent); }
-.public-site .bid-top-meta { display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
-.public-site .bid-top-domain { font: 12px var(--font-mono); color: var(--text-muted); }
-.public-site .bid-top-total { font: 500 24px var(--font-mono); }
-.public-site .bid-top-total small { font-size: 14px; color: var(--text-muted); margin-left: 6px; }
+.public-site .bid-top-desc { color: var(--text-muted); font-size: 14px; line-height: 1.6; margin: 0 0 8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.public-site .bid-top-domain { font: 11px var(--font-mono); color: var(--text-muted); margin-top: auto; }
 .market-stats-24h { display: flex; gap: 24px; flex-wrap: wrap; margin: 16px 0; color: var(--text-muted); font: 12px var(--font-mono); }
 .market-stats-24h strong { color: var(--accent); font-weight: 400; font-size: 16px; }
 .pill-controls { display: inline-flex; padding: 3px; gap: 3px; border: 1px solid var(--line-soft); border-radius: 28px; background: transparent; }
@@ -80,19 +80,19 @@ body:has(.public-site)::before, body:has(.public-site)::after, body:has(.studio-
 .public-site .hero__chart .price-chart { position: relative; inset: auto; height: 100%; }
 .public-site .price-chart__volume { fill: var(--text-muted); opacity: 0.4; }
 .public-site .price-chart--with-volume .price-chart__volume { opacity: 0.5; }
-#bid-strip-slot { display: block; min-height: 48px; margin: 16px 0 20px; }
-.sponsor-strip { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 20px; min-height: 48px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); text-decoration: none; color: var(--text); transition: all 0.15s ease; }
+#bid-strip-slot { display: block; min-height: 48px; height: 48px; margin: 16px 0 20px; }
+.sponsor-strip { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 12px; height: 48px; border: 1px solid var(--line-soft); border-radius: 8px; background: var(--surface); text-decoration: none; color: var(--text); transition: all 0.15s ease; }
 .sponsor-strip:hover { border-color: var(--accent); background: #171a1d; }
-.sponsor-strip--empty { justify-content: space-between; }
-.sponsor-strip__label { font: 11px var(--font-mono); color: var(--accent); letter-spacing: .04em; }
-.sponsor-strip__content { display: flex; flex-direction: column; gap: 8px; min-width: 0; flex: 1; }
-.sponsor-strip__identity { display: flex; align-items: center; gap: 12px; min-width: 0; }
-.sponsor-strip__identity .bid-logo { width: 48px; height: 48px; flex-shrink: 0; border-radius: 6px; object-fit: cover; }
+.sponsor-strip--empty { border-style: dashed; }
+.sponsor-strip__text { font: 14px var(--font-body); color: var(--text-muted); }
+.sponsor-strip__identity { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1; }
+.sponsor-strip__logo { width: 56px; height: 56px; min-width: 56px; flex-shrink: 0; border-radius: 6px; object-fit: contain; }
+.sponsor-strip__monogram { background: var(--text); color: var(--background); display: grid; place-items: center; font: 600 20px var(--font-display); }
 .sponsor-strip__info { display: flex; flex-direction: column; gap: 2px; min-width: 0; overflow: hidden; }
-.sponsor-strip__name { font: 500 16px var(--font-display); color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sponsor-strip__domain { font: 12px var(--font-mono); color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sponsor-strip__arrow { color: var(--accent); font-size: 20px; flex-shrink: 0; }
-.sponsor-strip__cta { font: 600 14px var(--font-body); color: var(--accent); flex-shrink: 0; }
+.sponsor-strip__name { font: 600 15px var(--font-body); color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sponsor-strip__meta { font: 11px var(--font-mono); color: var(--text-muted); }
+.sponsor-strip__arrow { color: var(--accent); font-size: 20px; flex-shrink: 0; margin-left: auto; }
+.sponsor-strip__cta { font: 600 14px var(--font-body); color: var(--accent); flex-shrink: 0; margin-left: auto; }
 .volume-legend { display: flex; gap: 8px 20px; flex-wrap: wrap; margin: 0 0 16px; font: 12px/1.6 var(--font-mono); }
 .volume-legend > span::before { content: ""; display: inline-block; width: 9px; height: 9px; margin-right: 7px; background: currentColor; }
 .volume-legend__buy { color: var(--positive); }
@@ -186,9 +186,12 @@ body:has(.public-site)::before, body:has(.public-site)::after, body:has(.studio-
   .price-primary { order: 1; }
   #bid-top-slot { order: 2; margin-top: 20px; }
   .chart-toolbar { justify-content: center; }
-  .public-site .bid-top { min-height: 0; }
+  .public-site .bid-top { min-height: 240px; }
   .public-site .bid-top h2.bid-unclaimed { font-size: 28px; }
   .public-site .bid-top h2.bid-unclaimed br { display: none; }
+  .public-site .bid-top-logo { max-width: min(100%, 320px); }
+  .public-site .bid-top-logo-container { max-width: 100%; }
+  .sponsor-strip__logo { width: 48px; height: 48px; min-width: 48px; }
   .public-site .hero__price { font-size: clamp(44px, 12cqw, 90px); }
   .public-site .hero__price--long, .public-site .hero__price--extra-long { font-size: clamp(28px, 7cqw, 60px); }
   .section-intro { align-items: start; flex-direction: column; gap: 12px; }
