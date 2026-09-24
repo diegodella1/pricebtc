@@ -302,7 +302,7 @@ describe.skipIf(!url)("Crypto auto-watch claim", () => {
     );
 
     const currentRound = await pool.query(
-      "SELECT id FROM rounds WHERE date = CURRENT_DATE ORDER BY created_at DESC LIMIT 1",
+      "SELECT id FROM rounds WHERE date = CURRENT_DATE ORDER BY starts_at DESC LIMIT 1",
     );
     
     let roundId: string;

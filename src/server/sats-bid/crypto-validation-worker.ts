@@ -25,7 +25,7 @@ async function ensureCryptoParticipant(
   const roundResult = await pool.query(
     `SELECT id FROM rounds 
      WHERE date = CURRENT_DATE 
-     ORDER BY created_at DESC 
+     ORDER BY starts_at DESC 
      LIMIT 1`,
   );
 
