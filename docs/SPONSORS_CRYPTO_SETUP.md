@@ -96,13 +96,13 @@ CREATE TABLE IF NOT EXISTS crypto_sponsors (
   -- Crypto payment details
   asset_type text NOT NULL CHECK(asset_type IN ('USDT_TRC20', 'USDC_SOL', 'BTC')),
   deposit_address text NOT NULL,
-  tx_hash text NOT NULL,
+  tx_hash text, -- Nullable: NULL when watching, set when tx detected or pasted
   amount_units text NOT NULL, -- Amount in asset's base units (e.g., "100000000" for 1 USDT)
   amount_usd numeric(12,2) NOT NULL, -- USD value at confirmation
   btc_usd_rate numeric(12,2), -- BTC price in USD at confirmation (NULL for stablecoins)
   
   -- Validation state
-  validation_status text NOT NULL DEFAULT 'pending' CHECK(validation_status IN ('pending', 'validating', 'confirmed', 'rejected', 'failed')),
+  validation_status text NOT NULL DEFAULT 'pending' CHECK(validation_status IN ('watching', 'pending', 'validating', 'confirmed', 'rejected', 'failed')),
   confirmations integer DEFAULT 0,
   required_confirmations integer NOT NULL,
   
@@ -115,13 +115,15 @@ CREATE TABLE IF NOT EXISTS crypto_sponsors (
   validated_at timestamptz,
   confirmed_at timestamptz,
   
-  -- Unique transaction per address
+  -- Unique transaction per address (when tx_hash is set)
   UNIQUE(asset_type, deposit_address, tx_hash)
 );
 
 CREATE INDEX idx_crypto_sponsors_session ON crypto_sponsors(session_id);
 CREATE INDEX idx_crypto_sponsors_validation ON crypto_sponsors(validation_status, created_at) 
   WHERE validation_status IN ('pending', 'validating');
+CREATE INDEX idx_crypto_sponsors_watching ON crypto_sponsors(asset_type, deposit_address, created_at)
+  WHERE validation_status = 'watching' AND tx_hash IS NULL;
 CREATE INDEX idx_crypto_sponsors_participant ON crypto_sponsors(participant_id) 
   WHERE participant_id IS NOT NULL;
 
@@ -146,6 +148,40 @@ CREATE TABLE IF NOT EXISTS crypto_validation_cursor (
 );
 
 INSERT INTO crypto_validation_cursor (id) VALUES (1) ON CONFLICT DO NOTHING;
+
+-- Deposit watcher cursors (for auto-detection)
+CREATE TABLE IF NOT EXISTS deposit_watcher_cursors (
+  asset_type text PRIMARY KEY CHECK(asset_type IN ('USDT_TRC20', 'USDC_SOL', 'BTC')),
+  last_tx_hash text,
+  last_poll_at timestamptz NOT NULL DEFAULT now(),
+  consecutive_errors integer NOT NULL DEFAULT 0
+);
+```
+
+### Migration Notes for Phase 2 (Auto-Watch):
+
+If you already have the `crypto_sponsors` table from Phase 1, run these ALTER statements:
+
+```sql
+-- Make tx_hash nullable for watching mode
+ALTER TABLE crypto_sponsors ALTER COLUMN tx_hash DROP NOT NULL;
+
+-- Add 'watching' to validation_status enum
+ALTER TABLE crypto_sponsors DROP CONSTRAINT IF EXISTS crypto_sponsors_validation_status_check;
+ALTER TABLE crypto_sponsors ADD CONSTRAINT crypto_sponsors_validation_status_check 
+  CHECK(validation_status IN ('watching', 'pending', 'validating', 'confirmed', 'rejected', 'failed'));
+
+-- Add index for watching intents (FIFO matching)
+CREATE INDEX IF NOT EXISTS idx_crypto_sponsors_watching ON crypto_sponsors(asset_type, deposit_address, created_at)
+  WHERE validation_status = 'watching' AND tx_hash IS NULL;
+
+-- Create deposit watcher cursors table
+CREATE TABLE IF NOT EXISTS deposit_watcher_cursors (
+  asset_type text PRIMARY KEY CHECK(asset_type IN ('USDT_TRC20', 'USDC_SOL', 'BTC')),
+  last_tx_hash text,
+  last_poll_at timestamptz NOT NULL DEFAULT now(),
+  consecutive_errors integer NOT NULL DEFAULT 0
+);
 ```
 
 ## Explorer APIs
@@ -271,3 +307,80 @@ SPONSOR_ADDR_BTC=<testnet_address>
 - Check `sponsor_usd_totals` table was created
 - Verify `participant_id` is set on `crypto_sponsors` row
 - Ensure cumulative total is updating via trigger or manual update
+
+## Phase 2: Auto-Watch Claim (Current)
+
+### How Auto-Watch Works
+
+1. **User Flow**:
+   - User completes identity + asset selection
+   - Primary flow: Clicks "I've sent the payment" → creates watching intent (no tx_hash required)
+   - Fallback: Expands "Advanced" and pastes tx_hash → creates pending payment (Phase 1 behavior)
+
+2. **Deposit Watchers** (runs every 30s by default):
+   - Polls blockchain explorers for incoming transactions to configured deposit addresses
+   - For each new transaction not already in `crypto_sponsors`:
+     - Matches to the **oldest** `watching` intent for that asset (FIFO)
+     - Attaches `tx_hash`, updates status to `pending`
+   - Maintains cursor per asset to avoid reprocessing old transactions
+
+3. **Validation Worker** (existing, unchanged):
+   - Processes `pending` and `validating` records
+   - Validates tx, checks confirmations, credits USD totals
+   - Same flow as Phase 1
+
+### FIFO Matching Logic
+
+Watching intents are matched in **creation order** (oldest first) to ensure fairness:
+
+```sql
+UPDATE crypto_sponsors
+SET tx_hash=$3, validation_status='pending', validated_at=now()
+WHERE id = (
+  SELECT id FROM crypto_sponsors
+  WHERE asset_type=$1 AND deposit_address=$2 AND validation_status='watching' AND tx_hash IS NULL
+  ORDER BY created_at ASC
+  LIMIT 1
+)
+RETURNING id;
+```
+
+**Note**: If multiple users send payments simultaneously, each payment matches to the next open intent in FIFO order. Users who click "I've sent the payment" before actually sending will eventually time out if no matching transaction appears.
+
+### Monitoring Auto-Watch
+
+Check watcher health:
+
+```sql
+-- View active watching intents
+SELECT id, asset_type, name, created_at 
+FROM crypto_sponsors 
+WHERE validation_status='watching' 
+ORDER BY created_at ASC;
+
+-- Check watcher cursor status
+SELECT * FROM deposit_watcher_cursors;
+
+-- Recent matched transactions
+SELECT id, asset_type, tx_hash, validated_at 
+FROM crypto_sponsors 
+WHERE validation_status='pending' AND validated_at > now() - interval '1 hour'
+ORDER BY validated_at DESC;
+```
+
+### Rate Limiting
+
+Explorer APIs have rate limits:
+- **Tronscan**: ~5 req/s public, higher with API key
+- **Solana RPC**: ~100 req/s public (varies by provider)
+- **Mempool.space**: ~10 req/s public
+
+Watchers automatically skip assets after 5 consecutive errors. Check logs:
+
+```bash
+# Look for watcher errors
+grep "Deposit watcher error" logs/production.log
+
+# Look for successful matches
+grep "Matched.*tx.*to watching intent" logs/production.log
+```

@@ -17,11 +17,11 @@ export interface CryptoSponsor {
   logo_asset_id: string | null;
   asset_type: AssetType;
   deposit_address: string;
-  tx_hash: string;
+  tx_hash: string | null;
   amount_units: string;
   amount_usd: string;
   btc_usd_rate: string | null;
-  validation_status: "pending" | "validating" | "confirmed" | "rejected" | "failed";
+  validation_status: "watching" | "pending" | "validating" | "confirmed" | "rejected" | "failed";
   confirmations: number;
   required_confirmations: number;
   explorer_data: object | null;
@@ -90,7 +90,7 @@ export interface CryptoPaymentInput {
   normalized_domain: string;
   logo_asset_id?: string | null;
   asset_type: AssetType;
-  tx_hash: string;
+  tx_hash?: string | null;
 }
 
 export async function createCryptoPayment(
@@ -111,40 +111,43 @@ export async function createCryptoPayment(
     );
   }
 
-  if (!/^[a-fA-F0-9]{64}$/.test(input.tx_hash) && input.asset_type !== "BTC") {
-    throw new BidError(
-      "INVALID_TX_HASH",
-      "Invalid transaction hash format.",
-      422,
-    );
-  }
+  if (input.tx_hash) {
+    if (!/^[a-fA-F0-9]{64}$/.test(input.tx_hash) && input.asset_type !== "BTC") {
+      throw new BidError(
+        "INVALID_TX_HASH",
+        "Invalid transaction hash format.",
+        422,
+      );
+    }
 
-  if (input.asset_type === "BTC" && !/^[a-fA-F0-9]{64}$/.test(input.tx_hash)) {
-    throw new BidError(
-      "INVALID_TX_HASH",
-      "Invalid Bitcoin transaction hash format.",
-      422,
-    );
-  }
+    if (input.asset_type === "BTC" && !/^[a-fA-F0-9]{64}$/.test(input.tx_hash)) {
+      throw new BidError(
+        "INVALID_TX_HASH",
+        "Invalid Bitcoin transaction hash format.",
+        422,
+      );
+    }
 
-  const existing = await pool.query(
-    "SELECT id, validation_status FROM crypto_sponsors WHERE asset_type=$1 AND deposit_address=$2 AND tx_hash=$3",
-    [input.asset_type, asset.address, input.tx_hash],
-  );
-
-  if (existing.rowCount && existing.rowCount > 0) {
-    const row = existing.rows[0];
-    throw new BidError(
-      "DUPLICATE_TX",
-      row.validation_status === "rejected"
-        ? "This transaction was already rejected."
-        : "This transaction has already been submitted.",
-      409,
+    const existing = await pool.query(
+      "SELECT id, validation_status FROM crypto_sponsors WHERE asset_type=$1 AND deposit_address=$2 AND tx_hash=$3",
+      [input.asset_type, asset.address, input.tx_hash],
     );
+
+    if (existing.rowCount && existing.rowCount > 0) {
+      const row = existing.rows[0];
+      throw new BidError(
+        "DUPLICATE_TX",
+        row.validation_status === "rejected"
+          ? "This transaction was already rejected."
+          : "This transaction has already been submitted.",
+        409,
+      );
+    }
   }
 
   return transaction(pool, async (sql) => {
     const id = randomUUID();
+    const status = input.tx_hash ? "pending" : "watching";
 
     await sql.query(
       `INSERT INTO crypto_sponsors(
@@ -152,7 +155,7 @@ export async function createCryptoPayment(
         logo_asset_id, asset_type, deposit_address, tx_hash,
         amount_units, amount_usd, required_confirmations,
         validation_status, confirmations, created_at
-      ) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, '0', 0, $11, 'pending', 0, $12)`,
+      ) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, '0', 0, $11, $12, 0, $13)`,
       [
         id,
         sessionId,
@@ -163,8 +166,9 @@ export async function createCryptoPayment(
         input.logo_asset_id || null,
         input.asset_type,
         asset.address,
-        input.tx_hash,
+        input.tx_hash || null,
         asset.confirmations,
+        status,
         clock(),
       ],
     );

@@ -30,9 +30,9 @@ type ClaimStep = "identity" | "asset" | "payment" | "live";
 interface PaymentStatus {
   id: string;
   asset_type: string;
-  tx_hash: string;
+  tx_hash: string | null;
   amount_usd: string;
-  validation_status: "pending" | "validating" | "confirmed" | "rejected" | "failed";
+  validation_status: "watching" | "pending" | "validating" | "confirmed" | "rejected" | "failed";
   confirmations: number;
   required_confirmations: number;
   validation_error: string | null;
@@ -53,6 +53,7 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [selectedAsset, setSelectedAsset] = useState<AssetConfig | null>(null);
   const [txHash, setTxHash] = useState("");
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus | null>(null);
   const [qrCode, setQrCode] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -138,6 +139,48 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
     }
   };
 
+  const handleStartWatching = async () => {
+    if (!selectedAsset) return;
+
+    setBusy(true);
+    setError("");
+    try {
+      const result = await bidApi<{ id: string; validation_status: string }>(
+        "/crypto-sponsors/payments",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            name: profile.name,
+            description: profile.description,
+            url: profile.url,
+            logo_asset_id: profile.logoAssetId,
+            asset_type: selectedAsset.type,
+          }),
+        },
+      );
+
+      setPaymentStatus({
+        id: result.id,
+        asset_type: selectedAsset.type,
+        tx_hash: null,
+        amount_usd: "0.00",
+        validation_status: result.validation_status as PaymentStatus["validation_status"],
+        confirmations: 0,
+        required_confirmations: selectedAsset.confirmations,
+        validation_error: null,
+        created_at: new Date().toISOString(),
+        confirmed_at: null,
+      });
+      
+      setStep("live");
+      startPolling(result.id);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const handlePaymentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedAsset) return;
@@ -160,7 +203,6 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
         },
       );
 
-      // Seed initial pending state
       setPaymentStatus({
         id: result.id,
         asset_type: selectedAsset.type,
@@ -373,22 +415,14 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
             )}
           </div>
 
-          <form onSubmit={handlePaymentSubmit} className="crypto-tx-form">
-            <label>
-              Transaction Hash
-              <input
-                required
-                type="text"
-                placeholder="Enter transaction hash after sending"
-                value={txHash}
-                onChange={(e) => setTxHash(e.target.value.trim())}
-                className="crypto-tx-input"
-              />
-              <small>
-                Required {selectedAsset.confirmations} confirmations · Check your wallet for the transaction hash
-              </small>
-            </label>
-
+          <div className="crypto-watch-section">
+            <p className="crypto-watch-info">
+              We're watching this address. Send your payment — no need to paste a transaction ID.
+            </p>
+            <p className="crypto-watch-details">
+              Your transaction will be automatically detected and confirmed after {selectedAsset.confirmations} confirmations.
+            </p>
+            
             {error && <p className="crypto-error">{error}</p>}
 
             <div className="crypto-form-actions">
@@ -400,15 +434,48 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
                   setSelectedAsset(null);
                   setQrCode(null);
                   setTxHash("");
+                  setShowAdvanced(false);
                 }}
               >
                 ← Change asset
               </button>
-              <button type="submit" className="crypto-cta-button" disabled={busy || !txHash}>
-                {busy ? "Submitting..." : "Submit transaction →"}
+              <button 
+                type="button" 
+                className="crypto-cta-button" 
+                onClick={() => void handleStartWatching()}
+                disabled={busy}
+              >
+                {busy ? "Starting..." : "I've sent the payment →"}
               </button>
             </div>
-          </form>
+
+            <details className="crypto-advanced-toggle">
+              <summary onClick={(e) => { e.preventDefault(); setShowAdvanced(!showAdvanced); }}>
+                Advanced: Paste transaction ID
+              </summary>
+              {showAdvanced && (
+                <form onSubmit={handlePaymentSubmit} className="crypto-tx-form">
+                  <label>
+                    Transaction Hash
+                    <input
+                      required
+                      type="text"
+                      placeholder="Enter transaction hash"
+                      value={txHash}
+                      onChange={(e) => setTxHash(e.target.value.trim())}
+                      className="crypto-tx-input"
+                    />
+                    <small>
+                      Check your wallet for the transaction hash
+                    </small>
+                  </label>
+                  <button type="submit" className="crypto-cta-button" disabled={busy || !txHash}>
+                    {busy ? "Submitting..." : "Submit transaction →"}
+                  </button>
+                </form>
+              )}
+            </details>
+          </div>
         </div>
       )}
 
@@ -417,6 +484,7 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
           <h2>Payment Status</h2>
           
           <div className={`crypto-status-badge crypto-status-${paymentStatus.validation_status}`}>
+            {paymentStatus.validation_status === "watching" && "👀 Watching for your transaction..."}
             {paymentStatus.validation_status === "pending" && paymentStatus.confirmations === 0 && "⏳ Waiting for first confirmation..."}
             {paymentStatus.validation_status === "pending" && paymentStatus.confirmations > 0 && `⏳ ${paymentStatus.confirmations} of ${paymentStatus.required_confirmations} confirmations...`}
             {paymentStatus.validation_status === "validating" && "🔍 Validating transaction..."}
@@ -482,11 +550,13 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
             </div>
           )}
 
-          {(paymentStatus.validation_status === "pending" || paymentStatus.validation_status === "validating") && (
+          {(paymentStatus.validation_status === "watching" || paymentStatus.validation_status === "pending" || paymentStatus.validation_status === "validating") && (
             <p className="crypto-status-note">
-              {paymentStatus.confirmations === 0 
-                ? "Waiting for your transaction to appear on the blockchain. This usually takes a few seconds."
-                : "This page updates automatically as confirmations increase. Keep this tab open."}
+              {paymentStatus.validation_status === "watching" 
+                ? "Send your payment to the address above. We'll detect it automatically within a few seconds."
+                : paymentStatus.confirmations === 0 
+                  ? "Waiting for your transaction to appear on the blockchain. This usually takes a few seconds."
+                  : "This page updates automatically as confirmations increase. Keep this tab open."}
             </p>
           )}
         </div>
