@@ -1,7 +1,7 @@
 import { useState, useTransition, type FormEvent } from "react";
 import siteContent from "../../shared/site-content.json";
 
-export function WaitlistForm() {
+export function WaitlistForm({ context = "default" }: { context?: string }) {
   const [email, setEmail] = useState("");
   const [xHandle, setXHandle] = useState("");
   const [emailError, setEmailError] = useState(false);
@@ -24,7 +24,8 @@ export function WaitlistForm() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ 
             email: email.trim(), 
-            xHandle: xHandle.trim() || undefined 
+            xHandle: xHandle.trim() || undefined,
+            context 
           }),
         });
 

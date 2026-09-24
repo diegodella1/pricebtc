@@ -26,7 +26,13 @@ const streams = new SseHub({
 });
 const plausible = new PlausibleService(environment.PLAUSIBLE_DOMAIN, environment.PLAUSIBLE_API_KEY);
 let bidding: ReturnType<typeof createBidRuntime> = null;
-try { bidding = createBidRuntime(); } catch { process.stderr.write("Sats Bid disabled: invalid configuration\n"); }
+try { 
+  const getBtcPrice = async () => {
+    const snapshot = market.getSnapshot();
+    return snapshot ? parseFloat(snapshot.priceUsd) : 0;
+  };
+  bidding = createBidRuntime(getBtcPrice); 
+} catch { process.stderr.write("Sats Bid disabled: invalid configuration\n"); }
 let stripe: ReturnType<typeof createStripeRuntime> = null;
 try { 
   const bidCfg = bidConfig();
@@ -57,7 +63,10 @@ async function shutdown(signal: string): Promise<void> {
   fx.stop();
   await app.close();
   await tradeVolume.stop();
-  await bidding?.pool.end();
+  if (bidding) {
+    bidding.stop();
+    await bidding.pool.end();
+  }
   await stripe?.pool.end();
 }
 

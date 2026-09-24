@@ -49,7 +49,7 @@ interface HistoryReader {
 }
 
 interface BuildAppOptions {
-  bidding?: BidService | null;
+  bidding?: { service: BidService; pool: any; stop: () => void } | null;
   stripe?: StripeRuntime | null;
   market: MarketReader;
   fx: FxReader;
@@ -150,7 +150,7 @@ function registerApplicationRoutes(app: FastifyInstance, options: BuildAppOption
   }
   
   if (options.bidding) {
-    void app.register(async instance => registerBidRoutes(instance, options.bidding!));
+    void app.register(async instance => registerBidRoutes(instance, options.bidding!.service));
   } else {
     app.get("/api/sats-bid/round/current", async () => ({ enabled: false, bids_open: false, coming_soon: true }));
   }

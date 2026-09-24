@@ -7,10 +7,12 @@ export function BidShell({
   children,
   title,
   eyebrow = "SPONSORS / TOP 21",
+  footerCopy = "TOP 21 · CUMULATIVE USD · OUTBID ANYTIME",
 }: {
   children: React.ReactNode;
   title: string;
   eyebrow?: string;
+  footerCopy?: string;
 }) {
   return (
     <div className={`bid-shell${window.location.pathname === "/admin" ? "" : " public-bid"}`}>
@@ -21,7 +23,7 @@ export function BidShell({
         {children}
       </main>
       <footer className="bid-footer">
-        <span>TOP 21 · CUMULATIVE SATS · OUTBID ANYTIME</span>
+        <span>{footerCopy}</span>
         <a href="/rules">Rules & payments</a>
         <a href="/">PRICEB.TC ↗</a>
       </footer>
@@ -113,8 +115,8 @@ export function Ranking({ entries }: { entries: Entry[] }) {
           <div className="bid-entry-copy">
             <p>Available — Your project here</p>
           </div>
-          <a href="/sponsors#waitlist" className="bid-claim-button">
-            Join the waitlist →
+          <a href="/sponsors#claim" className="bid-claim-button">
+            Claim this spot →
           </a>
         </li>
       ))}

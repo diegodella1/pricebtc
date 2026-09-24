@@ -2,8 +2,9 @@ import { createBidRuntime } from "./runtime.js";
 import { workerTick } from "./worker.js";
 import { auditTick } from "./audit-worker.js";
 import { exportEvents } from "./analytics-export.js";
-const service = createBidRuntime();
-if (!service) throw new Error("Worker requires DATABASE_URL");
+const runtime = createBidRuntime();
+if (!runtime) throw new Error("Worker requires DATABASE_URL");
+const { service, pool, stop } = runtime;
 let stopped = false;
 let auditing: Promise<void> | null = null;
 let nextAudit = 0;
@@ -49,4 +50,5 @@ while (!stopped) {
 }
 await auditing;
 await exporting;
-await service.pool.end();
+stop();
+await pool.end();
