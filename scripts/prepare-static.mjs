@@ -165,6 +165,15 @@ const organizationSchema = {
   url: `${origin}/`,
   description: siteContent.home.summary,
   email: siteContent.contactEmail,
+  logo: {
+    "@type": "ImageObject",
+    url: `${origin}/og-bitcoin-price.png`,
+    width: 1200,
+    height: 630
+  },
+  sameAs: [
+    "https://x.com/pricebtc"
+  ]
 };
 const publisher = { "@id": organizationSchema["@id"] };
 
@@ -232,12 +241,51 @@ const pages = [
     metadata: { title: "Bitcoin Price JSON API — Documentation | PRICEB.TC", description: "Get the Bitcoin price used by PRICEB.TC as JSON. Read field definitions, timestamps, source details, currency conversions and error responses.", canonical: `${origin}/api`, robots: "index,follow,max-image-preview:large", structuredData: { "@context": "https://schema.org", "@type": "WebPage", name: "PRICEB.TC Bitcoin Price API", url: `${origin}/api` } },
     fallback: apiDocumentation(),
   },
+  {
+    filename: "sponsors/index.html",
+    metadata: {
+      title: "Claim a Top 21 Sponsor Slot — Bitcoin Price | PRICEB.TC",
+      description: "Support PRICEB.TC and rank in the Top 21 by cumulative crypto contributions. Pay with BTC, USDT, or USDC. Anyone can outbid you anytime.",
+      canonical: `${origin}/sponsors`,
+      robots: "index,follow,max-image-preview:large",
+      structuredData: {
+        "@context": "https://schema.org",
+        "@graph": [
+          organizationSchema,
+          {
+            "@type": "WebPage",
+            "@id": `${origin}/sponsors#webpage`,
+            url: `${origin}/sponsors`,
+            name: "Claim a Top 21 Sponsor Slot",
+            description: "Support PRICEB.TC and rank in the Top 21 by cumulative crypto contributions. Claim your spot with BTC, USDT, or USDC.",
+            inLanguage: "en",
+            isPartOf: { "@id": `${origin}/#website` },
+            publisher
+          },
+          {
+            "@type": "Offer",
+            "@id": `${origin}/sponsors#offer`,
+            name: "PRICEB.TC Top 21 Sponsorship",
+            description: "Rank in the Top 21 sponsors by cumulative USD contributions. Your project appears beside the live Bitcoin price.",
+            seller: publisher,
+            url: `${origin}/sponsors`,
+            acceptedPaymentMethod: ["Bitcoin", "USDT", "USDC"],
+            itemOffered: {
+              "@type": "Service",
+              name: "Top 21 Sponsor Placement",
+              description: "Display your project name, logo, and link on PRICEB.TC homepage beside the live Bitcoin price, ranked by cumulative contributions."
+            }
+          }
+        ]
+      }
+    },
+    fallback: `<div class="public-site"><header class="public-header site-header">${brandMarkup()}<nav><a href="/">Bitcoin price</a><a href="/api">API</a><a href="/studio">Widget Studio</a></nav></header><main class="public-main guide-content"><h1>Claim a Top 21 sponsor slot beside the live Bitcoin price</h1><p>Support PRICEB.TC and rank in the Top 21 by cumulative crypto contributions. Pay with BTC, USDT, or USDC. Anyone can outbid you anytime.</p><section><h2>How it works</h2><ol><li><strong>Claim your spot:</strong> Submit your project name, logo, website, and a one-line description.</li><li><strong>Send crypto payment:</strong> Choose BTC (SegWit), USDT (TRC20), or USDC (Solana). Every payment adds to your cumulative USD total.</li><li><strong>Submit transaction:</strong> Enter your transaction hash and click "I've sent the payment". The system watches for confirmations.</li><li><strong>Rank on the leaderboard:</strong> The Top 21 cumulative totals appear on the homepage beside the Bitcoin price. Higher totals take better placements. No daily resets.</li></ol></section><section><h2>Where your project appears</h2><p>Five home placements: hero spot #1, strip #2, and logo rail ranks #3–7 below the chart, plus the full Top 21 leaderboard at <a href="/sponsors">/sponsors</a>. Rankings update as payments confirm.</p></section><a class="action-link" href="/sponsors">View leaderboard and claim →</a></main><footer class="public-footer"><a href="/">PRICEB.TC · Bitcoin, in view.</a><a href="/about">About</a><a href="/sponsors">Sponsor</a><a href="/rules">Rules</a></footer></div>`,
+  },
   ...[
     ["terms", "Terms of Service", "Terms for using PRICEB.TC."],
     ["privacy", "Privacy Policy", "How PRICEB.TC handles information."],
     ["status", "Service Status", "Current Bitcoin market feed and service health."],
     ["pricing", "Pricing", "Bitcoin price tools that scale with your business."],
-    ["sponsors", "Sponsor", "Support PRICEB.TC and rank in the Top 21 by cumulative crypto contributions. Pay with BTC, USDT, or USDC. Anyone can outbid you anytime."],
   ].map(([route, title, description]) => ({
     filename: `${route}/index.html`,
     metadata: {

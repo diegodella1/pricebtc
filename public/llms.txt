@@ -21,3 +21,4 @@ The API preserves source as the string "coinbase"; sourceDetails names the excha
 - [Website widget guide](https://priceb.tc/bitcoin-price-widget): Embed setup.
 - [OBS overlay guide](https://priceb.tc/bitcoin-obs-overlay): Broadcast setup.
 - [Widget Studio](https://priceb.tc/studio): Configure a widget or overlay.
+- [Sponsorship](https://priceb.tc/sponsors): Claim a Top 21 sponsor slot with BTC, USDT, or USDC.

@@ -177,7 +177,7 @@ export function PricingPage() {
           <p>Bitcoin, in view.</p>
         </div>
         <nav aria-label="Footer navigation">
-          <a href="/sponsors">Sponsor</a>
+          <a href="/sponsors#claim">Sponsor</a>
           <a href="/status">Status</a>
           <a href="/terms">Terms</a>
           <a href="/privacy">Privacy</a>

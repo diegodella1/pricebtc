@@ -24,7 +24,7 @@ export function PlaceholderPage({ title, eyebrow, description }: PlaceholderPage
       <footer className="public-footer">
         <div className="footer-wordmark">PRICEB.TC</div>
         <nav>
-          <a href="/sponsors">Sponsor</a>
+          <a href="/sponsors#claim">Sponsor</a>
           <a href="/status">Status</a>
           <a href="/terms">Terms</a>
           <a href="/privacy">Privacy</a>

@@ -359,7 +359,7 @@ function registerFrontend(app: FastifyInstance, options: BuildAppOptions): void 
       }
       if (["/leaderboard", "/history"].includes(route)) reply.header("X-Robots-Tag", "noindex, follow");
       reply.header("Cache-Control", route === "/sponsors" || route === "/admin" ? "no-store" : "no-cache");
-      if (route === "/sponsors" || route === "/admin") reply.header("X-Robots-Tag", "noindex, nofollow");
+      if (route === "/admin") reply.header("X-Robots-Tag", "noindex, nofollow");
       if (route === "/embed" || route === "/overlay") {
         reply.header("X-Robots-Tag", "noindex, follow, noarchive");
       }
