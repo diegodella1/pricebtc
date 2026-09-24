@@ -27,6 +27,7 @@ export function createBidRuntime(getBtcPrice?: () => Promise<number>) {
   return {
     service,
     pool,
+    getBtcPrice: getBtcPrice || (async () => 0),
     stop: () => {
       stopCryptoWorker();
       stopDepositWatchers();

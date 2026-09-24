@@ -51,9 +51,9 @@ SPONSOR_MIN_USD_BTC=10.00       # Default: 10 USD
 ### Confirmations Required (Optional)
 
 ```bash
-SPONSOR_CONFIRM_USDT_TRC20=19   # Default: 19 confirmations for Tron
-SPONSOR_CONFIRM_USDC_SOL=32     # Default: 32 confirmations for Solana
-SPONSOR_CONFIRM_BTC=3           # Default: 3 confirmations for Bitcoin
+SPONSOR_CONFIRM_USDT_TRC20=12   # Default: 12 confirmations (~36 seconds)
+SPONSOR_CONFIRM_USDC_SOL=16     # Default: 16 confirmations (~6-7 minutes)
+SPONSOR_CONFIRM_BTC=3           # Default: 3 confirmations (~30 minutes)
 ```
 
 ### Explorer API Configuration (Optional)

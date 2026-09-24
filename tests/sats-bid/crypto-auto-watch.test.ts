@@ -24,8 +24,8 @@ describe.skipIf(!url)("Crypto auto-watch claim", () => {
     SPONSOR_MIN_USD_USDT: "10",
     SPONSOR_MIN_USD_USDC: "10",
     SPONSOR_MIN_USD_BTC: "10",
-    SPONSOR_CONFIRM_USDT_TRC20: "19",
-    SPONSOR_CONFIRM_USDC_SOL: "32",
+    SPONSOR_CONFIRM_USDT_TRC20: "12",
+    SPONSOR_CONFIRM_USDC_SOL: "16",
     SPONSOR_CONFIRM_BTC: "3",
   });
 

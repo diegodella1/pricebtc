@@ -11,10 +11,12 @@ interface AssetConfig {
   minUsd: number;
   confirmations: number;
   warningMessage: string;
+  confirmationWaitMessage: string;
 }
 
 interface CryptoConfig {
   enabled: boolean;
+  btcPriceUsd: string;
   assets: AssetConfig[];
 }
 
@@ -70,7 +72,25 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
       }
     }
     void fetchConfig();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const paymentId = urlParams.get("payment") || localStorage.getItem("crypto_payment_id");
+    
+    if (paymentId) {
+      void resumePayment(paymentId);
+    }
   }, []);
+
+  const resumePayment = async (paymentId: string) => {
+    try {
+      const status = await bidApi<PaymentStatus>(`/crypto-sponsors/payments/${paymentId}`, { method: "GET" });
+      setPaymentStatus(status);
+      setStep("live");
+      startPolling(paymentId);
+    } catch {
+      localStorage.removeItem("crypto_payment_id");
+    }
+  };
 
   const handleLogoChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
@@ -159,6 +179,9 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
         },
       );
 
+      localStorage.setItem("crypto_payment_id", result.id);
+      window.history.replaceState({}, "", `?payment=${result.id}`);
+
       setPaymentStatus({
         id: result.id,
         asset_type: selectedAsset.type,
@@ -202,6 +225,9 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
           }),
         },
       );
+
+      localStorage.setItem("crypto_payment_id", result.id);
+      window.history.replaceState({}, "", `?payment=${result.id}`);
 
       setPaymentStatus({
         id: result.id,
@@ -393,7 +419,13 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
               <label>Amount</label>
               <p className="crypto-amount">
                 Minimum ${selectedAsset.minUsd.toFixed(2)} USD
-                <small>in {selectedAsset.label}</small>
+                <small>
+                  {selectedAsset.type === "BTC" && config && (
+                    <>≈ {Math.ceil((selectedAsset.minUsd / parseFloat(config.btcPriceUsd)) * 100_000_000).toLocaleString()} sats @ ${parseFloat(config.btcPriceUsd).toLocaleString()}/BTC</>
+                  )}
+                  {selectedAsset.type === "USDT_TRC20" && <>≈ {selectedAsset.minUsd.toFixed(2)} USDT</>}
+                  {selectedAsset.type === "USDC_SOL" && <>≈ {selectedAsset.minUsd.toFixed(2)} USDC</>}
+                </small>
               </p>
             </div>
 
@@ -420,7 +452,7 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
               We're watching this address. Send your payment — no need to paste a transaction ID.
             </p>
             <p className="crypto-watch-details">
-              Your transaction will be automatically detected and confirmed after {selectedAsset.confirmations} confirmations.
+              Your transaction will be automatically detected and confirmed after {selectedAsset.confirmations} confirmations. {selectedAsset.confirmationWaitMessage}
             </p>
             
             {error && <p className="crypto-error">{error}</p>}

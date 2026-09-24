@@ -17,6 +17,7 @@ const adminCookie = "pricebtc_admin";
 export async function registerBidRoutes(
   app: FastifyInstance,
   service: BidService,
+  getBtcPrice?: () => Promise<number>,
 ) {
   await app.register(cookie);
   await app.register(multipart, {
@@ -573,5 +574,5 @@ export async function registerBidRoutes(
   });
 
   const { registerCryptoRoutes } = await import("./crypto-routes.js");
-  await registerCryptoRoutes(app, service.pool, service.config, session, quota, csrf, service.clock);
+  await registerCryptoRoutes(app, service.pool, service.config, session, quota, csrf, service.clock, getBtcPrice);
 }

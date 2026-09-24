@@ -39,6 +39,7 @@ export interface AssetConfig {
   label: string;
   network: string;
   warningMessage: string;
+  confirmationWaitMessage: string;
 }
 
 export function getAvailableAssets(config: BidConfig): AssetConfig[] {
@@ -53,6 +54,7 @@ export function getAvailableAssets(config: BidConfig): AssetConfig[] {
       label: "USDT",
       network: "TRC20 (Tron)",
       warningMessage: "⚠️ Send only USDT on TRC20 network. Other networks will result in lost funds.",
+      confirmationWaitMessage: `Typically ~${Math.ceil(config.SPONSOR_CONFIRM_USDT_TRC20 * 3 / 60)} minutes (${config.SPONSOR_CONFIRM_USDT_TRC20} Tron blocks @ ~3 sec/block)`,
     });
   }
 
@@ -65,6 +67,7 @@ export function getAvailableAssets(config: BidConfig): AssetConfig[] {
       label: "USDC",
       network: "Solana",
       warningMessage: "⚠️ Send only USDC on Solana network. Other networks will result in lost funds.",
+      confirmationWaitMessage: `Typically ~${Math.ceil(config.SPONSOR_CONFIRM_USDC_SOL * 0.4 / 60)} minutes (${config.SPONSOR_CONFIRM_USDC_SOL} Solana slots @ ~0.4 sec/slot)`,
     });
   }
 
@@ -77,6 +80,7 @@ export function getAvailableAssets(config: BidConfig): AssetConfig[] {
       label: "BTC",
       network: "Bitcoin Mainnet",
       warningMessage: "⚠️ Send only Bitcoin on mainnet. Testnet or other coins will result in lost funds.",
+      confirmationWaitMessage: `Typically ~${Math.ceil(config.SPONSOR_CONFIRM_BTC * 10)} minutes (${config.SPONSOR_CONFIRM_BTC} blocks @ ~10 min/block)`,
     });
   }
 
