@@ -44,4 +44,6 @@ jobs:
       - run: npm test
       - run: npm run test:deployment
       - run: npm run build
-
+      - run: npx playwright install --with-deps chromium
+      - name: Deployment browser smoke
+        run: node --import tsx scripts/smoke-public-pages-ci.mjs

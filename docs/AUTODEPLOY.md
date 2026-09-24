@@ -25,7 +25,12 @@ the latest `origin/main`, so delayed events never intentionally downgrade produc
 
 GitHub Actions `CI / Validate` runs on pull requests and pushes to `main`: clean
 dependency installation, typecheck, lint, all tests (including PostgreSQL integration
-and schema-upgrade tests), deployment tests and build. Require `Validate` in the
+and schema-upgrade tests), deployment tests and build. The same public-page browser smoke used by deployment
+also runs in CI after the build, using local market fixtures and blocking external
+browser requests. It verifies the home hero, sponsor strip below the chart at
+1440/768/360px without horizontal overflow, the 21 sponsor positions, and waitlist
+validation at `/sponsors#waitlist`. Live market checks still run on the Pi.
+Require `Validate` in the
 branch protection for `main`. The installed runner independently waits up to 20
 minutes for a successful `ci.yml` push/manual run on the exact target SHA before
 updating the checkout or building. Failed, cancelled, missing or inaccessible CI
