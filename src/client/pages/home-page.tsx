@@ -108,6 +108,7 @@ export function HomePage() {
                   <div className="pill-controls" role="group" aria-label="Chart range">{HISTORY_RANGES.map(value => <button key={value} type="button" aria-pressed={range === value} onClick={() => setRange(value)}>{value.toUpperCase()}</button>)}</div>
                 </div>
                 <div className="hero__chart"><PriceChart points={displayedPoints} positive={(telemetry?.changePercent ?? 0) >= 0} showVolume={currency === "USD"} loading={historyLoading} error={historyError} /></div>
+              <aside id="bid-strip-slot" aria-label="Sponsor space #2"></aside>
               {currency === "USD" && <div className="volume-legend" aria-label="Volume legend">
                 <span className="volume-legend__buy">Recorded buys: {recordedVolume ? `${recordedVolume.buy} BTC` : "—"}</span><span className="volume-legend__sell">Recorded sells: {recordedVolume ? `${recordedVolume.sell} BTC` : "—"}</span><span className="volume-legend__unknown">Unclassified</span>
                 <p>BTC volume by initiating side on Coinbase. Grey volume has no recorded split; older intervals and gaps may be incomplete. <a href="/bitcoin-price-updates">How it works</a></p>
@@ -143,7 +144,7 @@ export function HomePage() {
         <details><summary>Is PRICEB.TC free?</summary><p>Yes. Create and publish widgets without an account. Sponsorship is optional and separate.</p></details>
         <details><summary>Does it work with OBS and Streamlabs?</summary><p>Use the overlay URL as a Browser Source with a transparent background. Customize it in the Studio.</p></details>
         <details><summary>Why not Binance or Lemon?</summary><p>This service uses Coinbase BTC-USD only. ARS, BRL, and MXN prices are indicative conversions from USD using daily exchange rates. This is not financial advice.</p></details>
-        <details><summary>How do sponsors work?</summary><p>One paid space beside the price. Top 21 ranking by cumulative USD. Crypto payments (USDT, USDC, BTC) add to your total. The highest total takes the spot until someone outbids it. No daily resets. <a href="/sponsors">See leaderboard ↗</a></p></details>
+        <details><summary>How do sponsors work?</summary><p>Three sponsor placements: hero spot beside the price, strip below the chart, and Top 21 leaderboard. Ranked by cumulative USD. Crypto payments (USDT, USDC, BTC) add to your total. The highest totals take the spots until someone outbids. No daily resets. <a href="/sponsors">See leaderboard ↗</a></p></details>
       </section>
     </main>
     <footer className="public-footer"><div><a href="/" className="footer-wordmark">PRICEB.TC</a><p>Bitcoin, in view.</p>{stats && Number.isFinite(stats.visitors) && <p className="footer-stats">{stats.visitors.toLocaleString()} visitors last 30 days</p>}</div><nav aria-label="Footer navigation"><a href="/sponsors">Sponsor</a><a href="/status">Status</a><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="/studio">Studio</a><a href="/about">About</a><a href="/faq">FAQ</a><a href="/api">API</a><a href={`mailto:${siteContent.contactEmail}`}>Contact</a></nav><p>Indicative market data · Not financial advice · FX by <a href="https://www.exchangerate-api.com" target="_blank" rel="noreferrer">ExchangeRate-API</a></p></footer>
