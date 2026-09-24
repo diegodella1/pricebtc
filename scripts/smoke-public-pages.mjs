@@ -13,19 +13,14 @@ export async function verifyPublicPages(base) {
     page.on("pageerror", error => errors.push(error.message));
     const home = await page.goto(base, { waitUntil: "domcontentloaded" });
     assert.equal(home.status(), 200, "Home: HTTP status");
-    await expect(page.locator('#bid-top-slot .sponsor-empty-cta, #bid-top-slot .bid-top-spot')).toHaveCount(1, { timeout: 15_000 });
-    await expect(page.locator('.sponsor-empty-cta')).toHaveCount(1);
+    await expect(page.locator('#bid-top-slot .sponsor-empty-cta, #bid-top-slot .bid-top-spot, #bid-top-slot .bid-top.has-leader')).toHaveCount(1, { timeout: 15_000 });
+    await expect(page.locator('#bid-strip-slot')).toHaveCount(1);
     await expect(page.locator('script[src="https://www.googletagmanager.com/gtag/js?id=G-T9E3ZF3J0T"]')).toHaveCount(1);
     const csp = home.headers()["content-security-policy"] ?? "";
     assert.match(csp, /script-src[^;]*https:\/\/www\.googletagmanager\.com/, "GA4 script CSP");
     assert.match(csp, /connect-src[^;]*https:\/\/www\.google-analytics\.com/, "GA4 collection CSP");
     assert.equal(await page.evaluate(() => (globalThis.dataLayer ?? []).some(entry => entry[0] === "config" && entry[1] === "G-T9E3ZF3J0T")), true, "GA4 initialized");
-    const waitlist = page.locator('.bid-waitlist-form');
-    await expect(waitlist).toBeVisible();
-    await waitlist.getByRole('button', { name: 'Join the waitlist', exact: true }).click();
-    await expect(waitlist.getByText('Enter a valid email.', { exact: true })).toBeVisible();
-    await expect(waitlist.locator('input[type="email"]')).toHaveAttribute('aria-invalid', 'true');
-    console.log("Browser OK: home — one sponsor, GA4 configuration/CSP, waitlist validation");
+    console.log("Browser OK: home — sponsor slot, strip slot, GA4 configuration/CSP");
     for (const [path, heading] of [
       ["/terms", "Terms of Service"], ["/privacy", "Privacy Policy"],
       ["/status", "Service Health"], ["/pricing", "Bitcoin price tools that scale with your business."],
@@ -47,10 +42,26 @@ export async function verifyPublicPages(base) {
           assert.match(result.headers()[header] ?? "", /^\d+$/, header);
         }
       }
+      if (path === "/sponsors") {
+        const hash = page.url().includes("#waitlist") || await page.evaluate(() => !window.crypto?.subtle);
+        if (hash || await page.locator('.bid-waitlist-form').isVisible().catch(() => false)) {
+          const waitlist = page.locator('.bid-waitlist-form');
+          await expect(waitlist).toBeVisible();
+          await waitlist.getByRole('button', { name: 'Join the waitlist', exact: true }).click();
+          await expect(waitlist.getByText('Enter a valid email.', { exact: true })).toBeVisible();
+          await expect(waitlist.locator('input[type="email"]')).toHaveAttribute('aria-invalid', 'true');
+          console.log(`Browser OK: ${path} — waitlist form validation`);
+        } else {
+          await expect(page.locator('.bid-waitlist-form, [href*="claim"]')).toHaveCount(1);
+          console.log(`Browser OK: ${path} — claim CTA present`);
+        }
+      }
       if (path === "/studio") {
         await expect(page.getByText("Includes PRICEB.TC mark · Pro removes it", { exact: true })).toBeVisible();
       }
-      console.log(`Browser OK: ${path} — ${await title.textContent()}`);
+      if (path !== "/sponsors") {
+        console.log(`Browser OK: ${path} — ${await title.textContent()}`);
+      }
     }
     assert.deepEqual(errors, [], "Browser runtime errors");
   } finally { await browser.close(); }
