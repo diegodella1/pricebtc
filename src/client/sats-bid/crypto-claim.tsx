@@ -64,6 +64,51 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
   const [busy, setBusy] = useState(false);
   const pollInterval = useRef<number | null>(null);
 
+  const resumePayment = useCallback(async (paymentId: string) => {
+    try {
+      const status = await bidApi<PaymentStatus>(`/crypto-sponsors/payments/${paymentId}`, { method: "GET" });
+      setPaymentStatus(status);
+      setStep("live");
+    } catch {
+      localStorage.removeItem("crypto_payment_id");
+    }
+  }, []);
+
+  const startPolling = useCallback((id: string) => {
+    if (pollInterval.current) clearInterval(pollInterval.current);
+    
+    const poll = async () => {
+      try {
+        const status = await bidApi<PaymentStatus>(
+          `/crypto-sponsors/payments/${id}`,
+          { method: "GET" },
+        );
+        setPaymentStatus(status);
+
+        if (status.validation_status === "confirmed") {
+          GA4Events.depositConfirmed(status.asset_type, status.amount_usd);
+          if (pollInterval.current) {
+            clearInterval(pollInterval.current);
+            pollInterval.current = null;
+          }
+          if (onComplete) {
+            setTimeout(onComplete, 2000);
+          }
+        } else if (status.validation_status === "rejected" || status.validation_status === "failed") {
+          if (pollInterval.current) {
+            clearInterval(pollInterval.current);
+            pollInterval.current = null;
+          }
+        }
+      } catch (e) {
+        console.error("Polling error:", e);
+      }
+    };
+
+    void poll();
+    pollInterval.current = window.setInterval(poll, 10000);
+  }, [onComplete]);
+
   useEffect(() => {
     async function fetchConfig() {
       try {
@@ -79,29 +124,18 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
     const paymentId = urlParams.get("payment") || localStorage.getItem("crypto_payment_id");
     
     if (paymentId) {
-      void resumePayment(paymentId);
+      void resumePayment(paymentId).then(() => {
+        startPolling(paymentId);
+      });
     }
-  }, []);
+  }, [resumePayment, startPolling]);
 
-<<<<<<< HEAD
-  const resumePayment = async (paymentId: string) => {
-    try {
-      const status = await bidApi<PaymentStatus>(`/crypto-sponsors/payments/${paymentId}`, { method: "GET" });
-      setPaymentStatus(status);
-      setStep("live");
-      startPolling(paymentId);
-    } catch {
-      localStorage.removeItem("crypto_payment_id");
-    }
-  };
-=======
   useEffect(() => {
     if (step === "identity" && !claimStartTracked.current) {
       GA4Events.claimStart();
       claimStartTracked.current = true;
     }
   }, [step]);
->>>>>>> 946862a (feat: EXP-02 + GA4 instrumentation - auto-claim redirect & conversion tracking)
 
   const handleLogoChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
@@ -262,40 +296,6 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
     }
   };
 
-  const startPolling = (id: string) => {
-    if (pollInterval.current) clearInterval(pollInterval.current);
-    
-    const poll = async () => {
-      try {
-        const status = await bidApi<PaymentStatus>(
-          `/crypto-sponsors/payments/${id}`,
-          { method: "GET" },
-        );
-        setPaymentStatus(status);
-
-        if (status.validation_status === "confirmed") {
-          GA4Events.depositConfirmed(status.asset_type, status.amount_usd);
-          if (pollInterval.current) {
-            clearInterval(pollInterval.current);
-            pollInterval.current = null;
-          }
-          if (onComplete) {
-            setTimeout(onComplete, 2000);
-          }
-        } else if (status.validation_status === "rejected" || status.validation_status === "failed") {
-          if (pollInterval.current) {
-            clearInterval(pollInterval.current);
-            pollInterval.current = null;
-          }
-        }
-      } catch (e) {
-        console.error("Polling error:", e);
-      }
-    };
-
-    void poll();
-    pollInterval.current = window.setInterval(poll, 10000);
-  };
 
   useEffect(() => {
     return () => {
