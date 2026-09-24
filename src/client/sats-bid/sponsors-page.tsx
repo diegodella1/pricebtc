@@ -103,9 +103,6 @@ export function SponsorsPage() {
               <a href="#claim" className="bid-cta-primary">
                 Claim a spot →
               </a>
-              <a href="#waitlist" className="bid-cta-secondary">
-                Join waitlist
-              </a>
             </div>
           )}
 

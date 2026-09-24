@@ -27,6 +27,7 @@ function getInitialCurrency(): string {
 export function HomePage() {
   const [currency, setCurrencyState] = useState(getInitialCurrency);
   const [range, setRange] = useState<HistoryRange>("24h");
+  const [cryptoEnabled, setCryptoEnabled] = useState(false);
   const { currencies } = useCurrencies();
   const { price, connectionState, error } = useLivePrice(currency);
   const { points, loading: historyLoading, error: historyError } = usePriceHistory(currency, range);
@@ -68,6 +69,22 @@ export function HomePage() {
     };
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  useEffect(() => {
+    if (IS_STATIC_BUILD) return;
+    async function checkCryptoConfig() {
+      try {
+        const response = await fetch("/api/crypto-sponsors/config");
+        if (response.ok) {
+          const config = await response.json() as { enabled: boolean; assets: { type: string }[] };
+          setCryptoEnabled(config.enabled && config.assets.length > 0);
+        }
+      } catch {
+        setCryptoEnabled(false);
+      }
+    }
+    void checkCryptoConfig();
   }, []);
   return <div className="public-site">
     <a className="skip-link" href="#main-content">Skip to content</a>
@@ -137,6 +154,15 @@ export function HomePage() {
             </svg>
             <span>Create a widget</span>
           </a>
+          {cryptoEnabled && (
+            <a href="/sponsors#claim" className="market-cta">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="2"/>
+                <path d="M10 6v4l3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+              <span>Claim a sponsor spot</span>
+            </a>
+          )}
         </div>
       </section>
       <WidgetDemo price={price} history={displayedPoints} connectionState={connectionState} currency={currency} range={range} loading={historyLoading} error={historyError} />
