@@ -1777,3 +1777,21 @@
     flex-shrink: 0;
   }
 }
+
+.bid-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 24px;
+  font: 500 14px "IBM Plex Sans", sans-serif;
+  color: var(--bid-link);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.bid-back-link:hover {
+  color: var(--bid-accent);
+}
+.bid-back-link:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}

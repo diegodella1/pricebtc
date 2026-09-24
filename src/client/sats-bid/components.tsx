@@ -122,7 +122,7 @@ export function Ranking({ entries, cryptoEnabled = false }: { entries: Entry[]; 
           <div className="bid-entry-copy">
             <p>Open — claim this spot</p>
           </div>
-          <a href={cryptoEnabled ? "/sponsors#claim" : "/sponsors#waitlist"} className="bid-claim-button">
+          <a href="/sponsors#claim" className="bid-claim-button">
             {cryptoEnabled ? "Claim this spot →" : "Join waitlist →"}
           </a>
         </li>
@@ -189,7 +189,7 @@ export function TopSpot({
 
 export function EmptySponsorCTA({ cryptoEnabled = false }: { cryptoEnabled?: boolean }) {
   return (
-    <a href={cryptoEnabled ? "/sponsors#claim" : "/sponsors#waitlist"} className="sponsor-empty-cta">
+    <a href="/sponsors#claim" className="sponsor-empty-cta">
       <h3 className="sponsor-empty-cta__title">Your project here</h3>
       <p className="sponsor-empty-cta__desc">Pay crypto · Rank Top 21 · Stay visible</p>
       <span className="sponsor-empty-cta__button">
@@ -209,7 +209,7 @@ export function SponsorStrip({
 }) {
   if (!sponsor) {
     return (
-      <a href={cryptoEnabled ? "/sponsors#claim" : "/sponsors#waitlist"} className="sponsor-strip sponsor-strip--empty">
+      <a href="/sponsors#claim" className="sponsor-strip sponsor-strip--empty">
         <span className="sponsor-strip__text">Open spot #02 — claim this spot</span>
         <span className="sponsor-strip__cta">{cryptoEnabled ? "Claim" : "Waitlist"} →</span>
       </a>
@@ -252,16 +252,15 @@ export function SponsorStrip({
 interface LogoRailCell {
   sponsor: Entry | null;
   position: number;
-  cryptoEnabled: boolean;
 }
 
-function LogoRailCell({ sponsor, position, cryptoEnabled }: LogoRailCell) {
+function LogoRailCell({ sponsor, position }: LogoRailCell) {
   const rankLabel = String(position).padStart(2, "0");
   
   if (!sponsor) {
     return (
       <a
-        href={cryptoEnabled ? "/sponsors#claim" : "/sponsors#waitlist"}
+        href="/sponsors#claim"
         className="logo-rail__cell logo-rail__cell--empty"
         title={`Open spot #${rankLabel}`}
         role="listitem"
@@ -305,7 +304,6 @@ function LogoRailCell({ sponsor, position, cryptoEnabled }: LogoRailCell) {
 
 export function LogoRail({
   sponsors,
-  cryptoEnabled = false,
   loading = false,
 }: {
   sponsors: (Entry | null)[];
@@ -335,7 +333,6 @@ export function LogoRail({
             key={position}
             sponsor={sponsor}
             position={position}
-            cryptoEnabled={cryptoEnabled}
           />
         );
       })}
