@@ -28,6 +28,18 @@ SPONSOR_ADDR_BTC=          # Bitcoin address (e.g., bc1q... or 1... or 3...)
 
 **If some are set**: Only those assets appear in the asset selection step.
 
+### Currently Configured Production Addresses
+
+For reference, these are the addresses currently set in production:
+
+```
+SPONSOR_ADDR_USDC_SOL=6qRGFDj5ySnqYu5KDpDpUenqxzS2dtnyRLhmKtAGvoMs
+SPONSOR_ADDR_BTC=bc1qpcf3cludfwwu3jez7j7f406ck8psmne5cypkhf
+SPONSOR_ADDR_USDT_TRC20=(not yet configured - asset disabled until set)
+```
+
+**⚠️ Note**: These addresses are documented here for operational reference only. NEVER hardcode them in client-side code. The UI must always fetch addresses from the backend API (`/crypto-sponsors/config`).
+
 ### Minimum Amounts (Optional)
 
 ```bash
