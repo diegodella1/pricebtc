@@ -28,3 +28,9 @@ later requires its own setup and review.
 
 See [the operations instructions](AUTODEPLOY.md) for status reporting, retries,
 manual migrations and monitoring limitations.
+
+The first hosted CI run caught an existing IDR-formatting fixture that depended on
+the ICU currency metadata version. The compact/exact regression now uses a stable
+USD amount; the all-currency test retains IDR coverage. Production formatting is
+unchanged. The failed run was blocked by the installed runner and surfaced as a
+failed production status, confirming the new CI gate on the real delivery path.
