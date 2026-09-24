@@ -6,6 +6,7 @@
     "/api",
     "/studio",
     "/rules",
+    "/sponsors",
     "/bitcoin-price-updates",
     "/bitcoin-price-widget",
     "/bitcoin-obs-overlay"

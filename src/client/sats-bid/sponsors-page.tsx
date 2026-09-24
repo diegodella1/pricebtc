@@ -3,6 +3,7 @@ import { BidShell, Ranking } from "./components.js";
 import { CryptoClaimFlow } from "./crypto-claim.js";
 import { WaitlistForm } from "./waitlist-form.js";
 import { bidApi } from "./api.js";
+import { GA4Events } from "../lib/ga4.js";
 
 interface CryptoParticipant {
   id: string;
@@ -40,7 +41,7 @@ interface CryptoConfig {
 export function SponsorsPage() {
   const [config, setConfig] = useState<CryptoConfig | null>(null);
   const [leaderboard, setLeaderboard] = useState<CryptoLeaderboard | null>(null);
-  const [view, setView] = useState<"board" | "claim" | "waitlist">("board");
+  const [view, setView] = useState<"board" | "claim" | "waitlist">("claim");
   const [error, setError] = useState("");
 
   const fetchData = useCallback(async () => {
@@ -59,25 +60,58 @@ export function SponsorsPage() {
   useEffect(() => {
     void fetchData();
     
-    if (window.location.hash === "#claim") {
+    const hash = window.location.hash;
+    if (hash === "#claim") {
       setView("claim");
-    } else if (window.location.hash === "#waitlist") {
+    } else if (hash === "#board") {
+      setView("board");
+    } else if (hash === "#waitlist") {
       setView("waitlist");
+    } else {
+      setView("claim");
     }
     
     const handleHashChange = () => {
-      if (window.location.hash === "#claim") {
+      const newHash = window.location.hash;
+      if (newHash === "#claim") {
         setView("claim");
-      } else if (window.location.hash === "#waitlist") {
+      } else if (newHash === "#board") {
+        setView("board");
+      } else if (newHash === "#waitlist") {
         setView("waitlist");
       } else {
-        setView("board");
+        setView("claim");
       }
     };
     
     window.addEventListener("hashchange", handleHashChange);
     return () => window.removeEventListener("hashchange", handleHashChange);
   }, [fetchData]);
+
+  useEffect(() => {
+    if (!config) return;
+    const hasCrypto = config.enabled && config.assets.length > 0;
+    
+    if (hasCrypto) {
+      const hash = window.location.hash;
+      
+      if (!hash || hash === "") {
+        window.location.replace("#claim");
+        return;
+      }
+      
+      if (hash === "#waitlist") {
+        window.location.replace("#claim");
+        return;
+      }
+    }
+    
+    if (view === "board") {
+      GA4Events.sponsorsView();
+    } else if (view === "claim") {
+      GA4Events.claimStart();
+    }
+  }, [config, view]);
 
   const hasCryptoAddresses = !!(config && config.enabled && config.assets.length > 0);
 
@@ -92,6 +126,12 @@ export function SponsorsPage() {
       }
       footerCopy="TOP 21 · CUMULATIVE USD · OUTBID ANYTIME"
     >
+      {view === "claim" && hasCryptoAddresses && (
+        <a href="#board" className="bid-back-link">
+          ← Top 21 leaderboard
+        </a>
+      )}
+      
       {view === "board" && (
         <>
           <p className="bid-intro">
@@ -102,9 +142,6 @@ export function SponsorsPage() {
             <div className="bid-cta-section">
               <a href="#claim" className="bid-cta-primary">
                 Claim a spot →
-              </a>
-              <a href="#waitlist" className="bid-cta-secondary">
-                Join waitlist
               </a>
             </div>
           )}
@@ -167,23 +204,18 @@ export function SponsorsPage() {
       {view === "claim" && (
         <CryptoClaimFlow
           onComplete={() => {
-            window.location.hash = "";
+            window.location.hash = "#board";
             void fetchData();
           }}
         />
       )}
 
-      {view === "waitlist" && (
+      {view === "waitlist" && !hasCryptoAddresses && (
         <div className="bid-waitlist-container">
           <p className="bid-intro">
             Get notified when sponsorship opportunities open or expand.
           </p>
           <WaitlistForm context="sponsors-crypto" />
-          {hasCryptoAddresses && (
-            <p className="bid-caption">
-              <a href="#claim">Crypto payments available now →</a>
-            </p>
-          )}
         </div>
       )}
     </BidShell>

@@ -87,7 +87,7 @@ export function ComingSoonHome() {
         <div>
           <p className="bid-eyebrow">SPONSORS / TOP 21 CUMULATIVE</p>
           <h2 id="sats-bid-heading">Sponsor PRICEB.TC.<br />Rank beside Bitcoin.</h2>
-          <p className="bid-home-subtitle">Crypto payments launching soon. Join the waitlist to claim a Top 21 spot.</p>
+          <p className="bid-home-subtitle">Support PRICEB.TC with crypto contributions and rank in the Top 21.</p>
         </div>
       </div>
       <div id="waitlist">

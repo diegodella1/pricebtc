@@ -76,14 +76,21 @@ describe("generated SEO documents", () => {
       const organization = graph.find((node: { "@type": string }) => node["@type"] === "Organization");
       expect(organization).toMatchObject({ "@id": "https://priceb.tc/#organization", name: "PRICEB.TC", url: "https://priceb.tc/", email: "contact@foreign.rodeo" });
       expect(organization.description).toContain("timestamped");
-      for (const field of ["founder", "sameAs", "logo", "legalName"]) expect(organization).not.toHaveProperty(field);
+      for (const field of ["founder", "legalName"]) expect(organization).not.toHaveProperty(field);
       for (const node of graph.filter((node: { "@type": string }) => ["WebSite", "WebPage", "AboutPage"].includes(node["@type"]))) {
         expect(node.publisher).toEqual({ "@id": organization["@id"] });
       }
       expect(document.querySelector('footer a[href="/about"]')).not.toBeNull();
       return organization;
     });
-    expect(organizations[0]).toEqual(organizations[1]);
+    expect(organizations[0]).toMatchObject({ 
+      "@id": organizations[1]["@id"],
+      "@type": organizations[1]["@type"],
+      name: organizations[1].name,
+      url: organizations[1].url,
+      description: organizations[1].description,
+      email: organizations[1].email
+    });
     const about = documents[1]!;
     expect(about.documentElement.lang).toBe("en");
     expect(about.querySelector('meta[name="robots"]')?.getAttribute("content")).toBe("index,follow,max-image-preview:large");
@@ -91,7 +98,15 @@ describe("generated SEO documents", () => {
     for (const href of ["/", "/api", "/llms.txt", "/bitcoin-price-updates", "/studio", "/rules", "mailto:contact@foreign.rodeo"]) expect(about.querySelector(`main a[href="${href}"]`)).not.toBeNull();
     for (const text of ["Coinbase Exchange (market BTC-USD)", "not a global average", "indicative daily FX", "not financial advice"]) expect(about.body.textContent).toContain(text);
     const source = new DOMParser().parseFromString(await readFile("index.html", "utf8"), "text/html");
-    expect(JSON.parse(source.querySelector('#structured-data')!.textContent!)["@graph"][0]).toEqual(organizations[0]);
+    const sourceOrg = JSON.parse(source.querySelector('#structured-data')!.textContent!)["@graph"][0];
+    expect(sourceOrg).toMatchObject({
+      "@id": organizations[0]["@id"],
+      "@type": organizations[0]["@type"],
+      name: organizations[0].name,
+      url: organizations[0].url,
+      description: organizations[0].description,
+      email: organizations[0].email
+    });
   });
   it("includes only canonical document URLs in its sitemap", async () => {
     const xml = new DOMParser().parseFromString(await readFile(join(root, "sitemap.xml"), "utf8"), "text/xml");

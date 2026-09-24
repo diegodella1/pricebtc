@@ -27,6 +27,7 @@ function getInitialCurrency(): string {
 export function HomePage() {
   const [currency, setCurrencyState] = useState(getInitialCurrency);
   const [range, setRange] = useState<HistoryRange>("24h");
+  const [cryptoEnabled, setCryptoEnabled] = useState(false);
   const { currencies } = useCurrencies();
   const { price, connectionState, error } = useLivePrice(currency);
   const { points, loading: historyLoading, error: historyError } = usePriceHistory(currency, range);
@@ -68,6 +69,22 @@ export function HomePage() {
     };
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  useEffect(() => {
+    if (IS_STATIC_BUILD) return;
+    async function checkCryptoConfig() {
+      try {
+        const response = await fetch("/api/crypto-sponsors/config");
+        if (response.ok) {
+          const config = await response.json() as { enabled: boolean; assets: { type: string }[] };
+          setCryptoEnabled(config.enabled && config.assets.length > 0);
+        }
+      } catch {
+        setCryptoEnabled(false);
+      }
+    }
+    void checkCryptoConfig();
   }, []);
   return <div className="public-site">
     <a className="skip-link" href="#main-content">Skip to content</a>
@@ -137,6 +154,15 @@ export function HomePage() {
             </svg>
             <span>Create a widget</span>
           </a>
+          {cryptoEnabled && (
+            <a href="/sponsors#claim" className="market-cta">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="2"/>
+                <path d="M10 6v4l3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+              <span>Claim a sponsor spot</span>
+            </a>
+          )}
         </div>
       </section>
       <WidgetDemo price={price} history={displayedPoints} connectionState={connectionState} currency={currency} range={range} loading={historyLoading} error={historyError} />
@@ -148,6 +174,6 @@ export function HomePage() {
         <details><summary>How do sponsors work?</summary><p>Five home placements: hero spot #1, strip #2, and logo rail ranks #3-7 below the chart, plus the Top 21 leaderboard. Ranked by cumulative USD. Crypto payments (USDT, USDC, BTC) add to your total. The highest totals take the spots until someone outbids. No daily resets. <a href="/sponsors">See leaderboard ↗</a></p></details>
       </section>
     </main>
-    <footer className="public-footer"><div><a href="/" className="footer-wordmark">PRICEB.TC</a><p>Bitcoin, in view.</p>{stats && Number.isFinite(stats.visitors) && <p className="footer-stats">{stats.visitors.toLocaleString()} visitors last 30 days</p>}</div><nav aria-label="Footer navigation"><a href="/sponsors">Sponsor</a><a href="/status">Status</a><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="/studio">Studio</a><a href="/about">About</a><a href="/faq">FAQ</a><a href="/api">API</a><a href={`mailto:${siteContent.contactEmail}`}>Contact</a></nav><p>Indicative market data · Not financial advice · FX by <a href="https://www.exchangerate-api.com" target="_blank" rel="noreferrer">ExchangeRate-API</a></p></footer>
+    <footer className="public-footer"><div><a href="/" className="footer-wordmark">PRICEB.TC</a><p>Bitcoin, in view.</p>{stats && Number.isFinite(stats.visitors) && <p className="footer-stats">{stats.visitors.toLocaleString()} visitors last 30 days</p>}</div><nav aria-label="Footer navigation"><a href="/sponsors#claim">Sponsor</a><a href="/status">Status</a><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="/studio">Studio</a><a href="/about">About</a><a href="/faq">FAQ</a><a href="/api">API</a><a href={`mailto:${siteContent.contactEmail}`}>Contact</a></nav><p>Indicative market data · Not financial advice · FX by <a href="https://www.exchangerate-api.com" target="_blank" rel="noreferrer">ExchangeRate-API</a></p></footer>
   </div>;
 }
