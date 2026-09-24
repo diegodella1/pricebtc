@@ -21,6 +21,10 @@ export async function verifyPublicPages(base, { offline = false } = {}) {
     const strip = page.locator('#bid-strip-slot .sponsor-strip');
     await expect(strip).toHaveCount(1);
     await expect(strip).toBeVisible();
+    const rail = page.locator('#bid-logo-rail .logo-rail');
+    await expect(rail).toHaveCount(1);
+    await expect(rail).toBeVisible();
+    await expect(rail.locator('.logo-rail__cell')).toHaveCount(5);
     const emptyHero = page.locator('#bid-top-slot .sponsor-empty-cta');
     if (await emptyHero.count()) {
       await expect(emptyHero).toContainText('Pay crypto');
@@ -29,9 +33,12 @@ export async function verifyPublicPages(base, { offline = false } = {}) {
     for (const width of [1440, 768, 360]) {
       await page.setViewportSize({ width, height: 1000 });
       await expect(strip).toBeVisible();
+      await expect(rail).toBeVisible();
       const chartBox = await page.locator('.hero__chart').boundingBox();
       const stripBox = await strip.boundingBox();
+      const railBox = await rail.boundingBox();
       assert.ok(chartBox && stripBox && stripBox.y >= chartBox.y + chartBox.height - 1, `Sponsor strip must be below chart at ${width}px`);
+      assert.ok(stripBox && railBox && railBox.y >= stripBox.y + stripBox.height - 1, `Logo rail must be below strip at ${width}px`);
       await expect.poll(() => page.evaluate(() => globalThis.document.documentElement.scrollWidth - globalThis.innerWidth), {
         message: `Horizontal overflow at ${width}px`,
       }).toBeLessThanOrEqual(1);
@@ -42,7 +49,7 @@ export async function verifyPublicPages(base, { offline = false } = {}) {
     assert.match(csp, /script-src[^;]*https:\/\/www\.googletagmanager\.com/, "GA4 script CSP");
     assert.match(csp, /connect-src[^;]*https:\/\/www\.google-analytics\.com/, "GA4 collection CSP");
     assert.equal(await page.evaluate(() => (globalThis.dataLayer ?? []).some(entry => entry[0] === "config" && entry[1] === "G-T9E3ZF3J0T")), true, "GA4 initialized");
-    console.log("Browser OK: home — hero, strip below chart, Pay crypto, responsive layout, GA4 configuration/CSP");
+    console.log("Browser OK: home — hero, strip below chart, logo rail below strip (5 cells), Pay crypto, responsive layout, GA4 configuration/CSP");
     for (const [path, heading] of [
       ["/terms", "Terms of Service"], ["/privacy", "Privacy Policy"],
       ["/status", "Service Health"], ["/pricing", "Free API. Sponsor-supported."],
