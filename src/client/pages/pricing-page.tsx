@@ -18,55 +18,38 @@ interface PricingTier {
 
 const PRICING_TIERS: PricingTier[] = [
   {
-    name: "Free",
+    name: "API Access",
     price: { monthly: 0, yearly: 0 },
     priceId: { monthly: "", yearly: "" },
-    description: "Get started with Bitcoin price data",
+    description: "Free Bitcoin price data for everyone",
     features: [
       "120 requests per minute",
       "Current price & 24h data",
       "Historical price data",
       "Server-sent events stream",
       "No API key required",
+      "Free forever",
     ],
     cta: "Start building",
     ctaLink: "/studio",
-    outline: true,
-  },
-  {
-    name: "Pro",
-    price: { monthly: 29, yearly: 290 },
-    priceId: { 
-      monthly: "price_pro_monthly", 
-      yearly: "price_pro_yearly" 
-    },
-    description: "For production applications",
-    features: [
-      "Everything in Free",
-      "1,000 requests per minute",
-      "Dedicated API keys",
-      "Priority support",
-      "99.9% uptime SLA",
-    ],
-    cta: "Start Pro trial",
     popular: true,
   },
   {
-    name: "Business",
-    price: { monthly: 149, yearly: 1490 },
-    priceId: { 
-      monthly: "price_business_monthly", 
-      yearly: "price_business_yearly" 
-    },
-    description: "For high-volume integrations",
+    name: "Support PRICEB.TC",
+    price: { monthly: 0, yearly: 0 },
+    priceId: { monthly: "", yearly: "" },
+    description: "Become a Top 21 sponsor",
     features: [
-      "Everything in Pro",
-      "10,000 requests per minute",
-      "Multiple API keys",
-      "Custom data exports",
-      "Dedicated account manager",
+      "Support the free API",
+      "Your project showcased",
+      "Top 21 leaderboard ranking",
+      "Cumulative USD contributions",
+      "Pay with crypto (USDT, USDC, BTC)",
+      "Outbid anytime",
     ],
-    cta: "Start Business trial",
+    cta: "Claim a sponsor spot",
+    ctaLink: "/sponsors#claim",
+    outline: true,
   },
 ];
 
@@ -77,25 +60,6 @@ export function PricingPage() {
     if (tier.ctaLink) {
       window.location.href = tier.ctaLink;
       return;
-    }
-
-    try {
-      const priceId = tier.priceId[billingPeriod];
-      const response = await fetch("/api/stripe/create-checkout-session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ priceId, tier: tier.name.toLowerCase() }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to create checkout session");
-      }
-
-      const { url } = await response.json();
-      window.location.href = url;
-    } catch (error) {
-      console.error("Checkout error:", error);
-      alert("Unable to start checkout. Please try again later.");
     }
   };
 
@@ -118,27 +82,10 @@ export function PricingPage() {
         <section className="pricing-hero">
           <div className="pricing-hero__intro">
             <p className="section-kicker">PRICING</p>
-            <h1>Bitcoin price tools that scale with your business.</h1>
+            <h1>Free API. Sponsor-supported.</h1>
             <p className="pricing-hero__description">
-              Start free. Upgrade when you need more.
+              Bitcoin price data is free for everyone. Support the project by becoming a Top 21 sponsor.
             </p>
-          </div>
-
-          <div className="billing-toggle">
-            <button
-              type="button"
-              className={billingPeriod === "monthly" ? "active" : ""}
-              onClick={() => setBillingPeriod("monthly")}
-            >
-              Monthly
-            </button>
-            <button
-              type="button"
-              className={billingPeriod === "yearly" ? "active" : ""}
-              onClick={() => setBillingPeriod("yearly")}
-            >
-              Yearly
-            </button>
           </div>
 
           <div className="pricing-grid">
@@ -148,21 +95,17 @@ export function PricingPage() {
                 className={`pricing-card${tier.popular ? " pricing-card--popular" : ""}`}
               >
                 {tier.popular && (
-                  <div className="pricing-card__badge">Most popular</div>
+                  <div className="pricing-card__badge">Always free</div>
                 )}
                 <div className="pricing-card__header">
                   <h2 className="pricing-card__name">{tier.name}</h2>
                   <p className="pricing-card__description">{tier.description}</p>
                   <div className="pricing-card__price">
                     <span className="pricing-card__amount">
-                      {formatPrice(tier.price[billingPeriod], billingPeriod)}
+                      {tier.name === "API Access" ? "Free" : "Crypto"}
                     </span>
                     <span className="pricing-card__period">
-                      {tier.price[billingPeriod] === 0
-                        ? "forever"
-                        : billingPeriod === "yearly"
-                        ? "/mo, billed yearly"
-                        : "/month"}
+                      {tier.name === "API Access" ? "forever" : "payments"}
                     </span>
                   </div>
                 </div>
@@ -205,45 +148,37 @@ export function PricingPage() {
         <section className="public-section pricing-faq">
           <h2>Frequently asked questions</h2>
           <details>
-            <summary>Can I upgrade or downgrade at any time?</summary>
+            <summary>Is the API really free forever?</summary>
             <p>
-              Yes. You can upgrade or downgrade your plan at any time through
-              the customer portal. Changes take effect immediately, and we'll
-              prorate the difference.
+              Yes. The Bitcoin price API is free with no plans for paid tiers. We're supported by sponsors who claim Top 21 spots with crypto contributions.
             </p>
           </details>
           <details>
-            <summary>What payment methods do you accept?</summary>
+            <summary>How do I become a sponsor?</summary>
             <p>
-              We accept all major credit cards (Visa, Mastercard, American
-              Express) and debit cards through Stripe.
+              Visit <a href="/sponsors#claim">/sponsors</a> and complete the claim flow. Choose your crypto asset (USDT, USDC, or BTC), send payment to the deposit address, and submit your transaction hash. You'll rank by cumulative USD contributions.
             </p>
           </details>
           <details>
-            <summary>Do you offer refunds?</summary>
+            <summary>What payment methods do sponsors accept?</summary>
             <p>
-              We offer a 14-day money-back guarantee for new Pro and Business
-              subscriptions. Contact us at{" "}
+              Sponsors pay with crypto: USDT on TRC20 (Tron), USDC on Solana, or BTC on-chain (Bitcoin mainnet). Payments are validated via public blockchain explorers.
+            </p>
+          </details>
+          <details>
+            <summary>What if I exceed the API rate limit?</summary>
+            <p>
+              The free tier provides 120 requests per minute. If you exceed this limit, additional requests will receive a 429 status code. Implement request queuing or caching in your application. Contact us at{" "}
               <a href={`mailto:${siteContent.contactEmail}`}>
                 {siteContent.contactEmail}
               </a>{" "}
-              to request a refund.
+              if you need higher limits.
             </p>
           </details>
           <details>
-            <summary>What happens if I exceed my rate limit?</summary>
+            <summary>Can sponsors be outbid?</summary>
             <p>
-              If you exceed your plan's rate limit, additional requests will
-              receive a 429 status code. We recommend upgrading to a higher tier
-              or implementing request queuing in your application.
-            </p>
-          </details>
-          <details>
-            <summary>Can I cancel my subscription?</summary>
-            <p>
-              Yes. You can cancel your subscription at any time through the
-              customer portal. You'll retain access until the end of your
-              current billing period.
+              Yes. The Top 21 leaderboard ranks by cumulative USD contributions. Anyone can outbid you at any time by adding more crypto payments. Your total stays on record even if you drop out of Top 21.
             </p>
           </details>
         </section>
