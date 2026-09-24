@@ -3,6 +3,7 @@ import { BidShell, Ranking } from "./components.js";
 import { CryptoClaimFlow } from "./crypto-claim.js";
 import { WaitlistForm } from "./waitlist-form.js";
 import { bidApi } from "./api.js";
+import { GA4Events } from "../lib/ga4.js";
 
 interface CryptoParticipant {
   id: string;
@@ -78,6 +79,25 @@ export function SponsorsPage() {
     window.addEventListener("hashchange", handleHashChange);
     return () => window.removeEventListener("hashchange", handleHashChange);
   }, [fetchData]);
+
+  useEffect(() => {
+    if (!config) return;
+    const hasCrypto = config.enabled && config.assets.length > 0;
+    
+    if (hasCrypto && !window.location.hash) {
+      window.location.hash = "#claim";
+      return;
+    }
+    
+    if (hasCrypto && window.location.hash === "#waitlist") {
+      window.location.hash = "#claim";
+      return;
+    }
+    
+    if (view === "board") {
+      GA4Events.sponsorsView();
+    }
+  }, [config, view]);
 
   const hasCryptoAddresses = !!(config && config.enabled && config.assets.length > 0);
 

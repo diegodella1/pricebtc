@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { BID_API, bidApi } from "./api.js";
 import QRCode from "qrcode";
 import siteContent from "../../shared/site-content.json";
+import { GA4Events } from "../lib/ga4.js";
 
 interface AssetConfig {
   type: string;
@@ -45,6 +46,7 @@ interface PaymentStatus {
 export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
   const [config, setConfig] = useState<CryptoConfig | null>(null);
   const [step, setStep] = useState<ClaimStep>("identity");
+  const claimStartTracked = useRef(false);
   const [profile, setProfile] = useState<ProfileData>({
     name: "",
     description: "",
@@ -81,6 +83,7 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
     }
   }, []);
 
+<<<<<<< HEAD
   const resumePayment = async (paymentId: string) => {
     try {
       const status = await bidApi<PaymentStatus>(`/crypto-sponsors/payments/${paymentId}`, { method: "GET" });
@@ -91,6 +94,14 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
       localStorage.removeItem("crypto_payment_id");
     }
   };
+=======
+  useEffect(() => {
+    if (step === "identity" && !claimStartTracked.current) {
+      GA4Events.claimStart();
+      claimStartTracked.current = true;
+    }
+  }, [step]);
+>>>>>>> 946862a (feat: EXP-02 + GA4 instrumentation - auto-claim redirect & conversion tracking)
 
   const handleLogoChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
@@ -263,6 +274,7 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
         setPaymentStatus(status);
 
         if (status.validation_status === "confirmed") {
+          GA4Events.depositConfirmed(status.asset_type, status.amount_usd);
           if (pollInterval.current) {
             clearInterval(pollInterval.current);
             pollInterval.current = null;
