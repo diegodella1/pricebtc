@@ -14,12 +14,13 @@ describe("formatPrice", () => {
   });
 
   it("keeps an exact accessible value and creates a compact constrained value", () => {
-    const idr = formatPriceVariants("1419980816.71", "IDR");
+    // Use a stable two-decimal currency: IDR precision differs across ICU versions.
+    const largeUsd = formatPriceVariants("141998081600.71", "USD");
     const irr = formatPriceVariants("4375000000", "IRR");
 
-    expect(idr.exact).toContain("1,419,980,816.71");
-    expect(idr.compact).toMatch(/1\.42B/);
-    expect(idr.length).toBe("extra-long");
+    expect(largeUsd.exact).toContain("141,998,081,600.71");
+    expect(largeUsd.compact).toMatch(/142B/);
+    expect(largeUsd.length).toBe("extra-long");
     expect(irr.exact).toContain("4,375,000,000");
     expect(irr.compact).toMatch(/4\.38B/);
   });
