@@ -162,6 +162,21 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
       );
 
       setPaymentId(result.id);
+      
+      // Seed initial pending state
+      setPaymentStatus({
+        id: result.id,
+        asset_type: selectedAsset.type,
+        tx_hash: txHash,
+        amount_usd: "0.00",
+        validation_status: result.validation_status as PaymentStatus["validation_status"],
+        confirmations: 0,
+        required_confirmations: selectedAsset.confirmations,
+        validation_error: null,
+        created_at: new Date().toISOString(),
+        confirmed_at: null,
+      });
+      
       setStep("live");
       startPolling(result.id);
     } catch (e) {
