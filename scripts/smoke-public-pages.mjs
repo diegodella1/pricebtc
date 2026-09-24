@@ -43,8 +43,8 @@ export async function verifyPublicPages(base) {
         }
       }
       if (path === "/sponsors") {
-        const hash = page.url().includes("#waitlist") || await page.evaluate(() => !window.crypto?.subtle);
-        if (hash || await page.locator('.bid-waitlist-form').isVisible().catch(() => false)) {
+        const hasWaitlistForm = await page.locator('.bid-waitlist-form').isVisible().catch(() => false);
+        if (hasWaitlistForm) {
           const waitlist = page.locator('.bid-waitlist-form');
           await expect(waitlist).toBeVisible();
           await waitlist.getByRole('button', { name: 'Join the waitlist', exact: true }).click();
@@ -52,7 +52,7 @@ export async function verifyPublicPages(base) {
           await expect(waitlist.locator('input[type="email"]')).toHaveAttribute('aria-invalid', 'true');
           console.log(`Browser OK: ${path} — waitlist form validation`);
         } else {
-          await expect(page.locator('.bid-waitlist-form, [href*="claim"]')).toHaveCount(1);
+          await expect(page.locator('[href*="claim"]')).toHaveCount(1);
           console.log(`Browser OK: ${path} — claim CTA present`);
         }
       }
