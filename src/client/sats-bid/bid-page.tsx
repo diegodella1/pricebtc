@@ -135,7 +135,7 @@ export default function BidPage() {
       title={leading ? "DEFEND YOUR POSITION." : "CLAIM YOUR SPOT."}
     >
       <p className="bid-intro">
-        Pay Lightning sats. Rank in the Top 21. Anyone can outbid you anytime.
+        Pay crypto. Rank in the Top 21. Anyone can outbid you anytime.
         {stats && Number.isFinite(stats.visitors) && <span className="bid-intro-stats"> · {stats.visitors.toLocaleString()} visitors last 30 days</span>}
       </p>
       <div className="bid-checkout-grid">

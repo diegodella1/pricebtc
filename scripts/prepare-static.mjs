@@ -237,7 +237,7 @@ const pages = [
     ["privacy", "Privacy Policy", "How PRICEB.TC handles information."],
     ["status", "Service Status", "Current Bitcoin market feed and service health."],
     ["pricing", "Pricing", "Bitcoin price tools that scale with your business."],
-    ["sponsors", "Sponsor", "Join the waitlist for PRICEB.TC sponsorship. Pay Lightning sats, rank in the Top 21, and display your project beside the Bitcoin price."],
+    ["sponsors", "Sponsor", "Support PRICEB.TC and rank in the Top 21 by cumulative crypto contributions. Pay with BTC, USDT, or USDC. Anyone can outbid you anytime."],
   ].map(([route, title, description]) => ({
     filename: `${route}/index.html`,
     metadata: {
