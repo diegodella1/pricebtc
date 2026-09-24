@@ -34,3 +34,28 @@ the ICU currency metadata version. The compact/exact regression now uses a stabl
 USD amount; the all-currency test retains IDR coverage. Production formatting is
 unchanged. The failed run was blocked by the installed runner and surfaced as a
 failed production status, confirming the new CI gate on the real delivery path.
+
+## Verification and recovery artifacts
+
+- Recovery revision `52eb916e590b0400e7f938b322e9572fd2800f95` was published and
+  verified locally and publicly. Release:
+  `.data/releases/20260924T134236-52eb916e590b-1125071`.
+  Automatic rollback snapshot:
+  `.data/deployment-backups/pricebtc-20260924T134236-52eb916e590b-1125071/dist`.
+- Local validation: typecheck, lint, 129 application tests (including PostgreSQL),
+  14 deployment tests, preview build, candidate startup and browser checks passed.
+- Hosted CI passed on the corrective PR and main revision
+  `52eb916e590b0400e7f938b322e9572fd2800f95`:
+  https://github.com/diegodella1/pricebtc/actions/runs/36007414537.
+- `main` requires the GitHub Actions `Validate` check with strict up-to-date checks,
+  including administrators; force pushes and deletion are disabled.
+- The previous release link, receiver scripts, receiver state and runtime-data archive
+  are preserved under `.data/deployment-backups/recovery-20260924/`.
+  The archive was listed successfully; SHA-256:
+  `c6ab3826099091a46a6a40842ec7260b904b5e579225ac45cdf4525cecebd7fa`.
+- Production database and Stripe credentials were absent, so no production SQL
+  migration or payment activation was performed.
+
+Use the per-delivery logs and `dist/REVISION` / `dist/VERIFIED` for the authoritative
+record of subsequent publications. The documentation follow-up exercises the normal
+PR → required CI → main CI → signed webhook → verified automatic release path.
