@@ -204,7 +204,7 @@ export function SponsorsPage() {
       {view === "claim" && (
         <CryptoClaimFlow
           onComplete={() => {
-            window.location.hash = "#board";
+            window.location.href = "/sponsors#board";
             void fetchData();
           }}
         />

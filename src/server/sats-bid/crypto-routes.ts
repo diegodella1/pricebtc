@@ -51,20 +51,24 @@ export async function registerCryptoRoutes(
 
     const input = z
       .object({
-        name: z.string(),
-        description: z.string(),
-        url: z.string(),
+        name: z.string().optional(),
+        description: z.string().optional(),
+        url: z.string().optional(),
         logo_asset_id: uuid.nullable().optional(),
         asset_type: z.enum(["USDT_TRC20", "USDC_SOL", "BTC"]),
         tx_hash: z.string().optional(),
       })
       .parse(request.body);
 
-    const profile = validateProfile({
-      name: input.name,
-      description: input.description,
-      url: input.url,
-    });
+    let profile = { name: "", description: "", url: "", normalized_domain: "" };
+    
+    if (input.name && input.description && input.url) {
+      profile = validateProfile({
+        name: input.name,
+        description: input.description,
+        url: input.url,
+      });
+    }
 
     const payment = await createCryptoPayment(pool, config, sessionId, {
       ...profile,
@@ -116,7 +120,47 @@ export async function registerCryptoRoutes(
       validated_at: payment.validated_at?.toISOString() || null,
       confirmed_at: payment.confirmed_at?.toISOString() || null,
       server_time: clock().toISOString(),
+      name: payment.name,
+      description: payment.description,
+      url: payment.url,
+      logo_asset_id: payment.logo_asset_id,
     };
+  });
+
+  app.patch(`${prefix}/payments/:id/profile`, async (request, reply) => {
+    csrf(request);
+    const id = uuid.parse((request.params as { id: string }).id);
+    const sessionId = await getSession(request, reply);
+    await quota(`crypto-profile:${sessionId}`, 10, 600, reply);
+
+    const payment = await getCryptoPayment(pool, id);
+    if (!payment || payment.session_id !== sessionId) {
+      throw new BidError("NOT_FOUND", "Payment not found.", 404);
+    }
+
+    const input = z
+      .object({
+        name: z.string(),
+        description: z.string(),
+        url: z.string(),
+        logo_asset_id: uuid.nullable().optional(),
+      })
+      .parse(request.body);
+
+    const profile = validateProfile({
+      name: input.name,
+      description: input.description,
+      url: input.url,
+    });
+
+    await pool.query(
+      `UPDATE crypto_sponsors 
+       SET name = $1, description = $2, url = $3, normalized_domain = $4, logo_asset_id = $5
+       WHERE id = $6`,
+      [profile.name, profile.description, profile.url, profile.normalized_domain, input.logo_asset_id || null, id]
+    );
+
+    return { success: true };
   });
 
   app.get(`${prefix}/leaderboard`, async (request, reply) => {

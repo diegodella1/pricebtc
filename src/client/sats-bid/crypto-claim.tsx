@@ -28,7 +28,7 @@ interface ProfileData {
   logoAssetId: string | null;
 }
 
-type ClaimStep = "identity" | "asset" | "payment" | "live";
+type ClaimStep = "asset" | "payment" | "watching" | "profile";
 
 interface PaymentStatus {
   id: string;
@@ -45,7 +45,7 @@ interface PaymentStatus {
 
 export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
   const [config, setConfig] = useState<CryptoConfig | null>(null);
-  const [step, setStep] = useState<ClaimStep>("identity");
+  const [step, setStep] = useState<ClaimStep>("asset");
   const [profile, setProfile] = useState<ProfileData>({
     name: "",
     description: "",
@@ -61,13 +61,29 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
   const [qrCode, setQrCode] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [profileSaved, setProfileSaved] = useState(false);
   const pollInterval = useRef<number | null>(null);
 
   const resumePayment = useCallback(async (paymentId: string) => {
     try {
-      const status = await bidApi<PaymentStatus>(`/crypto-sponsors/payments/${paymentId}`, { method: "GET" });
+      const status = await bidApi<PaymentStatus & { name: string; description: string; url: string; logo_asset_id: string | null }>(`/crypto-sponsors/payments/${paymentId}`, { method: "GET" });
       setPaymentStatus(status);
-      setStep("live");
+      
+      if (status.name && status.description && status.url) {
+        setProfile({
+          name: status.name,
+          description: status.description,
+          url: status.url,
+          logoAssetId: status.logo_asset_id,
+        });
+        setProfileSaved(true);
+      }
+      
+      if (status.validation_status === "confirmed" && status.name) {
+        setStep("profile");
+      } else {
+        setStep("watching");
+      }
     } catch {
       localStorage.removeItem("crypto_payment_id");
     }
@@ -90,7 +106,7 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
             clearInterval(pollInterval.current);
             pollInterval.current = null;
           }
-          if (onComplete) {
+          if (profileSaved && onComplete) {
             setTimeout(onComplete, 2000);
           }
         } else if (status.validation_status === "rejected" || status.validation_status === "failed") {
@@ -106,7 +122,7 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
 
     void poll();
     pollInterval.current = window.setInterval(poll, 10000);
-  }, [onComplete]);
+  }, [onComplete, profileSaved]);
 
   useEffect(() => {
     async function fetchConfig() {
@@ -161,15 +177,32 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
     return result.id;
   };
 
-  const handleIdentitySubmit = async (e: React.FormEvent) => {
+  const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!paymentStatus) return;
+    
     setBusy(true);
     setError("");
     try {
       const logoId = await uploadLogo();
+      
+      await bidApi(`/crypto-sponsors/payments/${paymentStatus.id}/profile`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          name: profile.name,
+          description: profile.description,
+          url: profile.url,
+          logo_asset_id: logoId,
+        }),
+      });
+      
       setProfile({ ...profile, logoAssetId: logoId });
+      setProfileSaved(true);
       GA4Events.profileSave();
-      setStep("asset");
+      
+      if (paymentStatus.validation_status === "confirmed" && onComplete) {
+        setTimeout(onComplete, 1000);
+      }
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -209,14 +242,12 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
         {
           method: "POST",
           body: JSON.stringify({
-            name: profile.name,
-            description: profile.description,
-            url: profile.url,
-            logo_asset_id: profile.logoAssetId,
             asset_type: selectedAsset.type,
           }),
         },
       );
+
+      GA4Events.watchingIntent(selectedAsset.type);
 
       localStorage.setItem("crypto_payment_id", result.id);
       window.history.replaceState({}, "", `?payment=${result.id}`);
@@ -234,7 +265,7 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
         confirmed_at: null,
       });
       
-      setStep("live");
+      setStep("watching");
       startPolling(result.id);
     } catch (e) {
       setError((e as Error).message);
@@ -255,15 +286,13 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
         {
           method: "POST",
           body: JSON.stringify({
-            name: profile.name,
-            description: profile.description,
-            url: profile.url,
-            logo_asset_id: profile.logoAssetId,
             asset_type: selectedAsset.type,
             tx_hash: txHash,
           }),
         },
       );
+
+      GA4Events.watchingIntent(selectedAsset.type);
 
       localStorage.setItem("crypto_payment_id", result.id);
       window.history.replaceState({}, "", `?payment=${result.id}`);
@@ -281,7 +310,7 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
         confirmed_at: null,
       });
       
-      setStep("live");
+      setStep("watching");
       startPolling(result.id);
     } catch (e) {
       setError((e as Error).message);
@@ -316,83 +345,25 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
 
   return (
     <div className="crypto-claim-container">
-      <div className="crypto-claim-steps">
-        <div className={`crypto-step-indicator ${step === "identity" ? "active" : ""} ${["asset", "payment", "live"].includes(step) ? "completed" : ""}`}>
-          01 / Identity
-        </div>
-        <div className={`crypto-step-indicator ${step === "asset" ? "active" : ""} ${["payment", "live"].includes(step) ? "completed" : ""}`}>
-          02 / Choose Asset
-        </div>
-        <div className={`crypto-step-indicator ${step === "payment" ? "active" : ""} ${step === "live" ? "completed" : ""}`}>
-          03 / Pay
-        </div>
-        <div className={`crypto-step-indicator ${step === "live" ? "active" : ""}`}>
-          04 / Live
-        </div>
-      </div>
-
-      {step === "identity" && (
-        <form className="crypto-identity-form" onSubmit={handleIdentitySubmit}>
-          <h2>Your Public Profile</h2>
-          <label>
-            Name
-            <input
-              required
-              value={profile.name}
-              onChange={(e) => setProfile({ ...profile, name: [...e.target.value.normalize("NFC")].slice(0, 40).join("") })}
-              autoComplete="organization"
-              placeholder="Your project name"
-            />
-          </label>
-          <label>
-            Website
-            <input
-              required
-              type="url"
-              maxLength={2048}
-              placeholder="https://your-project.com"
-              value={profile.url}
-              onChange={(e) => setProfile({ ...profile, url: e.target.value })}
-            />
-          </label>
-          <label>
-            One-line description
-            <input
-              required
-              value={profile.description}
-              onChange={(e) => setProfile({ ...profile, description: [...e.target.value.normalize("NFC")].slice(0, 100).join("") })}
-              placeholder="What makes your project unique"
-            />
-            <small>100 characters. Make them count.</small>
-          </label>
-          <label>
-            Logo <small>PNG, JPEG, WebP · 2 MiB max</small>
-            <input
-              type="file"
-              accept="image/png,image/jpeg,image/webp"
-              required
-              onChange={handleLogoChange}
-            />
-          </label>
-          {logoPreview && (
-            <div className="crypto-profile-preview">
-              <img src={logoPreview} alt="Logo preview" className="crypto-logo-preview" />
-              <div>
-                <strong>{profile.name || "Your project"}</strong>
-                {profile.description && <p>{profile.description}</p>}
-              </div>
-            </div>
-          )}
-          {error && <p className="crypto-error">{error}</p>}
-          <button type="submit" className="crypto-cta-button" disabled={busy}>
-            {busy ? "Uploading..." : "Continue to payment →"}
-          </button>
-        </form>
-      )}
+      <ol className="crypto-claim-steps" aria-label="Claim steps">
+        <li className={`crypto-step-indicator ${step === "asset" ? "active" : ""} ${["payment", "watching", "profile"].includes(step) ? "completed" : ""}`} data-step="asset">
+          Asset
+        </li>
+        <li className={`crypto-step-indicator ${step === "payment" ? "active" : ""} ${["watching", "profile"].includes(step) ? "completed" : ""}`} data-step="payment">
+          Pay
+        </li>
+        <li className={`crypto-step-indicator ${step === "watching" ? "active" : ""} ${step === "profile" ? "completed" : ""}`} data-step="watching">
+          Watch
+        </li>
+        <li className={`crypto-step-indicator ${step === "profile" ? "active" : ""}`} data-step="profile">
+          Profile
+        </li>
+      </ol>
 
       {step === "asset" && (
         <div className="crypto-asset-selection">
-          <h2>Choose Payment Method</h2>
+          <h2>Choose payment asset</h2>
+          <p className="crypto-asset-helper">Minimums and confirmations shown after you pick.</p>
           <div className="crypto-asset-grid">
             {config.assets.map((asset) => (
               <button
@@ -406,25 +377,27 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
               </button>
             ))}
           </div>
-          <button
-            className="crypto-back-button"
-            onClick={() => setStep("identity")}
-          >
-            ← Back to identity
-          </button>
         </div>
       )}
 
       {step === "payment" && selectedAsset && (
         <div className="crypto-payment-details">
-          <h2>Send {selectedAsset.label} Payment</h2>
+          <a href="#board" className="bid-back-link">
+            ← Top 21 leaderboard
+          </a>
+          <h2>Send payment</h2>
           <div className="crypto-payment-warning">{selectedAsset.warningMessage}</div>
           
           <div className="crypto-payment-info">
             <div className="crypto-info-section">
-              <label>Amount</label>
+              <label>Network</label>
+              <p className="crypto-amount">{selectedAsset.network}</p>
+            </div>
+
+            <div className="crypto-info-section">
+              <label>Minimum USD</label>
               <p className="crypto-amount">
-                Minimum ${selectedAsset.minUsd.toFixed(2)} USD
+                ${selectedAsset.minUsd.toFixed(2)} USD
                 <small>
                   {selectedAsset.type === "BTC" && config && (
                     <>≈ {Math.ceil((selectedAsset.minUsd / parseFloat(config.btcPriceUsd)) * 100_000_000).toLocaleString()} sats @ ${parseFloat(config.btcPriceUsd).toLocaleString()}/BTC</>
@@ -455,10 +428,7 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
 
           <div className="crypto-watch-section">
             <p className="crypto-watch-info">
-              We're watching this address. Send your payment — no need to paste a transaction ID.
-            </p>
-            <p className="crypto-watch-details">
-              Your transaction will be automatically detected and confirmed after {selectedAsset.confirmations} confirmations. {selectedAsset.confirmationWaitMessage}
+              We're watching this address — send the payment; no need to paste a transaction ID.
             </p>
             
             {error && <p className="crypto-error">{error}</p>}
@@ -517,10 +487,32 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
         </div>
       )}
 
-      {step === "live" && paymentStatus && (
+      {step === "watching" && paymentStatus && selectedAsset && (
         <div className="crypto-status-container">
-          <h2>Payment Status</h2>
+          <a href="#board" className="bid-back-link">
+            ← Top 21 leaderboard
+          </a>
+          <h2>Payment status</h2>
           
+          <div className="crypto-payment-info">
+            <div className="crypto-info-section">
+              <label>Deposit Address</label>
+              <div className="crypto-address-container">
+                <code className="crypto-address">{selectedAsset.address}</code>
+                <button type="button" className="crypto-copy-button" onClick={copyAddress}>
+                  Copy
+                </button>
+              </div>
+            </div>
+
+            {qrCode && (
+              <div className="crypto-qr-container">
+                <img src={qrCode} alt="Deposit address QR code" className="crypto-qr-code" />
+                <small>Scan to pay</small>
+              </div>
+            )}
+          </div>
+
           <div className={`crypto-status-badge crypto-status-${paymentStatus.validation_status}`}>
             {paymentStatus.validation_status === "watching" && "👀 Watching for your transaction..."}
             {paymentStatus.validation_status === "pending" && paymentStatus.confirmations === 0 && "⏳ Waiting for first confirmation..."}
@@ -531,39 +523,22 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
             {paymentStatus.validation_status === "failed" && "⚠️ Validation failed"}
           </div>
 
-          <div className="crypto-status-details">
-            <div className="crypto-detail-row">
-              <span>Confirmations</span>
-              <strong>
-                {paymentStatus.confirmations} / {paymentStatus.required_confirmations}
-              </strong>
-            </div>
-            
-            {paymentStatus.amount_usd !== "0" && (
-              <div className="crypto-detail-row">
-                <span>Amount</span>
-                <strong>${Number(paymentStatus.amount_usd).toFixed(2)} USD</strong>
-              </div>
-            )}
+          <p className="crypto-watch-info">
+            Keep this tab open if you can. Ranking uses credited USD after confirmation.
+          </p>
 
-            {paymentStatus.validation_error && (
-              <div className="crypto-error">{paymentStatus.validation_error}</div>
-            )}
-          </div>
+          {(paymentStatus.validation_status === "rejected" || paymentStatus.validation_status === "failed") && paymentStatus.validation_error && (
+            <div className="crypto-error">{paymentStatus.validation_error}</div>
+          )}
 
-          {paymentStatus.validation_status === "confirmed" && (
-            <div className="crypto-success-actions">
-              <div className="crypto-success-chip">
-                <img src={logoPreview || undefined} alt="" className="crypto-chip-logo" />
-                <div>
-                  <strong>{profile.name}</strong>
-                  <small>{profile.description}</small>
-                </div>
-              </div>
-              <a href="/sponsors" className="crypto-cta-button">
-                View leaderboard →
-              </a>
-            </div>
+          {(paymentStatus.validation_status === "watching" || paymentStatus.validation_status === "pending" || paymentStatus.validation_status === "validating") && !profileSaved && (
+            <button 
+              type="button" 
+              className="crypto-cta-button" 
+              onClick={() => setStep("profile")}
+            >
+              Add how you'll appear →
+            </button>
           )}
 
           {(paymentStatus.validation_status === "rejected" || paymentStatus.validation_status === "failed") && (
@@ -582,20 +557,120 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
               >
                 ← Try again
               </button>
-              <a href={`mailto:${siteContent.contactEmail}?subject=Sponsor%20Payment%20Issue&body=Transaction%20hash:%20${txHash}`} className="crypto-cta-button">
+              <a href={`mailto:${siteContent.contactEmail}?subject=Sponsor%20Payment%20Issue&body=Payment%20ID:%20${paymentStatus.id}`} className="crypto-cta-button">
                 Contact support →
               </a>
             </div>
           )}
+        </div>
+      )}
 
-          {(paymentStatus.validation_status === "watching" || paymentStatus.validation_status === "pending" || paymentStatus.validation_status === "validating") && (
-            <p className="crypto-status-note">
-              {paymentStatus.validation_status === "watching" 
-                ? "Send your payment to the address above. We'll detect it automatically within a few seconds."
-                : paymentStatus.confirmations === 0 
-                  ? "Waiting for your transaction to appear on the blockchain. This usually takes a few seconds."
-                  : "This page updates automatically as confirmations increase. Keep this tab open."}
+      {step === "profile" && paymentStatus && (
+        <div className="crypto-profile-form-container">
+          <a href="#board" className="bid-back-link">
+            ← Top 21 leaderboard
+          </a>
+          
+          <aside className="crypto-payment-status-strip" aria-live="polite">
+            <span className={`badge crypto-status-${paymentStatus.validation_status}`}>
+              {paymentStatus.validation_status === "watching" && "Watching…"}
+              {paymentStatus.validation_status === "pending" && "Confirming…"}
+              {paymentStatus.validation_status === "validating" && "Validating…"}
+              {paymentStatus.validation_status === "confirmed" && "Confirmed"}
+              {paymentStatus.validation_status === "rejected" && "Rejected"}
+              {paymentStatus.validation_status === "failed" && "Failed"}
+            </span>
+            <span className="asset-label">{selectedAsset?.label} {selectedAsset?.network}</span>
+            <p className="strip-note">
+              {paymentStatus.validation_status === "confirmed" 
+                ? "Payment confirmed. Add your name to appear on Top 21 and home slots."
+                : "Your payment is still being detected. You are not on the Top 21 yet."}
             </p>
+            {selectedAsset && (
+              <div className="strip-address">
+                <code>{selectedAsset.address.slice(0, 12)}...{selectedAsset.address.slice(-8)}</code>
+                <button type="button" className="crypto-copy-button-small" onClick={copyAddress}>
+                  Copy
+                </button>
+              </div>
+            )}
+          </aside>
+
+          <form className="crypto-identity-form" onSubmit={handleProfileSubmit}>
+            <h2>Your public profile</h2>
+            <label>
+              Display name *
+              <input
+                required
+                value={profile.name}
+                onChange={(e) => setProfile({ ...profile, name: [...e.target.value.normalize("NFC")].slice(0, 40).join("") })}
+                autoComplete="organization"
+                placeholder="Your project name"
+              />
+            </label>
+            <label>
+              Website *
+              <input
+                required
+                type="url"
+                maxLength={2048}
+                placeholder="https://your-project.com"
+                value={profile.url}
+                onChange={(e) => setProfile({ ...profile, url: e.target.value })}
+              />
+            </label>
+            <label>
+              One-line description *
+              <input
+                required
+                value={profile.description}
+                onChange={(e) => setProfile({ ...profile, description: [...e.target.value.normalize("NFC")].slice(0, 100).join("") })}
+                placeholder="What makes your project unique"
+              />
+              <small>100 characters. Make them count.</small>
+            </label>
+            <label>
+              Logo <small>PNG, JPEG, WebP · 2 MiB max · Optional</small>
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                onChange={handleLogoChange}
+              />
+            </label>
+            {logoPreview && (
+              <div className="crypto-profile-preview">
+                <img src={logoPreview} alt="Logo preview" className="crypto-logo-preview" />
+                <div>
+                  <strong>{profile.name || "Your project"}</strong>
+                  {profile.description && <p>{profile.description}</p>}
+                </div>
+              </div>
+            )}
+            <p className="crypto-profile-helper">
+              Shown on Top 21 and home slots only after your payment confirms. This form does not change your rank.
+            </p>
+            {error && <p className="crypto-error">{error}</p>}
+            <div className="crypto-form-actions">
+              <button
+                type="button"
+                className="crypto-back-button"
+                onClick={() => setStep("watching")}
+              >
+                ← Back
+              </button>
+              <button type="submit" className="crypto-cta-button" disabled={busy}>
+                {busy ? "Saving..." : "Save & continue"}
+              </button>
+            </div>
+          </form>
+
+          {profileSaved && paymentStatus.validation_status === "confirmed" && (
+            <div className="crypto-success-actions">
+              <h3>You're on the Top 21</h3>
+              <a href="#board" className="crypto-cta-button">
+                View leaderboard →
+              </a>
+            </div>
           )}
         </div>
       )}
