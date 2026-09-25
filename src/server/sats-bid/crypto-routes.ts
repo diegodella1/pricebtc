@@ -9,6 +9,7 @@ import {
   getAvailableAssets,
   type AssetType,
 } from "./crypto-sponsors.js";
+import { ensureCryptoParticipant } from "./crypto-validation-worker.js";
 
 const uuid = z.string().uuid();
 
@@ -51,20 +52,24 @@ export async function registerCryptoRoutes(
 
     const input = z
       .object({
-        name: z.string(),
-        description: z.string(),
-        url: z.string(),
+        name: z.string().optional(),
+        description: z.string().optional(),
+        url: z.string().optional(),
         logo_asset_id: uuid.nullable().optional(),
         asset_type: z.enum(["USDT_TRC20", "USDC_SOL", "BTC"]),
         tx_hash: z.string().optional(),
       })
       .parse(request.body);
 
-    const profile = validateProfile({
-      name: input.name,
-      description: input.description,
-      url: input.url,
-    });
+    let profile = { name: "", description: "", url: "", normalized_domain: "" };
+    
+    if (input.name && input.description && input.url) {
+      profile = validateProfile({
+        name: input.name,
+        description: input.description,
+        url: input.url,
+      });
+    }
 
     const payment = await createCryptoPayment(pool, config, sessionId, {
       ...profile,
@@ -116,7 +121,91 @@ export async function registerCryptoRoutes(
       validated_at: payment.validated_at?.toISOString() || null,
       confirmed_at: payment.confirmed_at?.toISOString() || null,
       server_time: clock().toISOString(),
+      name: payment.name,
+      description: payment.description,
+      url: payment.url,
+      logo_asset_id: payment.logo_asset_id,
     };
+  });
+
+  app.patch(`${prefix}/payments/:id/profile`, async (request, reply) => {
+    csrf(request);
+    const id = uuid.parse((request.params as { id: string }).id);
+    const sessionId = await getSession(request, reply);
+    await quota(`crypto-profile:${sessionId}`, 10, 600, reply);
+
+    const payment = await getCryptoPayment(pool, id);
+    if (!payment || payment.session_id !== sessionId) {
+      throw new BidError("NOT_FOUND", "Payment not found.", 404);
+    }
+
+    const input = z
+      .object({
+        name: z.string(),
+        description: z.string(),
+        url: z.string(),
+        logo_asset_id: uuid.nullable().optional(),
+      })
+      .parse(request.body);
+
+    const profile = validateProfile({
+      name: input.name,
+      description: input.description,
+      url: input.url,
+    });
+
+    await pool.query(
+      `UPDATE crypto_sponsors 
+       SET name = $1, description = $2, url = $3, normalized_domain = $4, logo_asset_id = $5
+       WHERE id = $6`,
+      [profile.name, profile.description, profile.url, profile.normalized_domain, input.logo_asset_id || null, id]
+    );
+
+    if (payment.validation_status === "confirmed" && !payment.participant_id && profile.name.trim().length > 0) {
+      await pool.query("BEGIN");
+      try {
+        const updatedPayment = await getCryptoPayment(pool, id);
+        if (updatedPayment) {
+          const participantId = await ensureCryptoParticipant(
+            pool,
+            config,
+            {
+              id: updatedPayment.id,
+              session_id: updatedPayment.session_id,
+              name: profile.name,
+              description: profile.description,
+              url: profile.url,
+              normalized_domain: profile.normalized_domain,
+              logo_asset_id: input.logo_asset_id || null,
+            },
+            clock,
+          );
+
+          await pool.query(
+            "UPDATE crypto_sponsors SET participant_id=$2 WHERE id=$1",
+            [id, participantId],
+          );
+
+          const amountUsd = parseFloat(updatedPayment.amount_usd);
+          await pool.query(
+            `INSERT INTO sponsor_usd_totals (participant_id, total_usd, payment_count, last_payment_at, updated_at)
+             VALUES ($1, $2, 1, $3, $3)
+             ON CONFLICT (participant_id) DO UPDATE
+             SET total_usd = sponsor_usd_totals.total_usd + EXCLUDED.total_usd,
+                 payment_count = sponsor_usd_totals.payment_count + 1,
+                 last_payment_at = EXCLUDED.last_payment_at,
+                 updated_at = EXCLUDED.updated_at`,
+            [participantId, amountUsd.toFixed(2), clock()],
+          );
+        }
+        await pool.query("COMMIT");
+      } catch (error) {
+        await pool.query("ROLLBACK");
+        throw error;
+      }
+    }
+
+    return { success: true };
   });
 
   app.get(`${prefix}/leaderboard`, async (request, reply) => {

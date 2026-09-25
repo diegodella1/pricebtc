@@ -8,7 +8,7 @@ import {
   getAvailableAssets,
 } from "./crypto-sponsors.js";
 
-async function ensureCryptoParticipant(
+export async function ensureCryptoParticipant(
   pool: pg.Pool,
   config: BidConfig,
   sponsor: {
@@ -232,28 +232,33 @@ export async function runCryptoValidationWorker(
           [row.id],
         );
 
-        const participantId = await ensureCryptoParticipant(
-          pool,
-          config,
-          sponsor.rows[0],
-          clock,
-        );
+        const sponsorRow = sponsor.rows[0];
+        const hasProfile = sponsorRow.name && sponsorRow.name.trim().length > 0;
 
-        await pool.query(
-          "UPDATE crypto_sponsors SET participant_id=$2 WHERE id=$1",
-          [row.id, participantId],
-        );
+        if (hasProfile) {
+          const participantId = await ensureCryptoParticipant(
+            pool,
+            config,
+            sponsorRow,
+            clock,
+          );
 
-        await pool.query(
-          `INSERT INTO sponsor_usd_totals (participant_id, total_usd, payment_count, last_payment_at, updated_at)
-           VALUES ($1, $2, 1, $3, $3)
-           ON CONFLICT (participant_id) DO UPDATE
-           SET total_usd = sponsor_usd_totals.total_usd + EXCLUDED.total_usd,
-               payment_count = sponsor_usd_totals.payment_count + 1,
-               last_payment_at = EXCLUDED.last_payment_at,
-               updated_at = EXCLUDED.updated_at`,
-          [participantId, amountUsd.toFixed(2), clock()],
-        );
+          await pool.query(
+            "UPDATE crypto_sponsors SET participant_id=$2 WHERE id=$1",
+            [row.id, participantId],
+          );
+
+          await pool.query(
+            `INSERT INTO sponsor_usd_totals (participant_id, total_usd, payment_count, last_payment_at, updated_at)
+             VALUES ($1, $2, 1, $3, $3)
+             ON CONFLICT (participant_id) DO UPDATE
+             SET total_usd = sponsor_usd_totals.total_usd + EXCLUDED.total_usd,
+                 payment_count = sponsor_usd_totals.payment_count + 1,
+                 last_payment_at = EXCLUDED.last_payment_at,
+                 updated_at = EXCLUDED.updated_at`,
+            [participantId, amountUsd.toFixed(2), clock()],
+          );
+        }
 
         await pool.query("COMMIT");
       } catch (error) {
