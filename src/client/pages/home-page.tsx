@@ -7,6 +7,7 @@ import { WidgetDemo } from "../components/widget-demo.js";
 import { useCurrencies, useLivePrice, usePriceHistory } from "../hooks/use-market.js";
 import { useAnalytics } from "../hooks/use-analytics.js";
 import { IS_STATIC_BUILD } from "../lib/api.js";
+import { bidApi } from "../sats-bid/api.js";
 import { formatPercent, formatPrice, formatPriceVariants, formatRelativeTime, formatVolume } from "../lib/format.js";
 import { formatUtcDate, formatUtcTime, getMarketTelemetry } from "../lib/market-telemetry.js";
 import { HISTORY_RANGES, type HistoryRange } from "../../shared/widget-config.js";
@@ -75,11 +76,11 @@ export function HomePage() {
     if (IS_STATIC_BUILD) return;
     async function checkCryptoConfig() {
       try {
-        const response = await fetch("/api/crypto-sponsors/config");
-        if (response.ok) {
-          const config = await response.json() as { enabled: boolean; assets: { type: string }[] };
-          setCryptoEnabled(config.enabled && config.assets.length > 0);
-        }
+        const config = await bidApi<{ enabled: boolean; assets: { type: string }[] }>(
+          "/crypto-sponsors/config",
+          { method: "GET" }
+        );
+        setCryptoEnabled(config.enabled && config.assets.length > 0);
       } catch {
         setCryptoEnabled(false);
       }
