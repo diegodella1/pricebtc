@@ -64,7 +64,7 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
   const [profileSaved, setProfileSaved] = useState(false);
   const pollInterval = useRef<number | null>(null);
 
-  const resumePayment = useCallback(async (paymentId: string) => {
+  const resumePayment = useCallback(async (paymentId: string, cfg: CryptoConfig | null) => {
     try {
       const status = await bidApi<PaymentStatus & { name: string; description: string; url: string; logo_asset_id: string | null }>(`/crypto-sponsors/payments/${paymentId}`, { method: "GET" });
       setPaymentStatus(status);
@@ -77,6 +77,23 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
           logoAssetId: status.logo_asset_id,
         });
         setProfileSaved(true);
+      }
+      
+      if (cfg) {
+        const asset = cfg.assets.find((a) => a.type === status.asset_type);
+        if (asset) {
+          setSelectedAsset(asset);
+          try {
+            const code = await QRCode.toDataURL(asset.address, {
+              width: 256,
+              margin: 2,
+              color: { dark: "#0d1012", light: "#fdf6e3" },
+            });
+            setQrCode(code);
+          } catch {
+            console.error("Failed to regenerate QR code");
+          }
+        }
       }
       
       if (status.validation_status === "confirmed" && status.name) {
@@ -129,20 +146,20 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
       try {
         const data = await bidApi<CryptoConfig>("/crypto-sponsors/config", { method: "GET" });
         setConfig(data);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const paymentId = urlParams.get("payment") || localStorage.getItem("crypto_payment_id");
+        
+        if (paymentId) {
+          void resumePayment(paymentId, data).then(() => {
+            startPolling(paymentId);
+          });
+        }
       } catch (e) {
         setError((e as Error).message);
       }
     }
     void fetchConfig();
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const paymentId = urlParams.get("payment") || localStorage.getItem("crypto_payment_id");
-    
-    if (paymentId) {
-      void resumePayment(paymentId).then(() => {
-        startPolling(paymentId);
-      });
-    }
   }, [resumePayment, startPolling]);
 
 
@@ -201,7 +218,7 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
       GA4Events.profileSave();
       
       if (paymentStatus.validation_status === "confirmed" && onComplete) {
-        setTimeout(onComplete, 1000);
+        setTimeout(onComplete, 1500);
       }
     } catch (e) {
       setError((e as Error).message);
@@ -531,7 +548,7 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
             <div className="crypto-error">{paymentStatus.validation_error}</div>
           )}
 
-          {(paymentStatus.validation_status === "watching" || paymentStatus.validation_status === "pending" || paymentStatus.validation_status === "validating") && !profileSaved && (
+          {(paymentStatus.validation_status === "watching" || paymentStatus.validation_status === "pending" || paymentStatus.validation_status === "validating" || paymentStatus.validation_status === "confirmed") && !profileSaved && (
             <button 
               type="button" 
               className="crypto-cta-button" 
