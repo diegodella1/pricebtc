@@ -42,7 +42,7 @@ export class PriceAggregator {
     this.logger = options.logger ?? console;
   }
 
-  start(): void {
+  async start(): Promise<void> {
     if (this.state !== "stopped") return;
     this.setState("connecting");
 
@@ -50,9 +50,14 @@ export class PriceAggregator {
       feed.onPrice(() => this.recompute());
       feed.onStatus(() => this.recompute());
     }
+
+    await Promise.all(this.feeds.map((feed) => feed.start()));
   }
 
   stop(): void {
+    for (const feed of this.feeds) {
+      feed.stop();
+    }
     this.setState("stopped");
   }
 
