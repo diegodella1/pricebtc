@@ -1,9 +1,7 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { SiteHeader } from "../components/site-header.js";
-import { CurrencySelect } from "../components/currency-select.js";
 import { CurrencyChips } from "../components/currency-chips.js";
 import { PriceChart } from "../components/price-chart.js";
-import { WidgetDemo } from "../components/widget-demo.js";
 import { useCurrencies, useLivePrice, usePriceHistory } from "../hooks/use-market.js";
 import { useAnalytics } from "../hooks/use-analytics.js";
 import { IS_STATIC_BUILD } from "../lib/api.js";
@@ -114,7 +112,6 @@ export function HomePage() {
                 {formatted ? <><span className="hero__price-exact">{formatted.exact}</span><span className="hero__price-compact" aria-hidden="true">{formatted.compact}</span></> : "—"}
               </p>
               <div className="quote-context"><span className={price && live ? price.change24h >= 0 ? "is-positive" : "is-negative" : ""}>{price ? formatPercent(price.change24h) : "—"} <small>24h</small></span><span>1 USD = <strong>{satsPerDollar}</strong> sats</span></div>
-              <CurrencySelect currencies={currencies} value={currency} onChange={setCurrency} id="home-currency" />
               {error && <p className="public-notice" role="status">{error}</p>}
               <div className="kpi-strip">
                 <div className="kpi-item"><span className="kpi-label">High 24h</span><strong className="kpi-value">{price?.high24h ? formatPrice(price.high24h, currency) : "—"}</strong></div>
@@ -142,19 +139,6 @@ export function HomePage() {
         </div>
         <p className="observation-description">{siteContent.home.observationDescription} <a href="/api">Bitcoin Price API</a> · <a href="/bitcoin-price-updates">Price source and methodology</a></p>
         <div className="market-ctas">
-          <a href="/api/price?currency=USD" className="market-cta">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-              <path d="M3 10h14M3 5h14M3 15h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-            <span>Get price as JSON</span>
-          </a>
-          <a href="/studio" className="market-cta">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-              <rect x="2" y="2" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="2"/>
-              <path d="M6 10h8M10 6v8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-            <span>Create a widget</span>
-          </a>
           {cryptoEnabled && (
             <a href="/sponsors#claim" className="market-cta">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -164,9 +148,11 @@ export function HomePage() {
               <span>Claim a sponsor spot</span>
             </a>
           )}
+          <a href="/api/price?currency=USD" className="market-cta market-cta--quiet">
+            Get price as JSON
+          </a>
         </div>
       </section>
-      <WidgetDemo price={price} history={displayedPoints} connectionState={connectionState} currency={currency} range={range} loading={historyLoading} error={historyError} />
       {!IS_STATIC_BUILD && <Suspense fallback={<div className="sponsor-presentation-loading" role="status">Loading sponsor space…</div>}><BidHome /></Suspense>}
       <section className="public-section faq-section" id="data" aria-labelledby="faq-title"><div className="section-intro"><div><p className="section-kicker">Good to know</p><h2 id="faq-title">Simple tools. Clear sources.</h2></div><p>Live Bitcoin prices for the people watching, building and broadcasting.</p></div>
         <details><summary>Is PRICEB.TC free?</summary><p>Yes. Create and publish widgets without an account. Sponsorship is optional and separate.</p></details>
@@ -175,6 +161,6 @@ export function HomePage() {
         <details><summary>How do sponsors work?</summary><p>Five home placements: hero spot #1, strip #2, and logo rail ranks #3-7 below the chart, plus the Top 21 leaderboard. Ranked by cumulative USD. Crypto payments (USDT, USDC, BTC) add to your total. The highest totals take the spots until someone outbids. No daily resets. <a href="/sponsors#board">See leaderboard ↗</a></p></details>
       </section>
     </main>
-    <footer className="public-footer"><div><a href="/" className="footer-wordmark">PRICEB.TC</a><p>Bitcoin, in view.</p>{stats && Number.isFinite(stats.visitors) && <p className="footer-stats">{stats.visitors.toLocaleString()} visitors last 30 days</p>}</div><nav aria-label="Footer navigation"><a href="/sponsors#claim">Sponsor</a><a href="/status">Status</a><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="/studio">Studio</a><a href="/about">About</a><a href="/faq">FAQ</a><a href="/api">API</a><a href={`mailto:${siteContent.contactEmail}`}>Contact</a></nav><p>Indicative market data · Not financial advice · FX by <a href="https://www.exchangerate-api.com" target="_blank" rel="noreferrer">ExchangeRate-API</a></p></footer>
+    <footer className="public-footer"><div><a href="/" className="footer-wordmark">PRICEB.TC</a><p>Bitcoin price infrastructure.</p>{stats && Number.isFinite(stats.visitors) && <p className="footer-stats">{stats.visitors.toLocaleString()} visitors last 30 days</p>}</div><nav aria-label="Footer navigation"><a href="/sponsors#claim">Sponsors</a><a href="/api">API</a><a href="/status">Status</a><a href="/terms">Terms</a><a href={`mailto:${siteContent.contactEmail}`}>Contact</a></nav><p>Indicative market data · Not financial advice · FX by <a href="https://www.exchangerate-api.com" target="_blank" rel="noreferrer">ExchangeRate-API</a></p></footer>
   </div>;
 }

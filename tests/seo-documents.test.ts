@@ -45,7 +45,10 @@ describe("generated SEO documents", () => {
       const page = new DOMParser().parseFromString(await readFile(join(root, path), "utf8"), "text/html");
       expect(page.querySelector('footer a[href="/faq"]')).not.toBeNull();
     }
-    expect(await readFile("src/client/pages/home-page.tsx", "utf8")).toContain('href="/faq"');
+    const homePageSource = await readFile("src/client/pages/home-page.tsx", "utf8");
+    for (const structureLink of ['/sponsors#claim', '/api', '/status', '/terms']) {
+      expect(homePageSource).toContain(`href="${structureLink}"`);
+    }
   });
   it("gives every indexable document a unique title, canonical and valid conservative schema", async () => {
     const titles = new Set();
