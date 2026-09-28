@@ -38,10 +38,10 @@ describe("generated SEO documents", () => {
     expect(document.documentElement.lang).toBe("en");
     expect(document.querySelector('meta[name="robots"]')?.getAttribute("content")).toBe("index,follow,max-image-preview:large");
     expect(document.querySelector('meta[property="og:url"]')?.getAttribute("content")).toBe(schema.url);
-    for (const href of ["/", "/bitcoin-price-updates", "/api", "/api/price?currency=USD", "/llms.txt", "/bitcoin-price-widget", "/bitcoin-obs-overlay", "/studio"]) expect(document.querySelector(`main a[href="${href}"]`)).not.toBeNull();
-    for (const phrase of ["Coinbase Exchange (market BTC-USD)", "marketTimestamp", "receivedAt", "15 seconds", "HTTP 503 with PRICE_UNAVAILABLE", "ARS", "not a local exchange quote", "not financial advice"]) expect(document.body.textContent).toContain(phrase);
+    for (const href of ["/", "/methodology", "/api", "/api/price?currency=USD", "/llms.txt", "/bitcoin-price-widget", "/bitcoin-obs-overlay", "/studio"]) expect(document.querySelector(`main a[href="${href}"]`)).not.toBeNull();
+    for (const phrase of ["marketTimestamp", "receivedAt", "30 seconds", "HTTP 503 with PRICE_UNAVAILABLE", "ARS", "not a local exchange quote", "not financial advice"]) expect(document.body.textContent).toContain(phrase);
     expect(manifest.indexable).toContain("/faq");
-    for (const path of ["index.html", "about/index.html", "api/index.html", "bitcoin-price-updates/index.html"]) {
+    for (const path of ["index.html", "about/index.html", "api/index.html", "methodology/index.html"]) {
       const page = new DOMParser().parseFromString(await readFile(join(root, path), "utf8"), "text/html");
       expect(page.querySelector('footer a[href="/faq"]')).not.toBeNull();
     }

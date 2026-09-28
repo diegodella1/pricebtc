@@ -293,7 +293,7 @@ print(f"BTC/{selectedCurrency}: {data['price']}")`;
               <a href="/bitcoin-price.md">bitcoin-price.md</a> — Current price as Markdown
             </li>
             <li>
-              <a href="/bitcoin-price-updates">Price source and methodology</a> — How we get the data
+              <a href="/methodology">Price methodology</a> — How we get the data
             </li>
             <li>
               <a href="/studio">Widget Studio</a> — Create embeddable widgets

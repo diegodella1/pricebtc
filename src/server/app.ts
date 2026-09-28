@@ -116,6 +116,10 @@ function registerResponsePolicies(app: FastifyInstance): void {
       return reply.redirect(`${newPath}${url.search}`, 301);
     }
     
+    if (normalized === "/bitcoin-price-updates" || normalized === "/price-methodology") {
+      return reply.redirect(`/methodology${url.search}`, 301);
+    }
+    
     if ((seoPages.indexable.includes(normalized) || ["/embed", "/overlay"].includes(normalized)) && normalized !== url.pathname) {
       return reply.redirect(`${normalized}${url.search}`, 308);
     }

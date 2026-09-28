@@ -5,9 +5,9 @@ import { PriceAggregator } from "../src/server/services/price-aggregator.js";
 import type { VenueFeed, VenueSnapshot } from "../src/server/services/venue-feed.js";
 
 class MockVenueFeed implements VenueFeed {
-  private readonly events = new EventEmitter();
-  private snapshot: VenueSnapshot | null = null;
-  private state: "connecting" | "live" | "degraded" | "stopped" = "stopped";
+  readonly events = new EventEmitter();
+  snapshot: VenueSnapshot | null = null;
+  state: "connecting" | "live" | "degraded" | "stopped" = "stopped";
 
   constructor(
     private readonly venueId: string,
