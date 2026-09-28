@@ -1761,42 +1761,69 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 12px;
-  padding: 12px 0;
-  min-height: 64px;
-  margin: 16px 0;
+  gap: 10px;
+  padding: 0;
+  min-height: 72px;
+  margin: 0 0 20px;
 }
 
 .public-site .logo-rail__cell {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   flex: 1;
   min-width: 0;
+  min-height: 72px;
   text-decoration: none;
   color: inherit;
-  transition: all 150ms ease;
-  padding: 8px;
-  border-radius: 8px;
+  transition: border-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 160ms cubic-bezier(0.2, 0.8, 0.2, 1), background 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  padding: 12px 8px;
+  border-radius: 12px;
+  background: var(--surface-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--line);
+  box-shadow: 0 0 0 1px rgba(244, 246, 251, 0.06);
 }
 
 .public-site .logo-rail__cell:hover {
-  background: var(--surface);
+  border-color: var(--accent);
+  border-style: solid;
+  box-shadow: 0 0 0 1px rgba(244, 246, 251, 0.06), 0 0 14px var(--accent-glow);
+}
+
+.public-site .logo-rail__cell:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  border-style: solid;
+  box-shadow: 0 0 0 1px rgba(244, 246, 251, 0.06), 0 0 14px var(--accent-glow);
 }
 
 .public-site .logo-rail__cell--empty {
-  opacity: 0.85;
-  background: rgba(13, 16, 23, 0.72);
-  backdrop-filter: blur(12px);
+  opacity: 1;
+  background: var(--surface-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px dashed var(--line);
-  border-radius: 8px;
+  border-radius: 12px;
 }
 
 .public-site .logo-rail__cell--empty:hover {
   opacity: 1;
-  background: rgba(13, 16, 23, 0.85);
+  background: rgba(15, 19, 27, 0.85);
   border-color: var(--accent);
+  border-style: solid;
+  box-shadow: 0 0 0 1px rgba(244, 246, 251, 0.06), 0 0 14px var(--accent-glow);
+}
+
+.public-site .logo-rail__cell--empty:focus-visible {
+  outline: none;
+  background: rgba(15, 19, 27, 0.85);
+  border-color: var(--accent);
+  border-style: solid;
+  box-shadow: 0 0 0 1px rgba(244, 246, 251, 0.06), 0 0 14px var(--accent-glow);
 }
 
 .public-site .logo-rail__logo {
@@ -1804,24 +1831,24 @@
   height: 40px;
   flex-shrink: 0;
   object-fit: contain;
-  border-radius: 6px;
+  border-radius: 8px;
 }
 
 .public-site .logo-rail__monogram {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--accent);
+  background: var(--text);
   color: var(--background);
-  font: 600 16px var(--font-display);
-  border-radius: 6px;
+  font: 600 14px var(--font-display);
+  border-radius: 8px;
 }
 
 .public-site .logo-rail__empty-box {
   width: 40px;
   height: 40px;
-  border: 1px dashed var(--line);
-  border-radius: 6px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1837,6 +1864,7 @@
   font: 500 11px var(--font-mono);
   color: var(--text-muted);
   letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .public-site .logo-rail__cell--loading .logo-rail__skeleton {
