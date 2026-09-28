@@ -3,7 +3,6 @@ import { SiteHeader } from "../components/site-header.js";
 import { CurrencySelect } from "../components/currency-select.js";
 import { CurrencyChips } from "../components/currency-chips.js";
 import { PriceChart } from "../components/price-chart.js";
-import { WidgetDemo } from "../components/widget-demo.js";
 import { useCurrencies, useLivePrice, usePriceHistory } from "../hooks/use-market.js";
 import { useAnalytics } from "../hooks/use-analytics.js";
 import { IS_STATIC_BUILD } from "../lib/api.js";
@@ -148,13 +147,6 @@ export function HomePage() {
             </svg>
             <span>Get price as JSON</span>
           </a>
-          <a href="/studio" className="market-cta">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-              <rect x="2" y="2" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="2"/>
-              <path d="M6 10h8M10 6v8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-            <span>Create a widget</span>
-          </a>
           {cryptoEnabled && (
             <a href="/sponsors#claim" className="market-cta">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -166,7 +158,6 @@ export function HomePage() {
           )}
         </div>
       </section>
-      <WidgetDemo price={price} history={displayedPoints} connectionState={connectionState} currency={currency} range={range} loading={historyLoading} error={historyError} />
       {!IS_STATIC_BUILD && <Suspense fallback={<div className="sponsor-presentation-loading" role="status">Loading sponsor space…</div>}><BidHome /></Suspense>}
       <section className="public-section faq-section" id="data" aria-labelledby="faq-title"><div className="section-intro"><div><p className="section-kicker">Good to know</p><h2 id="faq-title">Simple tools. Clear sources.</h2></div><p>Live Bitcoin prices for the people watching, building and broadcasting.</p></div>
         <details><summary>Is PRICEB.TC free?</summary><p>Yes. Create and publish widgets without an account. Sponsorship is optional and separate.</p></details>
