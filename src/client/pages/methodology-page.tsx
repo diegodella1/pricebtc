@@ -12,9 +12,9 @@ export function MethodologyPage() {
           <h1>How we price</h1>
 
           <p className="lead">
-            PRICEB.TC publishes a <strong>BTC/USD index</strong> built from live trades on{" "}
-            <strong>Coinbase Exchange</strong> and <strong>Binance</strong>. It is a disclosed, volume-weighted
-            combination of those venues — <strong>not</strong> a global average and <strong>not</strong> a claim of the
+            PRICEB.TC publishes a <strong>BTC/USD index</strong> from <strong>Coinbase Exchange</strong> and{" "}
+            <strong>Binance</strong> last prices, weighted by each venue's <strong>24-hour volume</strong>. It is a
+            disclosed two-venue index — <strong>not</strong> a global average and <strong>not</strong> a claim of the
             "true" world price of Bitcoin.
           </p>
 
@@ -25,18 +25,21 @@ export function MethodologyPage() {
                 <tr>
                   <th>Venue</th>
                   <th>Pair</th>
-                  <th>Role in v1</th>
+                  <th>Weight in v1</th>
+                  <th>Role</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
                   <td>Coinbase Exchange</td>
                   <td>BTC-USD</td>
+                  <td>24h volume</td>
                   <td>Required USD spot leg</td>
                 </tr>
                 <tr>
                   <td>Binance</td>
                   <td>BTCUSDT</td>
+                  <td>24h volume</td>
                   <td>
                     Required; <strong>USDT-linked</strong> USD proxy (see note below)
                   </td>
@@ -44,25 +47,31 @@ export function MethodologyPage() {
               </tbody>
             </table>
             <p>
-              Kraken and other venues are <strong>not</strong> included in v1.
+              Kraken and other venues are <strong>not</strong> included in v1. Rolling 60-second trade-volume weights
+              are <strong>not</strong> used in v1 (possible later).
             </p>
           </section>
 
           <section id="calculation">
             <h2>How the index is calculated</h2>
             <p>
-              When both venues are healthy, the headline price is a <strong>volume-weighted average</strong> of their
-              last prices. Each venue's weight comes from its <strong>24-hour quoted volume</strong>.
+              When both venues are healthy, the headline price is a <strong>last-price VWAP</strong>: each venue's{" "}
+              <strong>last price</strong> weighted by that venue's <strong>24-hour quoted volume</strong> (
+              <code>weightSource: "24h"</code> on every v1 source).
             </p>
             <p>Plain form:</p>
             <pre>
               <code>
-                {`index = (price_coinbase × vol_coinbase + price_binance × vol_binance) / (vol_coinbase + vol_binance)`}
+                {`index = (last_coinbase × vol24h_coinbase + last_binance × vol24h_binance) / (vol24h_coinbase + vol24h_binance)`}
               </code>
             </pre>
-            <p>(with Binance price taken from BTCUSDT under the USDT≈USD assumption below).</p>
+            <p>(with Binance last price taken from BTCUSDT under the USDT≈USD assumption below).</p>
             <p>
-              We recompute as venue ticks arrive and publish to the site and API at most about <strong>once per second</strong>.
+              We recompute as venue ticks arrive and publish to the site and API at most about{" "}
+              <strong>once per second</strong>.
+            </p>
+            <p>
+              v1 does <strong>not</strong> use rolling 60-second trade volume for weights.
             </p>
           </section>
 
@@ -126,6 +135,16 @@ export function MethodologyPage() {
             </p>
           </section>
 
+          <section id="ohlcv">
+            <h2>24h stats on the home card (OHLCV)</h2>
+            <p>
+              The home card's <strong>24h change, high, low, and volume</strong> stay tied to{" "}
+              <strong>Coinbase Exchange BTC-USD</strong> ticker/stats, even when the headline number is the two-venue
+              index. They are <strong>not</strong> an index OHLC. We label them as Coinbase so the card does not
+              pretend the whole strip is multi-venue.
+            </p>
+          </section>
+
           <section id="fx">
             <h2>Other currencies (FX)</h2>
             <p>
@@ -137,8 +156,9 @@ export function MethodologyPage() {
           <section id="history">
             <h2>Price history</h2>
             <p>
-              The chart and history endpoints remain <strong>Coinbase BTC-USD labeled</strong> until a dedicated
-              multi-venue history series exists. Past candles are not relabeled as the index.
+              The chart and history endpoints remain <strong>Coinbase BTC-USD labeled</strong> (
+              <code>source: "coinbase"</code>) until a dedicated multi-venue history series exists. Past candles are{" "}
+              <strong>not</strong> relabeled as the index.
             </p>
           </section>
 
@@ -156,8 +176,9 @@ export function MethodologyPage() {
             <h2>What we do not claim</h2>
             <p>
               We do <strong>not</strong> call this a global average, a world price, or the single true Bitcoin price.
-              It is a <strong>two-venue, volume-weighted BTC/USD index</strong> with explicit fallback and disclosure
-              rules.
+              It is a <strong>two-venue BTC/USD index</strong> (last prices × <strong>24h volume</strong>) with
+              explicit USDT, fallback, outlier, and stale rules — and Coinbase-labeled OHLCV/history until those series
+              are multi-venue.
             </p>
           </section>
 

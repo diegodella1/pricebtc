@@ -58,23 +58,26 @@ export function HomePage() {
   let venueFragment = "Coinbase BTC-USD";
   let marketSubtitle = "One exchange observation, not a global index.";
   let observationDesc = "PRICEB.TC provides a timestamped Bitcoin price sourced from Coinbase Exchange. The current observation is also available through the public JSON API.";
+  let feedDetailsExplanation = siteContent.home.priceExplanation;
 
   if (isIndexMode) {
+    feedDetailsExplanation = "The headline number is a last-price index of Coinbase BTC-USD and Binance BTCUSDT weighted by 24h volume when both feeds are healthy. If only one venue is healthy, we show that venue's last price and mark the index degraded. The card's 24h high/low/change/volume remain Coinbase stats. Non-USD currencies are indicative conversions; FX rates refresh daily.";
+    
     if (isFullIndex) {
       quoteLabel = { primary: "BTC/USD index (Coinbase + Binance)", secondary: "" };
       venueFragment = "Coinbase BTC-USD + Binance BTCUSDT";
       marketSubtitle = "Volume-weighted index from two venues.";
-      observationDesc = "PRICEB.TC shows a volume-weighted BTC/USD index from Coinbase Exchange (BTC-USD) and Binance (BTCUSDT, treated as USD). The same observation is available through the public JSON API.";
+      observationDesc = "PRICEB.TC shows a BTC/USD index from Coinbase Exchange (BTC-USD) and Binance (BTCUSDT, treated as USD), weighted by 24h volume. The same observation is available through the public JSON API.";
     } else if (coinbaseOnly) {
       quoteLabel = { primary: "BTC/USD · Coinbase only (index degraded)", secondary: "" };
       venueFragment = "Coinbase BTC-USD only";
       marketSubtitle = "Index degraded to single venue.";
-      observationDesc = "PRICEB.TC shows a volume-weighted BTC/USD index from Coinbase Exchange (BTC-USD) and Binance (BTCUSDT, treated as USD). The same observation is available through the public JSON API.";
+      observationDesc = "PRICEB.TC shows a BTC/USD index from Coinbase Exchange (BTC-USD) and Binance (BTCUSDT, treated as USD), weighted by 24h volume. The same observation is available through the public JSON API.";
     } else if (binanceOnly) {
       quoteLabel = { primary: "BTC/USD · Binance only (index degraded)", secondary: "" };
       venueFragment = "Binance BTCUSDT only (USDT≈USD)";
       marketSubtitle = "Index degraded to single venue.";
-      observationDesc = "PRICEB.TC shows a volume-weighted BTC/USD index from Coinbase Exchange (BTC-USD) and Binance (BTCUSDT, treated as USD). The same observation is available through the public JSON API.";
+      observationDesc = "PRICEB.TC shows a BTC/USD index from Coinbase Exchange (BTC-USD) and Binance (BTCUSDT, treated as USD), weighted by 24h volume. The same observation is available through the public JSON API.";
     }
   }
 
@@ -169,7 +172,7 @@ export function HomePage() {
               </div>}
                 {historyError && points.length > 0 && <p className="public-notice" role="status">History updates delayed.</p>}
                 <div className="history-summary"><span>{range.toUpperCase()} WINDOW</span><span>High <strong>{telemetry ? formatPrice(String(telemetry.high), currency) : "—"}</strong></span><span>Low <strong>{telemetry ? formatPrice(String(telemetry.low), currency) : "—"}</strong></span><span>Change <strong>{telemetry?.changePercent == null ? "—" : formatPercent(telemetry.changePercent)}</strong></span></div>
-                <details className="feed-details"><summary>About this price</summary><p>{siteContent.home.priceExplanation}</p><dl><div><dt>Connection</dt><dd>{connectionState}</dd></div><div><dt>Market update</dt><dd>{formatUtcTime(price?.marketTimestamp ?? null)}</dd></div><div><dt>Received</dt><dd>{formatUtcTime(price?.receivedAt ?? null)}</dd></div><div><dt>FX updated</dt><dd>{currency === "USD" ? "Direct USD price" : formatUtcDate(price?.fxUpdatedAt ?? null)}</dd></div></dl></details>
+                <details className="feed-details"><summary>About this price</summary><p>{feedDetailsExplanation}{isIndexMode && <> Full rules: <a href="/methodology">How we price</a>.</>}</p><dl><div><dt>Connection</dt><dd>{connectionState}</dd></div><div><dt>Market update</dt><dd>{formatUtcTime(price?.marketTimestamp ?? null)}</dd></div><div><dt>Received</dt><dd>{formatUtcTime(price?.receivedAt ?? null)}</dd></div><div><dt>FX updated</dt><dd>{currency === "USD" ? "Direct USD price" : formatUtcDate(price?.fxUpdatedAt ?? null)}</dd></div></dl></details>
               </div>
             </div>
             <aside id="bid-top-slot" aria-label="Sponsor space"></aside>
