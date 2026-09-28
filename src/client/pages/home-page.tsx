@@ -113,7 +113,6 @@ export function HomePage() {
                 {formatted ? <><span className="hero__price-exact">{formatted.exact}</span><span className="hero__price-compact" aria-hidden="true">{formatted.compact}</span></> : "—"}
               </p>
               <div className="quote-context"><span className={price && live ? price.change24h >= 0 ? "is-positive" : "is-negative" : ""}>{price ? formatPercent(price.change24h) : "—"} <small>24h</small></span><span>1 USD = <strong>{satsPerDollar}</strong> sats</span></div>
-              <CurrencySelect currencies={currencies} value={currency} onChange={setCurrency} id="home-currency" />
               {error && <p className="public-notice" role="status">{error}</p>}
               <div className="kpi-strip">
                 <div className="kpi-item"><span className="kpi-label">High 24h</span><strong className="kpi-value">{price?.high24h ? formatPrice(price.high24h, currency) : "—"}</strong></div>
@@ -141,12 +140,6 @@ export function HomePage() {
         </div>
         <p className="observation-description">{siteContent.home.observationDescription} <a href="/api">Bitcoin Price API</a> · <a href="/bitcoin-price-updates">Price source and methodology</a></p>
         <div className="market-ctas">
-          <a href="/api/price?currency=USD" className="market-cta">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-              <path d="M3 10h14M3 5h14M3 15h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-            <span>Get price as JSON</span>
-          </a>
           {cryptoEnabled && (
             <a href="/sponsors#claim" className="market-cta">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -156,6 +149,9 @@ export function HomePage() {
               <span>Claim a sponsor spot</span>
             </a>
           )}
+          <a href="/api/price?currency=USD" className="market-cta market-cta--quiet">
+            Get price as JSON
+          </a>
         </div>
       </section>
       {!IS_STATIC_BUILD && <Suspense fallback={<div className="sponsor-presentation-loading" role="status">Loading sponsor space…</div>}><BidHome /></Suspense>}
