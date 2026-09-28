@@ -1786,12 +1786,17 @@
 }
 
 .public-site .logo-rail__cell--empty {
-  opacity: 0.6;
+  opacity: 0.85;
+  background: rgba(13, 16, 23, 0.72);
+  backdrop-filter: blur(12px);
+  border: 1px dashed var(--line);
+  border-radius: 8px;
 }
 
 .public-site .logo-rail__cell--empty:hover {
-  opacity: 0.8;
-  background: var(--surface);
+  opacity: 1;
+  background: rgba(13, 16, 23, 0.85);
+  border-color: var(--accent);
 }
 
 .public-site .logo-rail__logo {
