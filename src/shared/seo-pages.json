@@ -16,31 +16,31 @@
       "path": "/methodology",
       "title": "How we price Bitcoin | PRICEB.TC",
       "heading": "How we price",
-      "description": "Understand the Coinbase BTC/USD feed, price timestamps, delayed data and daily currency conversions used by PRICEB.TC.",
+      "description": "How PRICEB.TC builds its BTC/USD index from Coinbase and Binance, including fallback, outlier, and FX rules.",
       "sections": [
         [
-          "Where the price comes from",
-          "PRICEB.TC displays BTC/USD market data from Coinbase Exchange, including the current price, 24-hour high/low, and trading volume. These metrics reflect activity on the Coinbase BTC-USD market only—not aggregated global exchange data. Different exchanges can quote different prices and volumes because their order books and trades are independent."
+          "Multi-venue index",
+          "PRICEB.TC publishes a BTC/USD index from Coinbase Exchange and Binance last prices, weighted by each venue's 24-hour volume. It is a disclosed two-venue index — not a global average and not a claim of the true world price of Bitcoin."
         ],
         [
-          "Updates and timestamps",
-          "The running service receives market updates and sends them to connected browsers. The displayed UTC time is the market timestamp of the latest observation, not the time you opened the page. The initial page includes the latest available USD snapshot; JavaScript keeps it current afterward. There is no guaranteed update frequency or latency."
+          "Calculation method",
+          "When both venues are healthy, the headline price is a last-price VWAP: each venue's last price weighted by that venue's 24-hour quoted volume. We recompute as venue ticks arrive and publish to the site and API at most about once per second."
         ],
         [
-          "Live, delayed and unavailable",
-          "A recent received snapshot is marked live; a snapshot older than 15 seconds is stale. Connection problems can also show delayed data. A delayed quote remains useful as a last observation, but it is not a current trading quote. If no snapshot exists, the page reports that the price is unavailable."
+          "Fallback and degraded modes",
+          "When only one venue is healthy, we show that venue's last price and mark the index degraded. If every venue feed fails, we keep showing the last good index for at most 30 seconds, then surface a stale/error state. We never invent a number."
         ],
         [
-          "Currencies and chart windows",
-          "USD is the direct market quote. Other supported currencies use indicative daily ExchangeRate-API conversions, so they can differ from local exchange prices. The 1h, 24h and 7d chart windows display historical price and volume data (BTC base volume) from Coinbase Exchange. Volume bars are shown for USD; converted currency views display price only. The headline 24h change and a selected chart window change can differ."
+          "OHLCV and history",
+          "The home card's 24h change, high, low, and volume stay tied to Coinbase Exchange BTC-USD ticker/stats, even when the headline number is the two-venue index. They are not an index OHLC. The chart and history endpoints remain Coinbase BTC-USD labeled until a dedicated multi-venue history series exists."
         ],
         [
-          "Buy and sell volume",
-          "Green and red volume segments show recorded buyer-initiated and seller-initiated BTC trades on Coinbase Exchange. Each trade has both a buyer and a seller; the classification identifies the side taking liquidity. Coinbase reports the maker side, which PRICEB.TC reverses to identify the initiating side. This is not inferred from whether the price rose or fell. The service checks recent trades every 10 seconds and retains minute aggregates for eight days; the chart refreshes every 30 seconds. Only retrieved trades are classified. Grey volume has no recorded split, and older intervals or gaps may be incomplete. Candle totals and recorded trades can update at different times."
+          "Currency conversions",
+          "Non-USD display currencies are indicative conversions (ExchangeRate-API), typically refreshed daily. They are not separate crypto spot markets."
         ],
         [
-          "Reading prices with an agent",
-          "Use the public JSON endpoints described below for a timestamped observation. Keep the source, currency and status with the number. Do not describe stale data as live or treat the page request time as the market time."
+          "What we do not claim",
+          "We do not call this a global average, a world price, or the single true Bitcoin price. It is a two-venue BTC/USD index with explicit USDT, fallback, outlier, and stale rules — and Coinbase-labeled OHLCV/history until those series are multi-venue."
         ]
       ]
     },

@@ -68,7 +68,7 @@ describe("generated SEO documents", () => {
         expect(html).toContain("<!--PRICE_SNAPSHOT-->");
         expect(html).toContain('href="/api"');
       }
-      if (path === "/about" || path === "/faq" || manifest.guides.some(g => g.path === path)) expect(document.querySelector('script[type="module"]')).toBeNull();
+      if (path === "/about" || path === "/faq" || (manifest.guides.some(g => g.path === path) && path !== "/methodology")) expect(document.querySelector('script[type="module"]')).toBeNull();
     }
   });
   it("publishes a consistent entity on home and About without unsupported identity claims", async () => {
@@ -98,7 +98,7 @@ describe("generated SEO documents", () => {
     expect(about.documentElement.lang).toBe("en");
     expect(about.querySelector('meta[name="robots"]')?.getAttribute("content")).toBe("index,follow,max-image-preview:large");
     expect(about.querySelector('meta[property="og:url"]')?.getAttribute("content")).toBe("https://priceb.tc/about");
-    for (const href of ["/", "/api", "/llms.txt", "/bitcoin-price-updates", "/studio", "/rules", "mailto:contact@foreign.rodeo"]) expect(about.querySelector(`main a[href="${href}"]`)).not.toBeNull();
+    for (const href of ["/", "/api", "/llms.txt", "/methodology", "/studio", "/rules", "mailto:contact@foreign.rodeo"]) expect(about.querySelector(`main a[href="${href}"]`)).not.toBeNull();
     for (const text of ["Coinbase Exchange (market BTC-USD)", "not a global average", "indicative daily FX", "not financial advice"]) expect(about.body.textContent).toContain(text);
     const source = new DOMParser().parseFromString(await readFile("index.html", "utf8"), "text/html");
     const sourceOrg = JSON.parse(source.querySelector('#structured-data')!.textContent!)["@graph"][0];
@@ -115,5 +115,23 @@ describe("generated SEO documents", () => {
     const xml = new DOMParser().parseFromString(await readFile(join(root, "sitemap.xml"), "utf8"), "text/xml");
     expect([...xml.querySelectorAll("loc")].map(n => n.textContent)).toEqual(manifest.indexable.map(p => "https://priceb.tc" + p));
     expect(manifest.indexable).toContain("/api");
+  });
+  it("builds methodology page with React hydration and correct navigation", async () => {
+    const html = await readFile(join(root, "methodology/index.html"), "utf8");
+    const document = new DOMParser().parseFromString(html, "text/html");
+    expect(document.querySelector('script[type="module"]'), "methodology must have module scripts for React hydration").not.toBeNull();
+    expect(document.querySelector('link[rel="canonical"]')?.getAttribute("href")).toBe("https://priceb.tc/methodology");
+    expect(document.querySelector("h1")?.textContent).toBe("How we price");
+    expect(html).not.toContain("Widget Studio");
+    expect(html).not.toContain("Open Widget Studio");
+    expect(html).not.toContain("Live price");
+    const navLinks = [...document.querySelectorAll('header nav a')].map(a => a.textContent);
+    expect(navLinks).toContain("Price");
+    expect(navLinks).toContain("Sponsors");
+    expect(navLinks).toContain("API");
+    for (const phrase of ["30 seconds", "24-hour volume", "VWAP", "Binance", "BTCUSDT", "USDT", "Coinbase Exchange", "two-venue index", "not a global average", "2%", "outlier", "fallback", "degraded"]) {
+      expect(document.body.textContent, `methodology must contain "${phrase}"`).toContain(phrase);
+    }
+    expect(document.body.textContent).not.toContain("15 seconds");
   });
 });

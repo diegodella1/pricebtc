@@ -185,6 +185,12 @@ export function MethodologyPage() {
           <p className="methodology-updated">Methodology updated 2026-09-28</p>
         </article>
       </main>
+      <footer className="public-footer">
+        <a href="/about">About</a>
+        <a href="/faq">FAQ</a>
+        <a href="/">PRICEB.TC · Bitcoin, in view.</a>
+        <a href="/rules">Rules</a>
+      </footer>
     </div>
   );
 }
