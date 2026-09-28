@@ -14,6 +14,20 @@ export interface MarketSnapshot {
   sequence: number | null;
 }
 
+export interface VenueSource {
+  id: string;
+  pair: string;
+  price: string;
+  volume24h?: string | null;
+  weight?: number;
+  weightSource?: "24h";
+  ok: boolean;
+  excluded?: boolean;
+  excludeReason?: string;
+  quote?: string;
+  asOf: string;
+}
+
 export interface PricePayload {
   currency: string;
   price: string;
@@ -27,7 +41,10 @@ export interface PricePayload {
   receivedAt: string;
   fxUpdatedAt: string | null;
   status: DataFreshness;
-  source: "coinbase";
+  source: "coinbase" | "index";
+  method?: "vwap" | "single-venue-fallback" | "coinbase-only";
+  degraded?: boolean;
+  sources?: VenueSource[];
 }
 
 export interface PriceObservation extends PricePayload {
