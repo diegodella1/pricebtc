@@ -5,7 +5,12 @@
   --accent-hover: #FFA733; --accent-soft: rgba(247, 147, 26, 0.16); --accent-glow: rgba(247, 147, 26, 0.35); --success: #10B981;
   --font-display: "Manrope", "Bricolage Grotesque", sans-serif; --font-body: "Geist", "IBM Plex Sans", system-ui, sans-serif; --font-mono: "JetBrains Mono", "IBM Plex Mono", monospace;
   --bid-paper: var(--background); --bid-ink: var(--text); --bid-muted: var(--text-muted); --bid-line: var(--line-soft); --bid-accent: var(--accent); --bid-white: var(--surface); --bid-alert: #ffb66b;
-  background: var(--background); color: var(--text); font-family: var(--font-body); font-size: 16px; line-height: 1.6;
+  background: var(--background); 
+  background-image: 
+    radial-gradient(ellipse 100% 40% at 50% 0%, rgba(247, 147, 26, 0.08), transparent),
+    repeating-linear-gradient(0deg, transparent, transparent 31px, rgba(255, 255, 255, 0.02) 31px, rgba(255, 255, 255, 0.02) 32px),
+    repeating-linear-gradient(90deg, transparent, transparent 31px, rgba(255, 255, 255, 0.02) 31px, rgba(255, 255, 255, 0.02) 32px);
+  color: var(--text); font-family: var(--font-body); font-size: 16px; line-height: 1.6;
 }
 body:has(.public-site), body:has(.studio-shell), body:has(.public-bid) { background: #08090D; }
 body:has(.public-site)::before, body:has(.public-site)::after, body:has(.studio-shell)::before, body:has(.studio-shell)::after, body:has(.public-bid)::before, body:has(.public-bid)::after { display: none; }
@@ -56,7 +61,6 @@ body:has(.public-site)::before, body:has(.public-site)::after, body:has(.studio-
 .market-source { color: var(--text-muted); font-size: 12px; margin: 12px 0 0; }
 .public-notice { padding: 16px; border: 1px solid var(--line); border-radius: 10px; color: var(--text-muted); }
 #bid-top-slot { min-width: 0; min-height: 240px; }
-#bid-top-slot:empty { border: 1px dashed var(--line); border-radius: 14px; background: var(--surface); }
 .public-site .bid-top { min-height: 240px; height: 100%; padding: 24px; background: rgba(13, 16, 23, 0.72); color: var(--text); border: 1px solid rgba(247, 147, 26, 0.44); border-radius: 16px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 0 0 1px rgba(244, 246, 251, 0.06), 0 8px 32px rgba(0,0,0,0.45), 0 0 40px -12px var(--accent-glow); backdrop-filter: blur(12px); }
 .public-site .bid-top.has-leader { border-color: rgba(247, 147, 26, 0.44); }
 .public-site .bid-top header { display: flex; justify-content: space-between; gap: 10px; color: var(--accent); font: 11px var(--font-mono); }
@@ -82,9 +86,9 @@ body:has(.public-site)::before, body:has(.public-site)::after, body:has(.studio-
 .public-site .price-chart__volume { fill: var(--text-muted); opacity: 0.4; }
 .public-site .price-chart--with-volume .price-chart__volume { opacity: 0.5; }
 #bid-strip-slot { display: block; min-height: 48px; height: 48px; margin: 16px 0 20px; }
-.sponsor-strip { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 12px; height: 48px; border: 1px solid var(--line); border-radius: 12px; background: rgba(13, 16, 23, 0.72); backdrop-filter: blur(12px); text-decoration: none; color: var(--text); transition: all 0.15s ease; }
+.sponsor-strip { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 12px; height: 48px; border: 1px solid var(--line); border-radius: 12px; background: rgba(13, 16, 23, 0.72); backdrop-filter: blur(12px); text-decoration: none; color: var(--text); transition: all 0.15s ease; box-shadow: 0 0 0 1px rgba(244, 246, 251, 0.06); }
 .sponsor-strip:hover { border-color: var(--accent); background: rgba(13, 16, 23, 0.85); box-shadow: 0 0 16px var(--accent-glow); }
-.sponsor-strip--empty { border-style: dashed; background: var(--surface); backdrop-filter: none; }
+.sponsor-strip--empty { border-style: dashed; background: rgba(13, 16, 23, 0.72); backdrop-filter: blur(12px); }
 .sponsor-strip__text { font: 14px var(--font-body); color: var(--text-muted); }
 .sponsor-strip__identity { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1; }
 .sponsor-strip__logo { width: 56px; height: 56px; min-width: 56px; flex-shrink: 0; border-radius: 6px; object-fit: contain; }
@@ -163,11 +167,12 @@ body:has(.public-site)::before, body:has(.public-site)::after, body:has(.studio-
 .faq-section summary { font-size: 18px; }
 .faq-section details p { max-width: 760px; color: var(--text-muted); }
 .public-footer { border-top: 1px solid var(--line); padding-top: 32px; padding-bottom: 40px; display: flex; align-items: start; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
-.footer-wordmark { font: 600 16px var(--font-mono); letter-spacing: .06em; }
+.footer-wordmark { font: 600 16px var(--font-mono); letter-spacing: .06em; color: var(--text); text-decoration: none; }
 .public-footer p { color: var(--text-muted); font-size: 12px; }
 .footer-stats { opacity: 0.6; font-size: 11px; margin-top: 4px; }
-.public-footer nav { display: flex; flex-wrap: wrap; gap: 8px 24px; font-size: 14px; }
-.public-footer nav a { padding: 10px 0; }
+.public-footer nav { display: flex; flex-wrap: wrap; gap: 8px 24px; font-size: 13px; }
+.public-footer nav a { padding: 10px 0; color: var(--text-muted); text-decoration: none; }
+.public-footer nav a:hover { color: var(--text); }
 .public-footer > p { width: 100%; margin: 0; }
 .public-bid .bid-title { font: 500 clamp(32px, 5vw, 60px)/1.12 var(--font-display); }
 .public-bid .bid-main { max-width: 1200px; }
