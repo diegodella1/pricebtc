@@ -1061,11 +1061,11 @@
 
 /* Crypto Claim Flow Styles */
 .crypto-claim-container {
-  background: var(--crypto-bg);
-  color: var(--crypto-text);
+  background: var(--background);
+  color: var(--text);
   min-height: 60vh;
   padding: 48px 32px;
-  border-radius: 4px;
+  border-radius: 16px;
   margin: 40px 0;
 }
 
@@ -1327,20 +1327,25 @@
 
 .crypto-cta-button {
   padding: 14px 28px;
-  background: var(--crypto-accent);
-  color: var(--bid-white);
+  background: var(--accent);
+  color: var(--background);
   border: none;
-  border-radius: 3px;
-  font: 600 14px "IBM Plex Sans", sans-serif;
+  border-radius: 8px;
+  font: 600 14px var(--font-body);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.15s;
   text-decoration: none;
   display: inline-block;
   text-align: center;
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .crypto-cta-button:hover:not(:disabled) {
-  background: #d94315;
+  background: var(--accent-hover);
+  box-shadow: 0 0 16px var(--accent-glow);
 }
 
 .crypto-cta-button:disabled {
@@ -1676,18 +1681,22 @@
 
 .bid-cta-primary {
   padding: 16px 32px;
-  background: var(--crypto-accent);
-  color: var(--bid-white);
+  background: var(--accent);
+  color: var(--background);
   border: none;
-  border-radius: 3px;
-  font: 600 16px "IBM Plex Sans", sans-serif;
+  border-radius: 8px;
+  font: 600 16px var(--font-body);
   text-decoration: none;
-  display: inline-block;
-  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  transition: all 0.15s;
 }
 
 .bid-cta-primary:hover {
-  background: #d94315;
+  background: var(--accent-hover);
+  box-shadow: 0 0 20px var(--accent-glow);
 }
 
 .bid-cta-secondary {
@@ -1752,26 +1761,37 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 10px;
-  padding: 8px 0;
+  gap: 12px;
+  padding: 12px 0;
   min-height: 64px;
-  height: 64px;
-  margin: 0;
+  margin: 16px 0;
 }
 
 .public-site .logo-rail__cell {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   flex: 1;
   min-width: 0;
   text-decoration: none;
   color: inherit;
+  transition: all 150ms ease;
+  padding: 8px;
+  border-radius: 8px;
+}
+
+.public-site .logo-rail__cell:hover {
+  background: var(--surface);
 }
 
 .public-site .logo-rail__cell--empty {
-  opacity: 0.5;
+  opacity: 0.6;
+}
+
+.public-site .logo-rail__cell--empty:hover {
+  opacity: 0.8;
+  background: var(--surface);
 }
 
 .public-site .logo-rail__logo {
@@ -1779,23 +1799,24 @@
   height: 40px;
   flex-shrink: 0;
   object-fit: contain;
-  border-radius: 4px;
+  border-radius: 6px;
 }
 
 .public-site .logo-rail__monogram {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--text);
+  background: var(--accent);
   color: var(--background);
   font: 600 16px var(--font-display);
+  border-radius: 6px;
 }
 
 .public-site .logo-rail__empty-box {
   width: 40px;
   height: 40px;
-  border: 2px dashed var(--line-soft);
-  border-radius: 4px;
+  border: 1px dashed var(--line);
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1803,23 +1824,23 @@
 }
 
 .public-site .logo-rail__plus {
-  font: 600 20px var(--font-mono);
+  font: 600 18px var(--font-mono);
   color: var(--text-muted);
 }
 
 .public-site .logo-rail__rank {
-  font: 500 10px var(--font-mono);
+  font: 500 11px var(--font-mono);
   color: var(--text-muted);
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
 }
 
 .public-site .logo-rail__cell--loading .logo-rail__skeleton {
   width: 40px;
   height: 40px;
-  background: linear-gradient(90deg, var(--surface) 0%, var(--line-soft) 50%, var(--surface) 100%);
+  background: linear-gradient(90deg, var(--surface) 0%, var(--line) 50%, var(--surface) 100%);
   background-size: 200% 100%;
   animation: skeleton-loading 1.5s ease-in-out infinite;
-  border-radius: 4px;
+  border-radius: 6px;
 }
 
 @keyframes skeleton-loading {
