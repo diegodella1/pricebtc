@@ -70,7 +70,7 @@ describe("PriceAggregator", () => {
   let aggregator: PriceAggregator;
   let mockNow: ReturnType<typeof vi.fn>;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     coinbaseFeed = new MockVenueFeed("coinbase", "BTC-USD");
     binanceFeed = new MockVenueFeed("binance", "BTCUSDT");
     mockNow = vi.fn(() => Date.parse("2026-09-28T12:00:00Z"));
@@ -87,7 +87,34 @@ describe("PriceAggregator", () => {
       logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
     });
 
-    aggregator.start();
+    await aggregator.start();
+  });
+
+  it("calls start() on all feeds when aggregator starts", async () => {
+    const freshCoinbase = new MockVenueFeed("coinbase", "BTC-USD");
+    const freshBinance = new MockVenueFeed("binance", "BTCUSDT");
+
+    const coinbaseStartSpy = vi.spyOn(freshCoinbase, "start");
+    const binanceStartSpy = vi.spyOn(freshBinance, "start");
+
+    const freshAggregator = new PriceAggregator({
+      feeds: [freshCoinbase, freshBinance],
+    });
+
+    await freshAggregator.start();
+
+    expect(coinbaseStartSpy).toHaveBeenCalledOnce();
+    expect(binanceStartSpy).toHaveBeenCalledOnce();
+  });
+
+  it("calls stop() on all feeds when aggregator stops", () => {
+    const coinbaseStopSpy = vi.spyOn(coinbaseFeed, "stop");
+    const binanceStopSpy = vi.spyOn(binanceFeed, "stop");
+
+    aggregator.stop();
+
+    expect(coinbaseStopSpy).toHaveBeenCalledOnce();
+    expect(binanceStopSpy).toHaveBeenCalledOnce();
   });
 
   it("calculates VWAP with two healthy venues", () => {
