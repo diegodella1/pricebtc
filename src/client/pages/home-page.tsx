@@ -1,6 +1,5 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { SiteHeader } from "../components/site-header.js";
-import { CurrencySelect } from "../components/currency-select.js";
 import { CurrencyChips } from "../components/currency-chips.js";
 import { PriceChart } from "../components/price-chart.js";
 import { useCurrencies, useLivePrice, usePriceHistory } from "../hooks/use-market.js";
