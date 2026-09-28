@@ -48,6 +48,39 @@ export function HomePage() {
   const satsPerDollar = price && Number(price.priceUsd) > 0 ? Math.round(100_000_000 / Number(price.priceUsd)).toLocaleString("en-US") : "—";
   const isIndicative = currencies.find((c) => c.code === currency)?.indicative ?? false;
 
+  const isIndexMode = price?.method === "vwap" || price?.method === "single-venue-fallback";
+  const isFullIndex = price?.method === "vwap" && !price?.degraded;
+  const isDegraded = price?.degraded === true;
+  const coinbaseOnly = isDegraded && price?.sources?.some((s) => s.id === "coinbase" && s.ok);
+  const binanceOnly = isDegraded && price?.sources?.some((s) => s.id === "binance" && s.ok);
+
+  let quoteLabel = { primary: "BTC / USD", secondary: "Coinbase Exchange" };
+  let venueFragment = "Coinbase BTC-USD";
+  let marketSubtitle = "One exchange observation, not a global index.";
+  let observationDesc = "PRICEB.TC provides a timestamped Bitcoin price sourced from Coinbase Exchange. The current observation is also available through the public JSON API.";
+  let feedDetailsExplanation = siteContent.home.priceExplanation;
+
+  if (isIndexMode) {
+    feedDetailsExplanation = "The headline number is a last-price index of Coinbase BTC-USD and Binance BTCUSDT weighted by 24h volume when both feeds are healthy. If only one venue is healthy, we show that venue's last price and mark the index degraded. The card's 24h high/low/change/volume remain Coinbase stats. Non-USD currencies are indicative conversions; FX rates refresh daily.";
+    
+    if (isFullIndex) {
+      quoteLabel = { primary: "BTC/USD index (Coinbase + Binance)", secondary: "" };
+      venueFragment = "Coinbase BTC-USD + Binance BTCUSDT";
+      marketSubtitle = "Volume-weighted index from two venues.";
+      observationDesc = "PRICEB.TC shows a BTC/USD index from Coinbase Exchange (BTC-USD) and Binance (BTCUSDT, treated as USD), weighted by 24h volume. The same observation is available through the public JSON API.";
+    } else if (coinbaseOnly) {
+      quoteLabel = { primary: "BTC/USD · Coinbase only (index degraded)", secondary: "" };
+      venueFragment = "Coinbase BTC-USD only";
+      marketSubtitle = "Index degraded to single venue.";
+      observationDesc = "PRICEB.TC shows a BTC/USD index from Coinbase Exchange (BTC-USD) and Binance (BTCUSDT, treated as USD), weighted by 24h volume. The same observation is available through the public JSON API.";
+    } else if (binanceOnly) {
+      quoteLabel = { primary: "BTC/USD · Binance only (index degraded)", secondary: "" };
+      venueFragment = "Binance BTCUSDT only (USDT≈USD)";
+      marketSubtitle = "Index degraded to single venue.";
+      observationDesc = "PRICEB.TC shows a BTC/USD index from Coinbase Exchange (BTC-USD) and Binance (BTCUSDT, treated as USD), weighted by 24h volume. The same observation is available through the public JSON API.";
+    }
+  }
+
   function setCurrency(value: string) {
     setCurrencyState(value);
     const url = new URL(window.location.href);
@@ -94,10 +127,10 @@ export function HomePage() {
           <h1 id="hero-title">Bitcoin price now</h1>
           <div className="market-status">
             <span className={`feed-state${live ? " is-live" : ""}`} role="status"><i aria-hidden="true" />{status}</span>
-            {relativeTime && <span className="market-time" title={price?.marketTimestamp}>Updated {relativeTime} · Coinbase BTC-USD</span>}
+            {relativeTime && <span className="market-time" title={price?.marketTimestamp}>Updated {relativeTime} · {venueFragment}</span>}
           </div>
         </div>
-        <p className="market-subtitle">One exchange observation, not a global index. <a href="/bitcoin-price-updates">Source and methodology</a></p>
+        <p className="market-subtitle">{marketSubtitle} <a href="/methodology">Source and methodology</a></p>
         <CurrencyChips value={currency} onChange={setCurrency} currencies={currencies} />
         {isIndicative && (
           <p className="currency-disclaimer" role="note">
@@ -107,10 +140,18 @@ export function HomePage() {
         <div className="price-module">
           <div className="price-sponsor-grid">
             <div className="price-primary">
-              <div className="quote-label"><span>BTC / {currency}</span><span>Coinbase Exchange</span></div>
+              <div className="quote-label">
+                <span>{currency === "USD" ? quoteLabel.primary : `BTC / ${currency}`}</span>
+                {quoteLabel.secondary && <span>{quoteLabel.secondary}</span>}
+              </div>
               <p className={`hero__price${formatted ? ` hero__price--${formatted.length}` : ""}`} role="group" aria-label={formatted ? `Bitcoin price ${formatted.exact}` : "Bitcoin price loading"} title={formatted?.exact}>
                 {formatted ? <><span className="hero__price-exact">{formatted.exact}</span><span className="hero__price-compact" aria-hidden="true">{formatted.compact}</span></> : "—"}
               </p>
+              {isIndexMode && currency === "USD" && (
+                <p className="price-method-link">
+                  <a href="/methodology">How we price</a>
+                </p>
+              )}
               <div className="quote-context"><span className={price && live ? price.change24h >= 0 ? "is-positive" : "is-negative" : ""}>{price ? formatPercent(price.change24h) : "—"} <small>24h</small></span><span>1 USD = <strong>{satsPerDollar}</strong> sats</span></div>
               {error && <p className="public-notice" role="status">{error}</p>}
               <div className="kpi-strip">
@@ -127,17 +168,17 @@ export function HomePage() {
               <div id="bid-logo-rail" className="bid-logo-rail" role="list" aria-label="Sponsor logo rail ranks 3 to 7"></div>
               {currency === "USD" && <div className="volume-legend" aria-label="Volume legend">
                 <span className="volume-legend__buy">Recorded buys: {recordedVolume ? `${recordedVolume.buy} BTC` : "—"}</span><span className="volume-legend__sell">Recorded sells: {recordedVolume ? `${recordedVolume.sell} BTC` : "—"}</span><span className="volume-legend__unknown">Unclassified</span>
-                <p>BTC volume by initiating side on Coinbase. Grey volume has no recorded split; older intervals and gaps may be incomplete. <a href="/bitcoin-price-updates">How it works</a></p>
+                <p>BTC volume by initiating side on Coinbase. Grey volume has no recorded split; older intervals and gaps may be incomplete. <a href="/methodology">How it works</a></p>
               </div>}
                 {historyError && points.length > 0 && <p className="public-notice" role="status">History updates delayed.</p>}
                 <div className="history-summary"><span>{range.toUpperCase()} WINDOW</span><span>High <strong>{telemetry ? formatPrice(String(telemetry.high), currency) : "—"}</strong></span><span>Low <strong>{telemetry ? formatPrice(String(telemetry.low), currency) : "—"}</strong></span><span>Change <strong>{telemetry?.changePercent == null ? "—" : formatPercent(telemetry.changePercent)}</strong></span></div>
-                <details className="feed-details"><summary>About this price</summary><p>{siteContent.home.priceExplanation}</p><dl><div><dt>Connection</dt><dd>{connectionState}</dd></div><div><dt>Market update</dt><dd>{formatUtcTime(price?.marketTimestamp ?? null)}</dd></div><div><dt>Received</dt><dd>{formatUtcTime(price?.receivedAt ?? null)}</dd></div><div><dt>FX updated</dt><dd>{currency === "USD" ? "Direct USD price" : formatUtcDate(price?.fxUpdatedAt ?? null)}</dd></div></dl></details>
+                <details className="feed-details"><summary>About this price</summary><p>{feedDetailsExplanation}{isIndexMode && <> Full rules: <a href="/methodology">How we price</a>.</>}</p><dl><div><dt>Connection</dt><dd>{connectionState}</dd></div><div><dt>Market update</dt><dd>{formatUtcTime(price?.marketTimestamp ?? null)}</dd></div><div><dt>Received</dt><dd>{formatUtcTime(price?.receivedAt ?? null)}</dd></div><div><dt>FX updated</dt><dd>{currency === "USD" ? "Direct USD price" : formatUtcDate(price?.fxUpdatedAt ?? null)}</dd></div></dl></details>
               </div>
             </div>
             <aside id="bid-top-slot" aria-label="Sponsor space"></aside>
           </div>
         </div>
-        <p className="observation-description">{siteContent.home.observationDescription} <a href="/api">Bitcoin Price API</a> · <a href="/bitcoin-price-updates">Price source and methodology</a></p>
+        <p className="observation-description">{observationDesc} <a href="/api">Bitcoin Price API</a> · <a href="/methodology">Price source and methodology</a></p>
         <div className="market-ctas">
           {cryptoEnabled && (
             <a href="/sponsors#claim" className="market-cta">

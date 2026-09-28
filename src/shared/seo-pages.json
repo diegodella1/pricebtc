@@ -7,15 +7,15 @@
     "/studio",
     "/rules",
     "/sponsors",
-    "/bitcoin-price-updates",
+    "/methodology",
     "/bitcoin-price-widget",
     "/bitcoin-obs-overlay"
   ],
   "guides": [
     {
-      "path": "/bitcoin-price-updates",
-      "title": "How the Live Bitcoin Price Updates | PRICEB.TC",
-      "heading": "How the Bitcoin price updates",
+      "path": "/methodology",
+      "title": "How we price Bitcoin | PRICEB.TC",
+      "heading": "How we price",
       "description": "Understand the Coinbase BTC/USD feed, price timestamps, delayed data and daily currency conversions used by PRICEB.TC.",
       "sections": [
         [

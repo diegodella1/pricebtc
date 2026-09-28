@@ -116,6 +116,10 @@ function registerResponsePolicies(app: FastifyInstance): void {
       return reply.redirect(`${newPath}${url.search}`, 301);
     }
     
+    if (normalized === "/bitcoin-price-updates" || normalized === "/price-methodology") {
+      return reply.redirect(`/methodology${url.search}`, 301);
+    }
+    
     if ((seoPages.indexable.includes(normalized) || ["/embed", "/overlay"].includes(normalized)) && normalized !== url.pathname) {
       return reply.redirect(`${normalized}${url.search}`, 308);
     }
@@ -339,6 +343,7 @@ function registerFrontend(app: FastifyInstance, options: BuildAppOptions): void 
     ["/status", "status/index.html"],
     ["/terms", "terms/index.html"],
     ["/privacy", "privacy/index.html"],
+    ["/methodology", "methodology/index.html"],
   ]);
 
   for (const [route, filename] of documents) {
