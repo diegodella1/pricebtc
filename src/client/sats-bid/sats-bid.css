@@ -1778,7 +1778,7 @@
   min-height: 72px;
   text-decoration: none;
   color: inherit;
-  transition: all 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: border-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 160ms cubic-bezier(0.2, 0.8, 0.2, 1), background 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
   padding: 12px 8px;
   border-radius: 12px;
   background: var(--surface-glass);
@@ -1790,13 +1790,15 @@
 
 .public-site .logo-rail__cell:hover {
   border-color: var(--accent);
+  border-style: solid;
   box-shadow: 0 0 0 1px rgba(244, 246, 251, 0.06), 0 0 14px var(--accent-glow);
 }
 
 .public-site .logo-rail__cell:focus-visible {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 2px var(--accent-soft), 0 0 14px var(--accent-glow);
+  border-style: solid;
+  box-shadow: 0 0 0 1px rgba(244, 246, 251, 0.06), 0 0 14px var(--accent-glow);
 }
 
 .public-site .logo-rail__cell--empty {
@@ -1818,9 +1820,10 @@
 
 .public-site .logo-rail__cell--empty:focus-visible {
   outline: none;
+  background: rgba(15, 19, 27, 0.85);
   border-color: var(--accent);
   border-style: solid;
-  box-shadow: 0 0 0 2px var(--accent-soft), 0 0 14px var(--accent-glow);
+  box-shadow: 0 0 0 1px rgba(244, 246, 251, 0.06), 0 0 14px var(--accent-glow);
 }
 
 .public-site .logo-rail__logo {
