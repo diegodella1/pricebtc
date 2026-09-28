@@ -17,7 +17,7 @@ The API preserves source as the string "coinbase"; sourceDetails names the excha
 
 ## Documentation
 
-- [Price source and updates](https://priceb.tc/bitcoin-price-updates): Methodology and freshness.
+- [Price source and updates](https://priceb.tc/methodology): Methodology and freshness.
 - [Website widget guide](https://priceb.tc/bitcoin-price-widget): Embed setup.
 - [OBS overlay guide](https://priceb.tc/bitcoin-obs-overlay): Broadcast setup.
 - [Widget Studio](https://priceb.tc/studio): Configure a widget or overlay.
