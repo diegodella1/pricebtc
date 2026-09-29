@@ -73,14 +73,14 @@ export default function BidHome() {
   if (loading) {
     return (
       <>
-        {slot && createPortal(<EmptySponsorCTA cryptoEnabled={cryptoEnabled} />, slot)}
+        {slot && createPortal(<EmptySponsorCTA />, slot)}
         {stripSlot && createPortal(<SponsorStrip sponsor={null} cryptoEnabled={cryptoEnabled} />, stripSlot)}
         {railSlot && createPortal(<LogoRail sponsors={[]} cryptoEnabled={cryptoEnabled} loading={true} />, railSlot)}
       </>
     );
   }
   
-  const content = leader ? <TopSpot leader={leader} /> : <EmptySponsorCTA cryptoEnabled={cryptoEnabled} />;
+  const content = leader ? <TopSpot leader={leader} /> : <EmptySponsorCTA />;
   const stripContent = <SponsorStrip sponsor={rank2} cryptoEnabled={cryptoEnabled} />;
   const railContent = <LogoRail sponsors={railSponsors} cryptoEnabled={cryptoEnabled} />;
   
