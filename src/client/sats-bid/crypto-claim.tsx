@@ -360,8 +360,36 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
     );
   }
 
+  const getTrustStripData = () => [
+    { strong: "BTC · USDT · USDC", muted: "SegWit · TRC20 · Solana" },
+    { strong: "Min $10", muted: "Soft-OPEN deposit FINAL" },
+    { strong: "Cumulative USD", muted: "Every payment adds" },
+    { strong: "Outbid anytime", muted: "Rank is not locked" },
+    { strong: "After confirm", muted: "Profile → appear live" },
+  ];
+
+  const getWatchWindowLabel = (assetType: string): string => {
+    if (assetType === "BTC") return "~30m";
+    return "~1m";
+  };
+
+  const getWatchWindowBadge = (assetType: string): string => {
+    if (assetType === "BTC") return "~30 min (BTC)";
+    return `~1 min (${assetType})`;
+  };
+
   return (
     <div className="crypto-claim-container">
+      <div className="crypto-trust-strip" aria-label="Claim trust facts">
+        {getTrustStripData().map((chip, idx) => (
+          <div key={idx} className="crypto-trust-chip">
+            <strong>{chip.strong}</strong>
+            <span>{chip.muted}</span>
+          </div>
+        ))}
+      </div>
+      <a href="/rules" className="crypto-rules-link">Sponsor rules →</a>
+
       <ol className="crypto-claim-steps" aria-label="Claim steps">
         <li className={`crypto-step-indicator ${step === "asset" ? "active" : ""} ${["payment", "watching", "profile"].includes(step) ? "completed" : ""}`} data-step="asset">
           Asset
@@ -391,6 +419,7 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
                 <div className="crypto-asset-label">{asset.label}</div>
                 <div className="crypto-asset-network">{asset.network}</div>
                 <div className="crypto-asset-min">Min: ${asset.minUsd.toFixed(2)} USD</div>
+                <div className="crypto-asset-eta">API watch {getWatchWindowLabel(asset.type)}</div>
               </button>
             ))}
           </div>
@@ -405,6 +434,14 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
           <h2>Send payment</h2>
           <div className="crypto-payment-warning">{selectedAsset.warningMessage}</div>
           
+          <div className="crypto-meta-badges">
+            <span className="crypto-badge">Status · Waiting for send</span>
+            <span className="crypto-badge crypto-badge--wait">API watch window · {getWatchWindowBadge(selectedAsset.type)}</span>
+            <span className="crypto-badge">Network · {selectedAsset.network}</span>
+            <span className="crypto-badge">Min · $10</span>
+            <span className="crypto-badge" style={{ display: "none" }}>Confirmations · —</span>
+          </div>
+
           <div className="crypto-payment-info">
             <div className="crypto-info-section">
               <label>Network</label>
@@ -444,6 +481,14 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
           </div>
 
           <div className="crypto-watch-section">
+            <div className="crypto-tab-hint">
+              <strong>Keep this tab open</strong> after you send. Click <strong>I've sent the payment</strong> so we poll the deposit address.{" "}
+              {selectedAsset.type === "BTC" 
+                ? "BTC typical API watch window ~30 min. " 
+                : "This rail typical API watch window ~1 min. "}
+              Windows come from the product API field — not guarantees.
+            </div>
+
             <p className="crypto-watch-info">
               We're watching this address — send the payment; no need to paste a transaction ID.
             </p>
@@ -510,6 +555,39 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
             ← Top 21 leaderboard
           </a>
           <h2>Payment status</h2>
+          
+          <div className="crypto-meta-badges">
+            <span className={`crypto-badge ${paymentStatus.validation_status === "watching" || paymentStatus.validation_status === "pending" || paymentStatus.validation_status === "validating" ? "crypto-badge--live" : ""}`}>
+              Status · {paymentStatus.validation_status === "watching" && "Watching address"}
+              {paymentStatus.validation_status === "pending" && "Watching address"}
+              {paymentStatus.validation_status === "validating" && "Watching address"}
+              {paymentStatus.validation_status === "confirmed" && "Confirmed"}
+              {paymentStatus.validation_status === "rejected" && "Rejected"}
+              {paymentStatus.validation_status === "failed" && "Failed"}
+            </span>
+            <span className="crypto-badge crypto-badge--wait">API watch window · {getWatchWindowBadge(selectedAsset.type)}</span>
+            <span className="crypto-badge">Network · {selectedAsset.network}</span>
+            <span className="crypto-badge">Min · $10</span>
+            {(paymentStatus.confirmations > 0 || paymentStatus.required_confirmations > 0) && (
+              <span className="crypto-badge">
+                Confirmations · {paymentStatus.confirmations > 0 ? `${paymentStatus.confirmations}` : "—"}
+              </span>
+            )}
+          </div>
+
+          {(paymentStatus.validation_status === "watching" || paymentStatus.validation_status === "pending" || paymentStatus.validation_status === "validating") && (
+            <div className="crypto-watching-banner">
+              <span className="crypto-watch-dot"></span>
+              <p>
+                Watching this address for confirmations…
+                <small>
+                  {selectedAsset.type === "BTC" 
+                    ? "BTC typical API watch ~30 minutes. Badge updates when the watcher sees a deposit. Profile unlocks after first confirmed payment."
+                    : `${selectedAsset.label} typical API watch ~1 minute. Badge updates when the watcher sees a deposit. Profile unlocks after first confirmed payment.`}
+                </small>
+              </p>
+            </div>
+          )}
           
           <div className="crypto-payment-info">
             <div className="crypto-info-section">
