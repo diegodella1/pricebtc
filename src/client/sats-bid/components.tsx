@@ -189,13 +189,13 @@ export function TopSpot({
 
 export function EmptySponsorCTA({ cryptoEnabled = false }: { cryptoEnabled?: boolean }) {
   return (
-    <article className="bid-top">
+    <article className="bid-top sponsor-empty-cta">
       <header>
         <span>PRIME #01</span>
         <span>01 / 21</span>
       </header>
       <h2 className="bid-unclaimed">Be #01 · <em>from $10</em></h2>
-      <p>Pay BTC · USDT · USDC. Cumulative USD ranks the Top 21. Your logo sits <strong>beside this same live price surface</strong> — hero, strip, and rail.</p>
+      <p>Pay crypto: <strong>BTC · USDT · USDC</strong>. Cumulative USD ranks the Top 21. Your logo sits <strong>beside this same live price surface</strong> — hero, strip, and rail.</p>
       <p style={{ fontSize: "13px", marginTop: "8px" }}>Same signal streamers and sites pull via the <strong>free</strong> BTC overlay & embed — your spot is visible to that audience too.</p>
       <a href="/sponsors#claim" className="bid-button">
         Claim Be #01 →
