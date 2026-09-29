@@ -27,7 +27,9 @@ export async function verifyPublicPages(base, { offline = false } = {}) {
     await expect(rail.locator('.logo-rail__cell')).toHaveCount(5);
     const emptyHero = page.locator('#bid-top-slot .sponsor-empty-cta');
     if (await emptyHero.count()) {
-      await expect(emptyHero).toContainText('Pay crypto');
+      await expect(emptyHero).toContainText('Pay BTC · USDT · USDC');
+      await expect(emptyHero).toContainText('Be #01');
+      await expect(emptyHero).toContainText('Claim Be #01');
       await expect(emptyHero).toHaveAttribute('href', /^\/sponsors#(claim|waitlist)$/);
     }
     for (const width of [1440, 768, 360]) {
@@ -49,7 +51,7 @@ export async function verifyPublicPages(base, { offline = false } = {}) {
     assert.match(csp, /script-src[^;]*https:\/\/www\.googletagmanager\.com/, "GA4 script CSP");
     assert.match(csp, /connect-src[^;]*https:\/\/www\.google-analytics\.com/, "GA4 collection CSP");
     assert.equal(await page.evaluate(() => (globalThis.dataLayer ?? []).some(entry => entry[0] === "config" && entry[1] === "G-T9E3ZF3J0T")), true, "GA4 initialized");
-    console.log("Browser OK: home — hero, strip below chart, logo rail below strip (5 cells), Pay crypto, responsive layout, GA4 configuration/CSP");
+    console.log("Browser OK: home — hero, strip below chart, logo rail below strip (5 cells), Be #01 / Pay BTC·USDT·USDC, responsive layout, GA4 configuration/CSP");
     for (const [path, heading] of [
       ["/terms", "Terms of Service"], ["/privacy", "Privacy Policy"],
       ["/status", "Service Health"], ["/pricing", "Free API. Sponsor-supported."],
