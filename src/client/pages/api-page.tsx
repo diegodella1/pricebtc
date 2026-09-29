@@ -120,9 +120,12 @@ print(f"BTC/{selectedCurrency}: {data['price']}")`;
     ["marketTimestamp", "Exchange timestamp (ISO 8601). Use this to determine observation age."],
     ["receivedAt", "Service reception timestamp (ISO 8601)."],
     ["fxUpdatedAt", "FX rate update timestamp (ISO 8601) or null for USD."],
-    ["status", "Data freshness: \"live\" (≤15s), \"stale\" (>15s), or \"unavailable\"."],
-    ["source", "Data source. Always \"coinbase\"."],
-    ["sourceDetails", "Object with name \"Coinbase Exchange\" and market \"BTC-USD\"."],
+    ["status", "Data freshness: \"live\" (≤30s), \"stale\" (>30s), or \"unavailable\"."],
+    ["source", "Legacy string may still read \"coinbase\"; clients should prefer method, degraded, and sources[] when present."],
+    ["sourceDetails", "Object with name and market fields. See sources[] and /methodology for multi-venue details."],
+    ["method", "When present, describes how the headline price was built (e.g., index, degraded)."],
+    ["degraded", "When present and true, indicates fallback to a single venue."],
+    ["sources[]", "When present, lists the venues contributing to the headline price with their weights."],
     ["provider", "Object with name \"PRICEB.TC\" and url \"https://priceb.tc/\"."],
   ];
 
@@ -136,7 +139,7 @@ print(f"BTC/{selectedCurrency}: {data['price']}")`;
             <p className="section-kicker">BITCOIN PRICE API</p>
             <h1>Free JSON API</h1>
             <p className="api-hero__description">
-              Real-time Bitcoin price data. No API key required. The same observation powering PRICEB.TC, available as JSON.
+              When the multi-venue index is on, the headline BTC/USD price is a disclosed two-venue index from Coinbase Exchange (BTC-USD) and Binance (BTCUSDT, treated as USDT≈USD), weighted by each venue's 24-hour volume. Other display currencies are indicative daily FX conversions. No API key is required.
             </p>
           </div>
 
@@ -244,7 +247,24 @@ print(f"BTC/{selectedCurrency}: {data['price']}")`;
         </section>
 
         <section className="api-section">
-          <h2>Rate limits & fair use</h2>
+          <h2>Freshness and errors</h2>
+          <p>
+            Responses use Cache-Control: no-store. Each request reads the latest in-memory observation; 
+            it does not guarantee a new market trade. There is no single global Bitcoin price. 
+            The index is not a world average — see <a href="/methodology">/methodology</a>.
+          </p>
+          <p>
+            Snapshots older than <strong>30 seconds</strong>, or a degraded server feed, are stale. 
+            Always inspect <code>marketTimestamp</code>.
+          </p>
+          <p>
+            HTTP 400: INVALID_CURRENCY. HTTP 503: PRICE_UNAVAILABLE. Rate limiting can return HTTP 429; 
+            back off before retrying.
+          </p>
+        </section>
+
+        <section className="api-section">
+          <h2>Rate limits</h2>
           <p>
             The free API allows <strong>120 requests per minute</strong> from each IP address. 
             Rate limit state is returned in response headers:
@@ -255,11 +275,6 @@ print(f"BTC/{selectedCurrency}: {data['price']}")`;
             <li><code>X-RateLimit-Reset</code> — Unix timestamp when the window resets</li>
             <li><code>Retry-After</code> — Seconds to wait before retrying (on HTTP 429)</li>
           </ul>
-          <p>
-            For real-time updates, use the SSE endpoint at <code>/api/stream?currency=USD</code> instead 
-            of polling. This service is provided as-is for personal and commercial use. 
-            For high-volume integrations or SLA guarantees, <a href="/pricing">contact us about Pro plans</a>.
-          </p>
         </section>
 
         <section className="api-section">
@@ -287,53 +302,32 @@ print(f"BTC/{selectedCurrency}: {data['price']}")`;
           <h2>Documentation & resources</h2>
           <ul className="api-links">
             <li>
-              <a href="/llms.txt">llms.txt</a> — LLM-readable project documentation
-            </li>
-            <li>
               <a href="/bitcoin-price.md">bitcoin-price.md</a> — Current price as Markdown
             </li>
             <li>
-              <a href="/methodology">Price methodology</a> — How we get the data
+              <a href="/api/currencies">Supported currencies</a> — Available currency codes
             </li>
             <li>
-              <a href="/studio">Widget Studio</a> — Create embeddable widgets
+              <a href="/methodology">Price methodology</a> — Source, updates and history
+            </li>
+            <li>
+              <a href="/sponsors#claim">Claim a Top 21 sponsor slot</a> — Support PRICEB.TC
             </li>
           </ul>
         </section>
 
-        <section className="api-cta">
-          <h2>Start building</h2>
-          <p>
-            Free for personal and commercial use. No API key required.
-          </p>
-          <div className="cta-buttons">
-            <a href="/api/price?currency=USD" className="button button--primary">Get started free →</a>
-            <a href={`mailto:${siteContent.contactEmail}`} className="button button--secondary">Contact for Pro plans</a>
-          </div>
+        <section className="api-section claim-block">
+          <p className="claim-block__lead">Free utilities stay free. Visibility beside the live Bitcoin price is a crypto sponsorship.</p>
+          <p><a className="action-link" href="/sponsors#claim">Claim a Top 21 sponsor slot →</a></p>
+          <p><a href="/rules">Sponsor rules</a></p>
         </section>
       </main>
       <footer className="public-footer">
-        <div>
-          <a href="/" className="footer-wordmark">PRICEB.TC</a>
-          <p>Bitcoin, in view.</p>
-        </div>
-        <nav aria-label="Footer navigation">
-          <a href="/sponsors#claim">Sponsor</a>
-          <a href="/status">Status</a>
-          <a href="/terms">Terms</a>
-          <a href="/privacy">Privacy</a>
-          <a href="/studio">Studio</a>
-          <a href="/about">About</a>
-          <a href="/faq">FAQ</a>
-          <a href="/api">API</a>
-          <a href={`mailto:${siteContent.contactEmail}`}>Contact</a>
-        </nav>
-        <p>
-          Indicative market data · Not financial advice · FX by{" "}
-          <a href="https://www.exchangerate-api.com" target="_blank" rel="noreferrer">
-            ExchangeRate-API
-          </a>
-        </p>
+        <a href="/about">About</a>
+        <a href="/faq">FAQ</a>
+        <a href="/">PRICEB.TC</a>
+        <a href="/rules">Sponsor rules</a>
+        <a href={`mailto:${siteContent.contactEmail}`}>Contact</a>
       </footer>
     </div>
   );
