@@ -17,7 +17,10 @@ export function injectOgMeta(html: string, price: PricePayload | null, currency:
   
   const title = `Bitcoin ${priceFormatted} ${change24h} (24h) | PRICEB.TC`;
   const description = `Bitcoin (BTC) is trading at ${priceFormatted} on Coinbase, ${change24h} in the last 24 hours. Live market data updated ${price.status === "live" ? "now" : "recently"}.`;
-  const ogImageUrl = `https://priceb.tc/og-image.png?currency=${currency}`;
+  
+  const priceDollars = Math.floor(Number(price.price));
+  const timestampBucket = Math.floor(new Date(price.marketTimestamp).getTime() / 1000 / 60) * 60;
+  const ogImageUrl = `https://priceb.tc/og-image.png?currency=${currency}&p=${priceDollars}&t=${timestampBucket}`;
 
   return html
     .replace(/<meta property="og:title" content="[^"]*"/, `<meta property="og:title" content="${escapeHtml(title)}"`)

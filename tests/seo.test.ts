@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { buildApp } from "../src/server/app.js";
 import { PlausibleService } from "../src/server/services/plausible.js";
-import { renderPriceSnapshot } from "../src/server/seo.js";
+import { renderPriceSnapshot, injectOgMeta } from "../src/server/seo.js";
 import type { MarketSnapshot } from "../src/shared/contracts.js";
 
 const cleanup: (() => Promise<unknown>)[] = [];
@@ -133,5 +133,22 @@ describe("crawlable price documents", () => {
     const output = renderPriceSnapshot({ currency: "USD", price: "1", priceUsd: "1", change24h: 0, high24h: null, low24h: null, volume24h: null, marketTimestamp: '"><script>alert(1)</script>', receivedAt: "", fxUpdatedAt: null, source: "coinbase", status: "stale" });
     expect(output).not.toContain("<script>");
     expect(output).toContain("&lt;script&gt;");
+  });
+  it("adds cache-bust parameters to OG image URLs that change when price or timestamp changes", () => {
+    const baseHtml = '<html><meta property="og:image" content="https://priceb.tc/old.png" /><meta name="twitter:image" content="https://priceb.tc/old.png" /></html>';
+    const timestamp1 = "2026-09-29T12:34:00.000Z";
+    const timestamp2 = "2026-09-29T12:35:00.000Z";
+    const price1 = { currency: "USD", price: "84423.56", priceUsd: "84423.56", change24h: 2.5, high24h: null, low24h: null, volume24h: null, marketTimestamp: timestamp1, receivedAt: timestamp1, fxUpdatedAt: null, source: "coinbase" as const, status: "live" as const };
+    const price2 = { ...price1, price: "84500.78", priceUsd: "84500.78", marketTimestamp: timestamp2 };
+    const html1 = injectOgMeta(baseHtml, price1, "USD");
+    const html2 = injectOgMeta(baseHtml, price2, "USD");
+    expect(html1).toContain('property="og:image" content="https://priceb.tc/og-image.png?currency=USD&p=84423&t=');
+    expect(html1).toContain('name="twitter:image" content="https://priceb.tc/og-image.png?currency=USD&p=84423&t=');
+    expect(html2).toContain('property="og:image" content="https://priceb.tc/og-image.png?currency=USD&p=84500&t=');
+    expect(html2).toContain('name="twitter:image" content="https://priceb.tc/og-image.png?currency=USD&p=84500&t=');
+    expect(html1).not.toBe(html2);
+    const ogMatch1 = html1.match(/og:image" content="([^"]*)"/);
+    const ogMatch2 = html2.match(/og:image" content="([^"]*)"/);
+    expect(ogMatch1?.[1]).not.toBe(ogMatch2?.[1]);
   });
 });

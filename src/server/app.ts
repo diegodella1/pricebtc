@@ -245,7 +245,9 @@ function registerApplicationRoutes(app: FastifyInstance, options: BuildAppOption
     const imageBuffer = await generateOgImage({ price: observation, currency });
     
     reply.header("Content-Type", "image/png");
-    reply.header("Cache-Control", "public, max-age=60");
+    reply.header("Cache-Control", "public, max-age=60, must-revalidate");
+    reply.header("CDN-Cache-Control", "max-age=60");
+    reply.header("Cloudflare-CDN-Cache-Control", "max-age=60");
     return imageBuffer;
   });
 
