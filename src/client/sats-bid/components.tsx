@@ -189,13 +189,18 @@ export function TopSpot({
 
 export function EmptySponsorCTA({ cryptoEnabled = false }: { cryptoEnabled?: boolean }) {
   return (
-    <a href="/sponsors#claim" className="sponsor-empty-cta">
-      <h3 className="sponsor-empty-cta__title">Your project here</h3>
-      <p className="sponsor-empty-cta__desc">Pay crypto · Rank Top 21 · Stay visible</p>
-      <span className="sponsor-empty-cta__button">
-        {cryptoEnabled ? "Claim a spot →" : "Join the waitlist →"}
-      </span>
-    </a>
+    <article className="bid-top">
+      <header>
+        <span>PRIME #01</span>
+        <span>01 / 21</span>
+      </header>
+      <h2 className="bid-unclaimed">Be #01 · <em>from $10</em></h2>
+      <p>Pay BTC · USDT · USDC. Cumulative USD ranks the Top 21. Your logo sits <strong>beside this same live price surface</strong> — hero, strip, and rail.</p>
+      <p style={{ fontSize: "13px", marginTop: "8px" }}>Same signal streamers and sites pull via the <strong>free</strong> BTC overlay & embed — your spot is visible to that audience too.</p>
+      <a href="/sponsors#claim" className="bid-button">
+        Claim Be #01 →
+      </a>
+    </article>
   );
 }
 
