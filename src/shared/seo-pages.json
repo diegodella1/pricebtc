@@ -68,7 +68,7 @@
         ],
         [
           "Price source and sponsorship",
-          "Widgets use the same Coinbase price source and indicative currency conversions as the homepage. They are free and require no account. Future sponsor examples shown on the homepage are illustrative; they are not active sponsor placements inside current exported widgets."
+          "Widgets use the same PRICEB.TC observation as the homepage (multi-venue BTC/USD index when enabled — Coinbase BTC-USD + Binance BTCUSDT; see How we price at /methodology). They are free and require no account. Homepage sponsor slots are separate: projects can claim a Top 21 sponsor slot at /sponsors#claim with crypto. Exported widgets do not currently embed live sponsor placements."
         ]
       ]
     },
@@ -97,6 +97,10 @@
         [
           "Before going live",
           "Record a short test and inspect it at your stream resolution. Keep the source attribution and data status legible. The overlay shows market information, not a guaranteed buy or sell price. Other broadcasting tools with a Browser Source may also work; verify the result in your own setup."
+        ],
+        [
+          "Sponsorship",
+          "The OBS overlay is a free Browser Source utility. If you want your project visible beside the live Bitcoin price on PRICEB.TC, claim a Top 21 sponsor slot at /sponsors#claim with crypto. Overlay exports are not sponsor placements."
         ]
       ]
     }

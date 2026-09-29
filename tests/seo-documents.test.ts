@@ -133,5 +133,34 @@ describe("generated SEO documents", () => {
       expect(document.body.textContent, `methodology must contain "${phrase}"`).toContain(phrase);
     }
     expect(document.body.textContent).not.toContain("15 seconds");
+    expect(document.querySelector('header a.action-link[href="/sponsors#claim"]'), "methodology header must have Claim CTA").not.toBeNull();
+    expect(document.querySelector('main a[href="/sponsors#claim"]'), "methodology must have claim link in body").not.toBeNull();
+  });
+  it("builds utility hub pages with claim CTAs and updated chrome", async () => {
+    for (const path of ["/api", "/bitcoin-price-widget", "/bitcoin-obs-overlay"]) {
+      const html = await readFile(join(root, path.slice(1) + "/index.html"), "utf8");
+      const document = new DOMParser().parseFromString(html, "text/html");
+      const navLinks = [...document.querySelectorAll('header nav a')].map(a => a.textContent);
+      expect(navLinks, `${path} header nav must have Price, Sponsors, API`).toEqual(["Price", "Sponsors", "API"]);
+      expect(document.querySelector('header a.action-link[href="/sponsors#claim"]')?.textContent, `${path} header must have Claim a spot CTA`).toContain("Claim a spot");
+      expect(document.querySelector('main a.action-link[href="/sponsors#claim"]')?.textContent, `${path} must have primary claim CTA`).toContain("Claim a Top 21 sponsor slot");
+      expect(document.querySelector('main a[href="/rules"]'), `${path} must link to sponsor rules`).not.toBeNull();
+      expect(html, `${path} must not have Widget Studio in header nav`).not.toContain('<nav><a href="/">Live price</a><a href="/studio">Widget Studio</a></nav>');
+    }
+    const apiHtml = await readFile(join(root, "api/index.html"), "utf8");
+    expect(apiHtml).toContain("Coinbase Exchange (BTC-USD) and Binance (BTCUSDT");
+    expect(apiHtml).toContain("30 seconds");
+    expect(apiHtml).not.toContain("15 seconds");
+    expect(apiHtml).toContain("not a world average");
+    expect(apiHtml).toContain("/sponsors#claim");
+    expect(apiHtml).not.toContain("Bitcoin price now</a><a href=");
+    const widgetHtml = await readFile(join(root, "bitcoin-price-widget/index.html"), "utf8");
+    expect(widgetHtml).toContain("claim a Top 21 sponsor slot");
+    expect(widgetHtml).toContain("Coinbase BTC-USD + Binance BTCUSDT");
+    expect(widgetHtml).toContain("Open Widget Studio");
+    const obsHtml = await readFile(join(root, "bitcoin-obs-overlay/index.html"), "utf8");
+    expect(obsHtml).toContain("Sponsorship");
+    expect(obsHtml).toContain("claim a Top 21 sponsor slot");
+    expect(obsHtml).toContain("Overlay exports are not sponsor placements");
   });
 });
