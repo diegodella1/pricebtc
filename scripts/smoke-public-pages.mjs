@@ -54,6 +54,8 @@ export async function verifyPublicPages(base, { offline = false } = {}) {
       ["/terms", "Terms of Service"], ["/privacy", "Privacy Policy"],
       ["/status", "Service Health"], ["/pricing", "Free API. Sponsor-supported."],
       ["/sponsors", "CLAIM YOUR SPOT."], ["/sponsors#board", "TOP 21 SPONSORS."], ["/api", "Free JSON API"],
+      ["/bitcoin-price-widget", "Add a Bitcoin price widget to your website"],
+      ["/bitcoin-obs-overlay", "Put the Bitcoin price on your OBS stream"],
       ["/studio", "Widget Studio"],
     ]) {
       const response = await page.goto(`${base}${path}`, { waitUntil: "domcontentloaded" });
@@ -65,7 +67,12 @@ export async function verifyPublicPages(base, { offline = false } = {}) {
         await expect(page.locator('.bid-ranking > li')).toHaveCount(21);
       }
       if (path === "/api") {
-        await expect(page.getByRole("link", { name: /Get started free/ })).toBeVisible();
+        const header = page.locator('header.site-header');
+        await expect(header.getByRole("link", { name: /Claim a spot →/ })).toBeVisible();
+        await expect(header.getByRole("navigation").getByRole("link", { name: "Price" })).toBeVisible();
+        await expect(header.getByRole("navigation").getByRole("link", { name: "Sponsors" })).toBeVisible();
+        await expect(header.getByRole("navigation").getByRole("link", { name: "API" })).toBeVisible();
+        await expect(page.getByRole("link", { name: /Claim a Top 21 sponsor slot →/ })).toBeVisible();
         const observation = page.waitForResponse(response => response.url().includes("/api/price?currency=ARS"));
         await page.getByRole("tab", { name: "ARS", exact: true }).click();
         const result = await observation;
@@ -74,6 +81,15 @@ export async function verifyPublicPages(base, { offline = false } = {}) {
         for (const header of ["x-ratelimit-limit", "x-ratelimit-remaining", "x-ratelimit-reset"]) {
           assert.match(result.headers()[header] ?? "", /^\d+$/, header);
         }
+      }
+      if (path === "/bitcoin-price-widget" || path === "/bitcoin-obs-overlay") {
+        const header = page.locator('header.site-header');
+        await expect(header.getByRole("link", { name: /Claim a spot →/ })).toBeVisible();
+        await expect(header.getByRole("navigation").getByRole("link", { name: "Price" })).toBeVisible();
+        await expect(header.getByRole("navigation").getByRole("link", { name: "Sponsors" })).toBeVisible();
+        await expect(header.getByRole("navigation").getByRole("link", { name: "API" })).toBeVisible();
+        await expect(page.getByRole("link", { name: /Claim a Top 21 sponsor slot →/ })).toBeVisible();
+        await expect(page.getByRole("link", { name: /Open Widget Studio →/ })).toBeVisible();
       }
       if (path === "/studio") {
         await expect(page.getByText("Includes PRICEB.TC mark · Pro removes it", { exact: true })).toBeVisible();
