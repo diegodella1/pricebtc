@@ -164,8 +164,6 @@ export function HomePage() {
                   <div className="pill-controls" role="group" aria-label="Chart range">{HISTORY_RANGES.map(value => <button key={value} type="button" aria-pressed={range === value} onClick={() => setRange(value)}>{value.toUpperCase()}</button>)}</div>
                 </div>
                 <div className="hero__chart"><PriceChart points={displayedPoints} positive={(telemetry?.changePercent ?? 0) >= 0} showVolume={currency === "USD"} loading={historyLoading} error={historyError} /></div>
-              <aside id="bid-strip-slot" aria-label="Sponsor space #2"></aside>
-              <div id="bid-logo-rail" className="bid-logo-rail" role="list" aria-label="Sponsor logo rail ranks 3 to 7"></div>
               {currency === "USD" && <div className="volume-legend" aria-label="Volume legend">
                 <span className="volume-legend__buy">Recorded buys: {recordedVolume ? `${recordedVolume.buy} BTC` : "—"}</span><span className="volume-legend__sell">Recorded sells: {recordedVolume ? `${recordedVolume.sell} BTC` : "—"}</span><span className="volume-legend__unknown">Unclassified</span>
                 <p>BTC volume by initiating side on Coinbase. Grey volume has no recorded split; older intervals and gaps may be incomplete. <a href="/methodology">How it works</a></p>
@@ -178,6 +176,19 @@ export function HomePage() {
             <aside id="bid-top-slot" aria-label="Sponsor space"></aside>
           </div>
         </div>
+        <section className="free-util" aria-label="Free Bitcoin overlay and embed">
+          <div className="free-util__content">
+            <p className="free-util__eyebrow">Free · no account</p>
+            <p className="free-util__title">Free BTC overlay & embed for streams</p>
+            <p className="free-util__desc">Same live PRICEB.TC observation — drop into OBS or any site. Sponsorship is separate Soft-OPEN crypto.</p>
+          </div>
+          <div className="free-util__links">
+            <a href="/bitcoin-obs-overlay">OBS overlay →</a>
+            <a href="/bitcoin-price-widget">Price widget / embed →</a>
+          </div>
+        </section>
+        <aside id="bid-strip-slot" aria-label="Sponsor space #2"></aside>
+        <div id="bid-logo-rail" className="bid-logo-rail" role="list" aria-label="Sponsor logo rail ranks 3 to 7"></div>
         <p className="observation-description">{observationDesc} <a href="/api">Bitcoin Price API</a> · <a href="/methodology">Price source and methodology</a></p>
         <div className="market-ctas">
           {cryptoEnabled && (
