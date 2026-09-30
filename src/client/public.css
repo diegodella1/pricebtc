@@ -8,7 +8,6 @@
   --font-display: "Manrope", "Bricolage Grotesque", sans-serif; --font-body: "Geist", "IBM Plex Sans", system-ui, sans-serif; --font-mono: "JetBrains Mono", "IBM Plex Mono", monospace;
   --bid-paper: var(--background); --bid-ink: var(--text); --bid-muted: var(--text-muted); --bid-line: var(--line-soft); --bid-accent: var(--accent); --bid-white: var(--surface); --bid-alert: #ffb66b;
   --content-max: 1360px;
-  background: var(--background); 
   color: var(--text); font-family: var(--font-body); font-size: 16px; line-height: 1.6;
 }
 body:has(.public-site), body:has(.studio-shell), body:has(.public-bid) { 
@@ -42,7 +41,7 @@ body:has(.studio-shell)::before, body:has(.studio-shell)::after, body:has(.publi
 .public-site :focus-visible, .public-bid :focus-visible, .studio-shell :focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 .public-site ::selection, .public-bid ::selection, .studio-shell ::selection { background: var(--accent); color: #0d1012; }
 .public-site h1, .public-site h2, .public-site h3, .public-bid h1, .public-bid h2, .public-bid h3 { font-family: var(--font-display); font-weight: 500; letter-spacing: -.04em; line-height: 1.15; }
-.public-header.site-header { position: sticky; top: 0; z-index: 50; width: 100%; border: 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); background: rgba(8, 9, 13, 0.92); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding: 0; margin: 0; }
+.public-header.site-header { display: block; position: sticky; top: 0; z-index: 50; width: 100%; border: 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); background: rgba(8, 9, 13, 0.92); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding: 0; margin: 0; }
 .public-header.site-header > * { display: flex; align-items: center; justify-content: space-between; gap: 24px; max-width: var(--content-max); min-height: 64px; margin: 0 auto; padding: 12px 20px; }
 .public-header .brand { min-width: 0; color: var(--text); gap: 8px; }
 .public-header .brand__word, .studio-shell .brand__word { font: 600 16px var(--font-mono); letter-spacing: .08em; }
