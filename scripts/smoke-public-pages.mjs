@@ -30,7 +30,7 @@ export async function verifyPublicPages(base, { offline = false } = {}) {
       await expect(emptyHero).toContainText('Pay BTC · USDT · USDC');
       await expect(emptyHero).toContainText('Be #01');
       await expect(emptyHero).toContainText('Claim Be #01');
-      await expect(emptyHero).toHaveAttribute('href', /^\/sponsors#(claim|waitlist)$/);
+      await expect(emptyHero.getByRole('link')).toHaveAttribute('href', /^\/sponsors#(claim|waitlist)$/);
     }
     for (const width of [1440, 768, 360]) {
       await page.setViewportSize({ width, height: 1000 });
