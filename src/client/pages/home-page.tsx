@@ -140,19 +140,21 @@ export function HomePage() {
         <div className="price-module">
           <div className="price-sponsor-grid">
             <div className="price-primary">
-              <div className="quote-label">
-                <span>{currency === "USD" ? quoteLabel.primary : `BTC / ${currency}`}</span>
-                {quoteLabel.secondary && <span>{quoteLabel.secondary}</span>}
-              </div>
-              <p className={`hero__price${formatted ? ` hero__price--${formatted.length}` : ""}`} role="group" aria-label={formatted ? `Bitcoin price ${formatted.exact}` : "Bitcoin price loading"} title={formatted?.exact}>
-                {formatted ? <><span className="hero__price-exact">{formatted.exact}</span><span className="hero__price-compact" aria-hidden="true">{formatted.compact}</span></> : "—"}
-              </p>
-              {isIndexMode && currency === "USD" && (
-                <p className="price-method-link">
-                  <a href="/methodology">How we price</a>
+              <div className="price-panel">
+                <div className="quote-label">
+                  <span>{currency === "USD" ? quoteLabel.primary : `BTC / ${currency}`}</span>
+                  {quoteLabel.secondary && <span>{quoteLabel.secondary}</span>}
+                </div>
+                <p className={`hero__price${formatted ? ` hero__price--${formatted.length}` : ""}`} role="group" aria-label={formatted ? `Bitcoin price ${formatted.exact}` : "Bitcoin price loading"} title={formatted?.exact}>
+                  {formatted ? <><span className="hero__price-exact">{formatted.exact}</span><span className="hero__price-compact" aria-hidden="true">{formatted.compact}</span></> : "—"}
                 </p>
-              )}
-              <div className="quote-context"><span className={price && live ? price.change24h >= 0 ? "is-positive" : "is-negative" : ""}>{price ? formatPercent(price.change24h) : "—"} <small>24h</small></span><span>1 USD = <strong>{satsPerDollar}</strong> sats</span></div>
+                {isIndexMode && currency === "USD" && (
+                  <p className="price-method-link">
+                    <a href="/methodology">How we price</a>
+                  </p>
+                )}
+                <div className="quote-context"><span className={price && live ? price.change24h >= 0 ? "is-positive" : "is-negative" : ""}>{price ? formatPercent(price.change24h) : "—"} <small>24h</small></span><span>1 USD = <strong>{satsPerDollar}</strong> sats</span></div>
+              </div>
               {error && <p className="public-notice" role="status">{error}</p>}
               <div className="kpi-strip">
                 <div className="kpi-item"><span className="kpi-label">High 24h</span><strong className="kpi-value">{price?.high24h ? formatPrice(price.high24h, currency) : "—"}</strong></div>
