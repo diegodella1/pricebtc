@@ -203,7 +203,6 @@ export function EmptySponsorCTA() {
 
 export function SponsorStrip({
   sponsor,
-  cryptoEnabled = false,
 }: {
   sponsor: Entry | null;
   cryptoEnabled?: boolean;
