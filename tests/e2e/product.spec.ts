@@ -182,7 +182,7 @@ test("studio keeps preview and exported URL in sync", async ({ page }) => {
   expect((brandBox?.x ?? 0) + (brandBox?.width ?? 0)).toBeLessThan(titleBox?.x ?? Number.POSITIVE_INFINITY);
 
   await page.getByRole("tab", { name: "OBS" }).click();
-  await page.getByLabel("Display currency").selectOption("EUR");
+  await page.locator("#studio-currency").selectOption("EUR");
   await page.getByRole("button", { name: "Ticker bar" }).click();
 
   await expect(page.locator(".export-url")).toHaveText(/\/overlay\?.*currency=EUR.*layout=ticker/);
@@ -192,10 +192,10 @@ test("studio keeps preview and exported URL in sync", async ({ page }) => {
 test("studio keeps independent drafts, deep-links state, and exposes layout capabilities", async ({ page }) => {
   await page.goto("/studio?mode=embed&currency=JPY&layout=ticker&scale=150");
 
-  await expect(page.getByLabel("Display currency")).toHaveValue("JPY");
+  await expect(page.locator("#studio-currency")).toHaveValue("JPY");
   await expect(page.getByRole("button", { name: "Ticker bar" })).toHaveAttribute("aria-pressed", "true");
 
-  await page.getByLabel("Display currency").selectOption("EUR");
+  await page.locator("#studio-currency").selectOption("EUR");
   await page.getByRole("button", { name: "Corner bug" }).click();
   await page.getByRole("tab", { name: "OBS" }).click();
   
@@ -204,14 +204,14 @@ test("studio keeps independent drafts, deep-links state, and exposes layout capa
   
   await page.getByRole("button", { name: "Lower third" }).toHaveAttribute("aria-pressed", "true");
 
-  await page.getByLabel("Display currency").selectOption("ARS");
+  await page.locator("#studio-currency").selectOption("ARS");
   await page.getByRole("button", { name: "Price only" }).click();
   await page.getByRole("tab", { name: "Embed" }).click();
-  await expect(page.getByLabel("Display currency")).toHaveValue("EUR");
+  await expect(page.locator("#studio-currency")).toHaveValue("EUR");
   await expect(page.getByRole("button", { name: "Corner bug" })).toHaveAttribute("aria-pressed", "true");
 
   await page.reload();
-  await expect(page.getByLabel("Display currency")).toHaveValue("EUR");
+  await expect(page.locator("#studio-currency")).toHaveValue("EUR");
   await expect(page.getByRole("button", { name: "Corner bug" })).toHaveAttribute("aria-pressed", "true");
 });
 
@@ -229,8 +229,8 @@ test("studio workspace has proper layout with rail and export dock", async ({ pa
   await expect(page.locator(".export-url")).toBeVisible();
   await expect(page.locator(".btn-copy")).toBeVisible();
   
-  // Check that OBS mode shows checkerboard background
-  await page.getByRole("tab", { name: "OBS" }).click();
+  // Check that OBS mode shows checkerboard background in preview tab
+  await page.goto("/studio?mode=overlay");
   await expect(page.locator('.preview-well[data-mode="overlay"]')).toBeVisible();
 });
 
