@@ -190,12 +190,14 @@ export function TopSpot({
 export function EmptySponsorCTA() {
   return (
     <article className="bid-top sponsor-empty-cta">
-      <header>
-        <span>PRIME #01 · EMPTY BOARD</span>
-      </header>
-      <h2 className="bid-unclaimed">Be #01 · from $10</h2>
-      <p>Pay BTC · USDT · USDC. Cumulative USD ranks the Top 21. Your logo sits <em>beside this same live price surface</em> — hero, strip, and rail.</p>
-      <p style={{ fontSize: "13px", marginTop: "8px" }}>Same signal streamers and sites pull via the <strong>free</strong> BTC overlay & embed — your spot is visible to that audience too.</p>
+      <div>
+        <header>
+          <span>PRIME #01 · EMPTY BOARD</span>
+        </header>
+        <h2 className="bid-unclaimed">Be #01 · from $10</h2>
+        <p>Pay BTC · USDT · USDC. Cumulative USD ranks the Top 21. Your logo sits <em>beside this same live price surface</em> — hero, strip, and rail.</p>
+        <p style={{ fontSize: "13px", marginTop: "8px" }}>Same signal streamers and sites pull via the <strong>free</strong> BTC overlay & embed — your spot is visible to that audience too.</p>
+      </div>
       <a href="/sponsors#claim" className="btn-fill-claim">Claim Be #01 →</a>
     </article>
   );
