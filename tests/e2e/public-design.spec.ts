@@ -8,7 +8,7 @@ test("sponsor is beside the price on desktop and before history on mobile", asyn
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/");
   await expect(page.locator("#bid-top-slot .bid-top")).toBeVisible();
-  const quote = await page.locator(".price-primary").boundingBox();
+  const quote = await page.locator(".instrument").boundingBox();
   const sponsor = await page.locator("#bid-top-slot").boundingBox();
   expect(sponsor!.x).toBeGreaterThan(quote!.x + quote!.width);
   expect(sponsor!.y + sponsor!.height).toBeLessThan(1000);
@@ -17,7 +17,7 @@ test("sponsor is beside the price on desktop and before history on mobile", asyn
   await expect(page.getByRole("button", { name: /Pay|Reserve|Outbid/ })).toHaveCount(0);
   for (const width of [360, 768]) {
     await page.setViewportSize({ width, height: 1000 });
-    const q = await page.locator(".price-primary").boundingBox();
+    const q = await page.locator(".instrument").boundingBox();
     const s = await page.locator("#bid-top-slot").boundingBox();
     const history = await page.locator(".market-history").boundingBox();
     expect(s!.y).toBeGreaterThanOrEqual(q!.y + q!.height);
