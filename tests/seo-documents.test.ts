@@ -133,7 +133,7 @@ describe("generated SEO documents", () => {
       expect(document.body.textContent, `methodology must contain "${phrase}"`).toContain(phrase);
     }
     expect(document.body.textContent).not.toContain("15 seconds");
-    expect(document.querySelector('header a.action-link[href="/sponsors#claim"]'), "methodology header must have Claim CTA").not.toBeNull();
+    expect(document.querySelector('header a.header-quiet[href="/sponsors#claim"]')?.textContent, "methodology header must have quiet Claim CTA").toBe("Claim");
     expect(document.querySelector('main a[href="/sponsors#claim"]'), "methodology must have claim link in body").not.toBeNull();
   });
   it("builds utility hub pages with claim CTAs and updated chrome", async () => {
@@ -142,7 +142,7 @@ describe("generated SEO documents", () => {
       const document = new DOMParser().parseFromString(html, "text/html");
       const navLinks = [...document.querySelectorAll('header nav a')].map(a => a.textContent);
       expect(navLinks, `${path} header nav must have Price, Sponsors, API`).toEqual(["Price", "Sponsors", "API"]);
-      expect(document.querySelector('header a.action-link[href="/sponsors#claim"]')?.textContent, `${path} header must have Claim a spot CTA`).toContain("Claim a spot");
+      expect(document.querySelector('header a.header-quiet[href="/sponsors#claim"]')?.textContent, `${path} header must have quiet Claim CTA`).toBe("Claim");
       expect(document.querySelector('main a.action-link[href="/sponsors#claim"]')?.textContent, `${path} must have primary claim CTA`).toContain("Claim a Top 21 sponsor slot");
       expect(document.querySelector('main a[href="/rules"]'), `${path} must link to sponsor rules`).not.toBeNull();
       expect(html, `${path} must not have Widget Studio in header nav`).not.toContain('<nav><a href="/">Live price</a><a href="/studio">Widget Studio</a></nav>');

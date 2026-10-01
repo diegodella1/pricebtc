@@ -9,7 +9,7 @@ export function SiteHeader() {
         <a href="/sponsors#claim">Sponsors</a>
         <a href="/api">API</a>
       </nav>
-      <a className="action-link" href="/sponsors#claim">Claim a spot →</a>
+      <a className="header-quiet" href="/sponsors#claim">Claim</a>
     </div>
   </header>;
 }

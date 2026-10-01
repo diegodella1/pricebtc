@@ -191,22 +191,18 @@ export function EmptySponsorCTA() {
   return (
     <article className="bid-top sponsor-empty-cta">
       <header>
-        <span>PRIME #01</span>
-        <span>01 / 21</span>
+        <span>PRIME #01 · EMPTY BOARD</span>
       </header>
-      <h2 className="bid-unclaimed">Be #01 · <em>from $10</em></h2>
-      <p>Pay BTC · USDT · USDC. Cumulative USD ranks the Top 21. Your logo sits <strong>beside this same live price surface</strong> — hero, strip, and rail.</p>
+      <h2 className="bid-unclaimed">Be #01 · from $10</h2>
+      <p>Pay BTC · USDT · USDC. Cumulative USD ranks the Top 21. Your logo sits <em>beside this same live price surface</em> — hero, strip, and rail.</p>
       <p style={{ fontSize: "13px", marginTop: "8px" }}>Same signal streamers and sites pull via the <strong>free</strong> BTC overlay & embed — your spot is visible to that audience too.</p>
-      <a href="/sponsors#claim" className="bid-button">
-        Claim Be #01 →
-      </a>
+      <a href="/sponsors#claim" className="btn-fill-claim">Claim Be #01 →</a>
     </article>
   );
 }
 
 export function SponsorStrip({
   sponsor,
-  cryptoEnabled = false,
 }: {
   sponsor: Entry | null;
   cryptoEnabled?: boolean;
@@ -215,8 +211,8 @@ export function SponsorStrip({
   if (!sponsor) {
     return (
       <a href="/sponsors#claim" className="sponsor-strip sponsor-strip--empty">
-        <span className="sponsor-strip__text">Open spot #02 — claim this spot</span>
-        <span className="sponsor-strip__cta">{cryptoEnabled ? "Claim" : "Waitlist"} →</span>
+        <span className="sponsor-strip__text"><strong style={{ color: "var(--text)" }}>#02</strong> open · under chart</span>
+        <span className="sponsor-strip__cta">Open →</span>
       </a>
     );
   }
