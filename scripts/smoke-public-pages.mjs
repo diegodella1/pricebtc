@@ -70,7 +70,7 @@ export async function verifyPublicPages(base, { offline = false } = {}) {
       }
       if (path === "/api") {
         const header = page.locator('header.site-header');
-        await expect(header.getByRole("link", { name: /Claim a spot →/ })).toBeVisible();
+        await expect(header.getByRole("link", { name: /^Claim$/ })).toBeVisible();
         await expect(header.getByRole("navigation").getByRole("link", { name: "Price" })).toBeVisible();
         await expect(header.getByRole("navigation").getByRole("link", { name: "Sponsors" })).toBeVisible();
         await expect(header.getByRole("navigation").getByRole("link", { name: "API" })).toBeVisible();
@@ -86,7 +86,7 @@ export async function verifyPublicPages(base, { offline = false } = {}) {
       }
       if (path === "/bitcoin-price-widget" || path === "/bitcoin-obs-overlay") {
         const header = page.locator('header.site-header');
-        await expect(header.getByRole("link", { name: /Claim a spot →/ })).toBeVisible();
+        await expect(header.getByRole("link", { name: /^Claim$/ })).toBeVisible();
         await expect(header.getByRole("navigation").getByRole("link", { name: "Price" })).toBeVisible();
         await expect(header.getByRole("navigation").getByRole("link", { name: "Sponsors" })).toBeVisible();
         await expect(header.getByRole("navigation").getByRole("link", { name: "API" })).toBeVisible();
