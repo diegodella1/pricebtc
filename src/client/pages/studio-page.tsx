@@ -5,21 +5,16 @@ import type { WidgetConfig, WidgetMode } from "../../shared/widget-config.js";
 import {
   DEFAULT_EMBED_CONFIG,
   DEFAULT_OVERLAY_CONFIG,
-  HISTORY_RANGES,
-  layoutSupportsChart,
-  MOTION_LEVELS,
   parseWidgetConfig,
-  WIDGET_FONTS,
   WIDGET_LAYOUT_META,
   WIDGET_LAYOUTS,
-  WIDGET_THEMES,
 } from "../../shared/widget-config.js";
 import { Brand } from "../components/brand.js";
 import { CurrencySelect } from "../components/currency-select.js";
 import { WidgetRenderer } from "../components/widget-renderer.js";
 import { useCurrencies, useLivePrice, usePriceHistory } from "../hooks/use-market.js";
-import { getContrastResult } from "../lib/color-contrast.js";
 import { formatRelativeTime } from "../lib/format.js";
+import { layoutSupportsChart } from "../../shared/widget-config.js";
 
 interface StudioState {
   activeTab: "preview" | "embed" | "obs" | "share";
@@ -28,9 +23,6 @@ interface StudioState {
 }
 
 type CopyState = "iframe" | "obs-url" | "direct-url" | "markdown" | "error" | null;
-type ColorKey = "accent" | "text" | "surface";
-
-const COLOR_KEYS: ColorKey[] = ["accent", "text", "surface"];
 
 function getInitialStudioState(): StudioState {
   const params = new URLSearchParams(window.location.search);
@@ -48,16 +40,6 @@ function getInitialStudioState(): StudioState {
       overlay: mode === "overlay" ? parseWidgetConfig(params, "overlay") : { ...DEFAULT_OVERLAY_CONFIG },
     },
   };
-}
-
-function getEffectiveColors(config: WidgetConfig): Record<ColorKey, string> {
-  if (config.theme === "custom") {
-    return { accent: config.accent, text: config.text, surface: config.surface };
-  }
-  if (config.theme === "light") {
-    return { accent: config.accent, text: "002B36", surface: "FDF6E3" };
-  }
-  return { accent: config.accent, text: "FDF6E3", surface: "0D1012" };
 }
 
 export function StudioPage() {
@@ -79,9 +61,6 @@ export function StudioPage() {
   const live = connectionState === "live" && price?.status === "live";
   const status = live ? "Live" : price ? "Stale" : "Unavailable";
   const relativeTime = price ? formatRelativeTime(price.marketTimestamp) : null;
-  const effectiveColors = getEffectiveColors(config);
-  const textContrast = getContrastResult(effectiveColors.text, effectiveColors.surface);
-  const accentContrast = getContrastResult(effectiveColors.accent, effectiveColors.surface);
 
   const { query: rendererQuery, url: rendererUrl, code: iframeCode, markdown: markdownCode } = widgetExport(config, mode);
   const dimensions = getWidgetDimensions(config);
@@ -120,6 +99,13 @@ export function StudioPage() {
     });
   }
 
+  function switchMode(newMode: WidgetMode) {
+    setStudioState((current) => ({
+      ...current,
+      mode: newMode,
+    }));
+  }
+
   async function copy(value: string, kind: Exclude<CopyState, "error" | null>) {
     if (copyTimeoutRef.current !== null) window.clearTimeout(copyTimeoutRef.current);
     try {
@@ -134,13 +120,59 @@ export function StudioPage() {
     }, 1_800);
   }
 
+  function renderLayoutIcon(layout: string) {
+    switch (layout) {
+      case "price":
+        return (
+          <svg viewBox="0 0 40 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <rect x="2" y="8" width="36" height="8" rx="2" />
+          </svg>
+        );
+      case "card":
+        return (
+          <svg viewBox="0 0 40 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <rect x="6" y="2" width="28" height="20" rx="2" />
+            <path d="M10 16l5-6 4 3 6-8" />
+          </svg>
+        );
+      case "ticker":
+        return (
+          <svg viewBox="0 0 40 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <rect x="1" y="9" width="38" height="6" rx="1" />
+          </svg>
+        );
+      case "lower-third":
+        return (
+          <svg viewBox="0 0 40 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <rect x="2" y="14" width="36" height="8" rx="1" />
+            <path d="M4 14v8" />
+          </svg>
+        );
+      case "corner":
+        return (
+          <svg viewBox="0 0 40 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <rect x="22" y="2" width="16" height="10" rx="1" />
+          </svg>
+        );
+      case "chart":
+        return (
+          <svg viewBox="0 0 40 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <rect x="4" y="2" width="32" height="20" rx="2" />
+            <path d="M8 16l6-7 5 4 8-9" />
+          </svg>
+        );
+      default:
+        return null;
+    }
+  }
+
   return (
     <div className="studio-shell">
       <a className="skip-link" href="#studio-preview">Skip to live preview</a>
       <header className="studio-header">
         <Brand compact />
         <h1 className="studio-header__title" translate="no">Widget Studio</h1>
-        <a href="/" aria-label="Exit Studio">Back to price <span aria-hidden="true">×</span></a>
+        <a href="/" aria-label="Exit Studio">← Back to price</a>
       </header>
 
       <nav className="studio-tabs" role="tablist" aria-label="Studio sections">
@@ -190,194 +222,85 @@ export function StudioPage() {
           hidden={activeTab !== "preview"}
           className="studio-tab-panel"
         >
-          <section className="studio-above-fold" aria-labelledby="preview-title">
-            <div className="above-fold-content">
-              <div className="preview-section">
-                <div className="preview-header">
-                  <h2 id="preview-title" className={live ? "is-live" : "is-stale"}>
-                    <i aria-hidden="true" /> {status}
-                  </h2>
-                  {relativeTime && (
-                    <span className="preview-time" title={price?.marketTimestamp}>
-                      Updated {relativeTime}
-                    </span>
-                  )}
-                </div>
-                <div className={`preview-stage preview-stage--${mode}`}>
-                  <div className="preview-corner preview-corner--tl" /><div className="preview-corner preview-corner--tr" />
-                  <div className="preview-corner preview-corner--bl" /><div className="preview-corner preview-corner--br" />
-                  <div className={`preview-widget preview-widget--${config.layout}`} style={previewStyle} data-layout={config.layout}>
-                    <WidgetRenderer config={config} mode={mode} price={price} history={points} connectionState={connectionState} historyLoading={historyLoading} historyError={historyError} />
-                  </div>
-                </div>
-                <div className="preview-action">
-                  <button type="button" className="studio-copy-primary" onClick={() => void copy(mode === "overlay" ? rendererUrl : iframeCode, mode === "overlay" ? "obs-url" : "iframe")}>
-                    {copied === "iframe" || copied === "obs-url" ? "COPIED ✓" : "COPY"}
-                  </button>
+          <div className="studio-workspace">
+            <section className="studio-stage" aria-labelledby="preview-title">
+              <div className="stage-bar">
+                <span className={live ? "stage-live" : "stage-stale"}>
+                  {live && "● "}{status} preview
+                </span>
+                {relativeTime && (
+                  <span className="stage-meta">
+                    Updated {relativeTime} · {config.currency} index
+                  </span>
+                )}
+              </div>
+              <div className={`preview-well`} data-mode={mode} id="studio-preview">
+                <div className={`preview-widget preview-widget--${config.layout}`} style={previewStyle} data-layout={config.layout}>
+                  <WidgetRenderer config={config} mode={mode} price={price} history={points} connectionState={connectionState} historyLoading={historyLoading} historyError={historyError} />
                 </div>
               </div>
+              <p className="preview-hint">
+                {mode === "overlay" ? "Checkerboard = transparent OBS Browser Source" : "Solid stage for website embed"}
+              </p>
+            </section>
 
-              <aside className="presets-sidebar" aria-labelledby="presets-title">
-                <h3 id="presets-title">Layout</h3>
-                <div className="preset-grid">
+            <aside className="studio-rail" aria-label="Configure widget">
+              <div className="rail-section">
+                <h2 className="rail-title">Layout</h2>
+                <div className="layout-grid">
                   {WIDGET_LAYOUTS.map((layout) => (
                     <button
                       key={layout}
                       aria-pressed={config.layout === layout}
-                      className={config.layout === layout ? "is-active" : ""}
                       type="button"
                       onClick={() => updateConfig("layout", layout)}
                       title={WIDGET_LAYOUT_META[layout].label}
                     >
-                      <i className={`preset-icon preset-icon--${layout}`} aria-hidden="true"><span /></i>
-                      <span className="preset-label">{WIDGET_LAYOUT_META[layout].label}</span>
+                      {renderLayoutIcon(layout)}
+                      <span>{WIDGET_LAYOUT_META[layout].label}</span>
                     </button>
                   ))}
                 </div>
-              </aside>
-            </div>
-          </section>
-
-          <section className="studio-controls" aria-labelledby="studio-controls-title">
-            <details className="studio-controls-accordion" open>
-              <summary>
-                <h2 id="studio-controls-title">Customize widget</h2>
-              </summary>
-              <div className="studio-controls-content">
-                <fieldset className="control-group">
-                  <legend>Content</legend>
-                  <CurrencySelect currencies={currencies} value={config.currency} onChange={(value) => updateConfig("currency", value)} id="studio-currency" compact />
-                  <label className={`studio-field${chartSupported ? "" : " is-disabled"}`}>
-                    <span>CHART RANGE</span>
-                    <select
-                      name="studio-chart-range"
-                      autoComplete="off"
-                      value={config.range}
-                      disabled={!chartSupported}
-                      aria-describedby={!chartSupported ? "chart-capability-note" : undefined}
-                      onChange={(event) => updateConfig("range", event.target.value as WidgetConfig["range"])}
-                    >
-                      {HISTORY_RANGES.map((range) => <option key={range} value={range}>{range.toUpperCase()}</option>)}
-                    </select>
-                  </label>
-                  <div className="toggle-row">
-                    <label>
-                      <input name="studio-show-change" type="checkbox" checked={config.showChange} onChange={(event) => updateConfig("showChange", event.target.checked)} />
-                      <span aria-hidden="true" /> 24H CHANGE
-                    </label>
-                    <label className={chartSupported ? "" : "is-disabled"}>
-                      <input
-                        name="studio-show-chart"
-                        type="checkbox"
-                        checked={config.showChart}
-                        disabled={!chartSupported}
-                        aria-describedby={!chartSupported ? "chart-capability-note" : undefined}
-                        onChange={(event) => updateConfig("showChart", event.target.checked)}
-                      />
-                      <span aria-hidden="true" /> CHART
-                    </label>
-                    <label className={chartSupported && historyEnabled && config.currency === "USD" ? "" : "is-disabled"}>
-                      <input
-                        name="studio-show-volume"
-                        type="checkbox"
-                        checked={config.showVolume}
-                        disabled={!chartSupported || !historyEnabled || config.currency !== "USD"}
-                        aria-describedby={!chartSupported || !historyEnabled || config.currency !== "USD" ? "volume-capability-note" : undefined}
-                        onChange={(event) => updateConfig("showVolume", event.target.checked)}
-                      />
-                      <span aria-hidden="true" /> VOLUME
-                    </label>
-                  </div>
-                  {!chartSupported ? <p className="control-hint" id="chart-capability-note">NOT AVAILABLE IN THIS LAYOUT</p> : null}
-                  {chartSupported && config.currency !== "USD" ? <p className="control-hint" id="volume-capability-note">VOLUME AVAILABLE FOR USD ONLY</p> : null}
-                </fieldset>
-
-                <fieldset className="control-group">
-                  <legend>Appearance</legend>
-                  <span className="studio-label">Theme</span>
-                  <div className="segmented-control">
-                    {WIDGET_THEMES.map((theme) => (
-                      <button key={theme} aria-pressed={config.theme === theme} className={config.theme === theme ? "is-active" : ""} type="button" onClick={() => updateConfig("theme", theme)}>{theme.toUpperCase()}</button>
-                    ))}
-                  </div>
-                  <div className="color-grid">
-                    {COLOR_KEYS.map((colorKey) => {
-                      const editable = colorKey === "accent" || config.theme === "custom";
-                      const value = effectiveColors[colorKey];
-                      return (
-                        <label key={colorKey} className={editable ? "" : "is-disabled"}>
-                          <span>{colorKey.toUpperCase()}</span>
-                          <i style={{ backgroundColor: `#${value}` }}>
-                            <input
-                              name={`studio-${colorKey}-color`}
-                              type="color"
-                              value={`#${value}`}
-                              disabled={!editable}
-                              aria-describedby={!editable ? "custom-color-note" : undefined}
-                              onChange={(event) => updateConfig(colorKey, event.target.value.slice(1).toUpperCase())}
-                            />
-                          </i>
-                          <code translate="no">#{value}</code>
-                        </label>
-                      );
-                    })}
-                  </div>
-                  {config.theme !== "custom" ? <p className="control-hint" id="custom-color-note">SELECT CUSTOM TO EDIT TEXT &amp; SURFACE</p> : null}
-                  {config.theme === "custom" ? (
-                    <div className="contrast-matrix" aria-label="Custom theme contrast checks">
-                      {config.background === "transparent" ? (
-                        <span>CONTRAST // HOST DEPENDENT</span>
-                      ) : (
-                        <>
-                          <span className={textContrast.passesAa ? "is-pass" : "is-warning"}>TEXT {textContrast.label}</span>
-                          <span className={accentContrast.passesAa ? "is-pass" : "is-warning"}>ACCENT {accentContrast.label}</span>
-                        </>
-                      )}
-                    </div>
-                  ) : null}
-                  <details className="studio-advanced"><summary>Advanced appearance</summary>
-                  <div className="studio-field-grid">
-                    <label className="studio-field">
-                      <span>TYPE</span>
-                      <select name="studio-font" autoComplete="off" value={config.font} onChange={(event) => updateConfig("font", event.target.value as WidgetConfig["font"])}>
-                        {WIDGET_FONTS.map((font) => <option key={font} value={font}>{font.toUpperCase()}</option>)}</select>
-                    </label>
-                    <label className="studio-field">
-                      <span>BACKGROUND</span>
-                      <select name="studio-background" autoComplete="off" value={config.background} onChange={(event) => updateConfig("background", event.target.value as WidgetConfig["background"])}>
-                        <option value="solid">SOLID</option><option value="transparent">TRANSPARENT</option>
-                      </select>
-                    </label>
-                  </div>
-                  <label className="range-control">
-                    <span>SCALE <output>{config.scale}%</output></span>
-                    <input name="studio-scale" type="range" min="75" max="200" step="5" value={config.scale} onChange={(event) => updateConfig("scale", Number(event.target.value))} />
-                  </label>
-                  <label className="studio-field">
-                    <span>MOTION</span>
-                    <select name="studio-motion" autoComplete="off" value={config.motion} onChange={(event) => updateConfig("motion", event.target.value as WidgetConfig["motion"])}>
-                      {MOTION_LEVELS.map((motion) => <option key={motion} value={motion}>{motion.toUpperCase()}</option>)}</select>
-                  </label>
-                  </details>
-                </fieldset>
-
-                <fieldset className="control-group">
-                  <legend>Branding</legend>
-                  <div className="pro-teaser">
-                    <div className="pro-teaser-icon">
-                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                        <path d="M10 2L12.5 7.5L18 8L14 12.5L15 18L10 15L5 18L6 12.5L2 8L7.5 7.5L10 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </div>
-                    <div className="pro-teaser-content">
-                      <p>Includes PRICEB.TC mark · Pro removes it</p>
-                    </div>
-                    <a href="/pricing" className="pro-teaser-link">View pricing →</a>
-                  </div>
-                </fieldset>
               </div>
-            </details>
-          </section>
+
+              <div className="rail-section">
+                <label className="rail-field">
+                  <span className="rail-label">Currency</span>
+                  <CurrencySelect currencies={currencies} value={config.currency} onChange={(value) => updateConfig("currency", value)} id="studio-currency" compact />
+                </label>
+              </div>
+
+              <div className="rail-section">
+                <label className="rail-field">
+                  <span className="rail-label">Target</span>
+                  <select
+                    value={mode}
+                    onChange={(e) => {
+                      const newMode = e.target.value as WidgetMode;
+                      switchMode(newMode);
+                      updateConfig("background", newMode === "overlay" ? "transparent" : "solid");
+                    }}
+                  >
+                    <option value="overlay">OBS overlay (transparent)</option>
+                    <option value="embed">Website embed</option>
+                  </select>
+                </label>
+              </div>
+
+              <div className="export-dock">
+                <h2 className="rail-title">Export</h2>
+                <div className="export-meta">
+                  <span>{dimensions.minWidth} × {dimensions.minHeight}</span>
+                  <span>{mode === "overlay" ? "Browser Source" : "Embed"}</span>
+                </div>
+                <div className="export-url">{rendererUrl}</div>
+                <button type="button" className="btn-copy" onClick={() => void copy(rendererUrl, mode === "overlay" ? "obs-url" : "iframe")}>
+                  {copied === "iframe" || copied === "obs-url" ? "COPIED ✓" : mode === "overlay" ? "Copy OBS URL" : "Copy embed URL"}
+                </button>
+                <p className="export-hint">Primary export always visible in rail — never clipped under the fold.</p>
+              </div>
+            </aside>
+          </div>
         </div>
 
         <div

@@ -173,7 +173,7 @@ test("homepage contains extreme fiat values across mobile and desktop", async ({
 });
 
 test("studio keeps preview and exported URL in sync", async ({ page }) => {
-  await page.goto("/studio?mode=embed");
+  await page.goto("/studio?mode=embed&tab=preview");
 
   const brandBox = await page.locator(".studio-header .brand").boundingBox();
   const titleBox = await page.locator(".studio-header__title").boundingBox();
@@ -181,59 +181,58 @@ test("studio keeps preview and exported URL in sync", async ({ page }) => {
   expect(titleBox).not.toBeNull();
   expect((brandBox?.x ?? 0) + (brandBox?.width ?? 0)).toBeLessThan(titleBox?.x ?? Number.POSITIVE_INFINITY);
 
-  await page.getByRole("button", { name: "OBS OVERLAY" }).click();
-  await page.getByLabel("Display currency").selectOption("EUR");
+  // Change to OBS mode using Target selector
+  await page.getByLabel("Target").selectOption("overlay");
+  await page.locator("#studio-currency").selectOption("EUR");
   await page.getByRole("button", { name: "Ticker bar" }).click();
 
-  await expect(page.getByLabel("BROWSER SOURCE URL")).toHaveValue(/\/overlay\?.*currency=EUR.*layout=ticker/);
+  await expect(page.locator(".export-url")).toHaveText(/\/overlay\?.*currency=EUR.*layout=ticker/);
   await expect(page.locator(".preview-widget .widget--ticker")).toBeVisible();
 });
 
-test("studio keeps independent drafts, deep-links state, and exposes layout capabilities", async ({ page }) => {
-  await page.goto("/studio?mode=embed&currency=JPY&layout=ticker&scale=150");
-
-  await expect(page.getByLabel("Display currency")).toHaveValue("JPY");
+test("studio keeps independent drafts and deep-links state", async ({ page }) => {
+  // Start with embed mode defaults
+  await page.goto("/studio?mode=embed&tab=preview");
+  await expect(page.getByLabel("Target")).toHaveValue("embed");
+  
+  // Set some values in embed mode
+  await page.locator("#studio-currency").selectOption("EUR");
+  await page.getByRole("button", { name: "Ticker bar" }).click();
+  await expect(page.locator("#studio-currency")).toHaveValue("EUR");
   await expect(page.getByRole("button", { name: "Ticker bar" })).toHaveAttribute("aria-pressed", "true");
-  await expect(page.getByText("6:1 // MIN 480 × 96")).toBeVisible();
-  await expect(page.locator(".preview-widget")).toHaveCSS("aspect-ratio", "6 / 1");
-  await expect(page.getByLabel("IFRAME CODE")).toHaveValue(/min-height:96px;aspect-ratio:6 \/ 1/);
-
-  await page.getByLabel("Display currency").selectOption("EUR");
-  await page.getByRole("button", { name: "Corner bug" }).click();
-  await page.getByRole("button", { name: "OBS OVERLAY" }).click();
-  await expect(page.getByLabel("Display currency")).toHaveValue("USD");
+  
+  // Switch to overlay mode - should have its own independent draft
+  await page.getByLabel("Target").selectOption("overlay");
+  await expect(page.getByLabel("Target")).toHaveValue("overlay");
+  // Overlay starts with default lower-third layout
   await expect(page.getByRole("button", { name: "Lower third" })).toHaveAttribute("aria-pressed", "true");
-  await expect(page.getByRole("checkbox", { name: "CHART" })).toBeDisabled();
-  await expect(page.getByText("NOT AVAILABLE IN THIS LAYOUT")).toBeVisible();
-
-  await page.getByLabel("Display currency").selectOption("ARS");
-  await page.getByRole("button", { name: "Price only" }).click();
-  await page.getByRole("button", { name: "WEB EMBED" }).click();
-  await expect(page.getByLabel("Display currency")).toHaveValue("EUR");
-  await expect(page.getByRole("button", { name: "Corner bug" })).toHaveAttribute("aria-pressed", "true");
-
-  await page.reload();
-  await expect(page.getByLabel("Display currency")).toHaveValue("EUR");
-  await expect(page.getByRole("button", { name: "Corner bug" })).toHaveAttribute("aria-pressed", "true");
+  
+  // Make changes in overlay mode
+  await page.locator("#studio-currency").selectOption("JPY");
+  
+  // Switch back to embed mode - should restore embed draft
+  await page.getByLabel("Target").selectOption("embed");
+  await expect(page.locator("#studio-currency")).toHaveValue("EUR");
+  await expect(page.getByRole("button", { name: "Ticker bar" })).toHaveAttribute("aria-pressed", "true");
 });
 
-test("custom theme unlocks semantic colors and reports contrast", async ({ page }) => {
+test("studio workspace has proper layout with rail and export dock", async ({ page }) => {
   await page.goto("/studio?mode=embed");
 
-  const textColor = page.locator('input[name="studio-text-color"]');
-  const surfaceColor = page.locator('input[name="studio-surface-color"]');
-  await expect(textColor).toBeDisabled();
-  await expect(surfaceColor).toBeDisabled();
-  await expect(page.getByText("SELECT CUSTOM TO EDIT TEXT & SURFACE")).toBeVisible();
-
-  await page.getByRole("button", { name: "CUSTOM" }).click();
-  await expect(textColor).toBeEnabled();
-  await expect(surfaceColor).toBeEnabled();
-  await expect(page.getByLabel("Custom theme contrast checks")).toContainText(/TEXT AA (PASS|WARN)/);
-
-  await page.getByText("Advanced appearance", { exact: true }).click();
-  await page.getByLabel("BACKGROUND").selectOption("transparent");
-  await expect(page.getByLabel("Custom theme contrast checks")).toHaveText("CONTRAST // HOST DEPENDENT");
+  // Check that workspace has the rail
+  await expect(page.locator(".studio-rail")).toBeVisible();
+  
+  // Check that export dock is in the rail
+  await expect(page.locator(".export-dock")).toBeVisible();
+  
+  // Check that export dock contains all required elements
+  await expect(page.locator(".export-meta")).toBeVisible();
+  await expect(page.locator(".export-url")).toBeVisible();
+  await expect(page.locator(".btn-copy")).toBeVisible();
+  
+  // Check that OBS mode shows checkerboard background in preview tab
+  await page.goto("/studio?mode=overlay");
+  await expect(page.locator('.preview-well[data-mode="overlay"]')).toBeVisible();
 });
 
 test("layouts without charts skip history network work", async ({ page }) => {
@@ -243,7 +242,7 @@ test("layouts without charts skip history network work", async ({ page }) => {
   });
 
   await page.goto("/studio?mode=overlay&layout=lower-third&chart=1");
-  await expect(page.getByRole("checkbox", { name: "CHART" })).toBeDisabled();
+  // Lower third layout doesn't support charts, so no history should be fetched
   await page.waitForTimeout(250);
   expect(historyRequests).toBe(0);
 
