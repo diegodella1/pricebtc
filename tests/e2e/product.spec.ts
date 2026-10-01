@@ -186,7 +186,7 @@ test("studio keeps preview and exported URL in sync", async ({ page }) => {
   await page.locator("#studio-currency").selectOption("EUR");
   await page.getByRole("button", { name: "Ticker bar" }).click();
 
-  await expect(page.locator(".export-url")).toHaveText(/\/overlay\?.*currency=EUR.*layout=ticker/);
+  await expect(page.locator(".export-url")).toHaveText(/\/overlay\?.*currency=EUR.*layout=ticker.*transparent=1/);
   await expect(page.locator(".preview-widget .widget--ticker")).toBeVisible();
 });
 

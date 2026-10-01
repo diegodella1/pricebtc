@@ -32,11 +32,11 @@ test("homepage exports the displayed widget and reports clipboard failures", asy
     document.execCommand = () => false;
   });
   await page.goto("/");
-  await expect(page.getByLabel("OBS source URL")).toHaveValue(/\/overlay\?.*layout=lower-third/);
+  await expect(page.getByLabel("OBS source URL")).toHaveValue(/\/overlay\?.*layout=lower-third.*transparent=1/);
   await page.getByRole("button", { name: "Copy OBS URL", exact: true }).click();
   await expect(page.getByRole("status").filter({ hasText: "Could not copy" })).toBeVisible();
   await page.getByRole("button", { name: "Website widget", exact: true }).click();
-  await expect(page.getByLabel("Website embed code")).toHaveValue(/<iframe.*\/embed\?.*layout=card/);
+  await expect(page.getByLabel("Website embed code")).toHaveValue(/<iframe.*\/embed\?.*layout=card.*transparent=0/);
   await expect(page.locator(".demo-renderer .widget--card")).toBeVisible();
   await page.getByRole("link", { name: "Customize in Studio" }).click();
   await expect(page).toHaveURL(/\/studio\?mode=embed&.*layout=card/);
