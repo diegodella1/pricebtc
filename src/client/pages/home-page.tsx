@@ -180,13 +180,13 @@ export function HomePage() {
         </div>
         <section className="free-util" aria-label="Free Bitcoin overlay and embed">
           <div className="free-util__content">
-            <p className="free-util__eyebrow">Free · no account</p>
-            <p className="free-util__title">Free BTC overlay & embed for streams</p>
-            <p className="free-util__desc">Same live PRICEB.TC observation — drop into OBS or any site. Sponsorship is separate Soft-OPEN crypto.</p>
+            <p className="free-util__eyebrow">Free utility · no account</p>
+            <p className="free-util__title">Put live BTC on your stream or site</p>
+            <p className="free-util__desc">Same PRICEB.TC observation — free overlay &amp; embed first. Sponsor spots are separate Soft-OPEN crypto.</p>
           </div>
           <div className="free-util__links">
-            <a href="/bitcoin-obs-overlay">OBS overlay →</a>
-            <a href="/bitcoin-price-widget">Price widget / embed →</a>
+            <a className="btn-loop" href="/bitcoin-obs-overlay">Get free OBS overlay →</a>
+            <a className="quiet" href="/bitcoin-price-widget">or embed widget</a>
           </div>
         </section>
         <aside id="bid-strip-slot" aria-label="Sponsor space #2"></aside>
@@ -194,13 +194,9 @@ export function HomePage() {
         <p className="observation-description">{observationDesc} <a href="/api">Bitcoin Price API</a> · <a href="/methodology">Price source and methodology</a></p>
         <div className="market-ctas">
           {cryptoEnabled && (
-            <a href="/sponsors#claim" className="market-cta">
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="2"/>
-                <path d="M10 6v4l3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
-              <span>Claim a sponsor spot</span>
-            </a>
+            <span className="quiet-claim">
+              <a href="/sponsors#claim">Claim a sponsor spot</a>
+            </span>
           )}
           <a href="/api/price?currency=USD" className="market-cta market-cta--quiet">
             Get price as JSON
