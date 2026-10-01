@@ -1,7 +1,9 @@
 import { serializeWidgetConfig, WIDGET_LAYOUT_META, type WidgetConfig, type WidgetMode } from "../../shared/widget-config.js";
 
 export function widgetExport(config: WidgetConfig, mode: WidgetMode, origin = window.location.origin) {
-  const query = serializeWidgetConfig(config).toString();
+  const params = serializeWidgetConfig(config);
+  params.set("transparent", mode === "overlay" ? "1" : "0");
+  const query = params.toString();
   const url = `${origin}/${mode}?${query}`;
   const safeUrl = url.replaceAll("&", "&amp;").replaceAll('"', "&quot;");
   const meta = WIDGET_LAYOUT_META[config.layout];
