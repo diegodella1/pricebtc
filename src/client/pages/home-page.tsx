@@ -139,42 +139,51 @@ export function HomePage() {
         )}
         <div className="price-module">
           <div className="price-sponsor-grid">
-            <div className="price-primary">
-              <div className="price-panel">
-                <div className="quote-label">
-                  <span>{currency === "USD" ? quoteLabel.primary : `BTC / ${currency}`}</span>
-                  {quoteLabel.secondary && <span>{quoteLabel.secondary}</span>}
+            <section className="instrument" aria-label="Bitcoin market">
+              <div className="inst-top">
+                <div>
+                  <h1>Bitcoin price now</h1>
+                  <div className="quote-label">
+                    <span>{currency === "USD" ? quoteLabel.primary : `BTC / ${currency}`}</span>
+                    {quoteLabel.secondary && <span>{quoteLabel.secondary}</span>}
+                  </div>
                 </div>
-                <p className={`hero__price${formatted ? ` hero__price--${formatted.length}` : ""}`} role="group" aria-label={formatted ? `Bitcoin price ${formatted.exact}` : "Bitcoin price loading"} title={formatted?.exact}>
-                  {formatted ? <><span className="hero__price-exact">{formatted.exact}</span><span className="hero__price-compact" aria-hidden="true">{formatted.compact}</span></> : "—"}
-                </p>
+                <div className="market-status">
+                  <span className={`feed-state${live ? " is-live" : ""}`} role="status"><i aria-hidden="true" />{status}</span>
+                  {relativeTime && <span className="market-time" title={price?.marketTimestamp}>{relativeTime} · {venueFragment}</span>}
+                </div>
+              </div>
+              <p className={`hero__price${formatted ? ` hero__price--${formatted.length}` : ""}`} role="group" aria-label={formatted ? `Bitcoin price ${formatted.exact}` : "Bitcoin price loading"} title={formatted?.exact}>
+                {formatted ? <><span className="hero__price-exact">{formatted.exact}</span><span className="hero__price-compact" aria-hidden="true">{formatted.compact}</span></> : "—"}
+              </p>
+              <div className="quote-context">
+                <span className={price && live ? price.change24h >= 0 ? "is-positive" : "is-negative" : ""}>{price ? formatPercent(price.change24h) : "—"} <small>24h</small></span>
+                <span>1 USD = <strong>{satsPerDollar}</strong> sats</span>
                 {isIndexMode && currency === "USD" && (
-                  <p className="price-method-link">
-                    <a href="/methodology">How we price</a>
-                  </p>
+                  <a className="price-method-link" href="/methodology">How we price</a>
                 )}
-                <div className="quote-context"><span className={price && live ? price.change24h >= 0 ? "is-positive" : "is-negative" : ""}>{price ? formatPercent(price.change24h) : "—"} <small>24h</small></span><span>1 USD = <strong>{satsPerDollar}</strong> sats</span></div>
               </div>
               {error && <p className="public-notice" role="status">{error}</p>}
-              <div className="kpi-strip">
-                <div className="kpi-item"><span className="kpi-label">High 24h</span><strong className="kpi-value">{price?.high24h ? formatPrice(price.high24h, currency) : "—"}</strong></div>
-                <div className="kpi-item"><span className="kpi-label">Low 24h</span><strong className="kpi-value">{price?.low24h ? formatPrice(price.low24h, currency) : "—"}</strong></div>
-                <div className="kpi-item"><span className="kpi-label">Volume 24h</span><strong className="kpi-value">{formatVolume(price?.volume24h ?? null)}</strong></div>
+              <div className="kpis">
+                <div className="kpi"><span className="kpi-label">High 24h</span><strong className="kpi-value">{price?.high24h ? formatPrice(price.high24h, currency) : "—"}</strong></div>
+                <div className="kpi"><span className="kpi-label">Low 24h</span><strong className="kpi-value">{price?.low24h ? formatPrice(price.low24h, currency) : "—"}</strong></div>
+                <div className="kpi"><span className="kpi-label">Vol 24h</span><strong className="kpi-value">{formatVolume(price?.volume24h ?? null)}</strong></div>
               </div>
-              <div className="price-chart-block">
-                <div className="chart-toolbar">
+              <div className="chart-block">
+                <div className="chart-bar">
+                  <span>Price history</span>
                   <div className="pill-controls" role="group" aria-label="Chart range">{HISTORY_RANGES.map(value => <button key={value} type="button" aria-pressed={range === value} onClick={() => setRange(value)}>{value.toUpperCase()}</button>)}</div>
                 </div>
                 <div className="hero__chart"><PriceChart points={displayedPoints} positive={(telemetry?.changePercent ?? 0) >= 0} showVolume={currency === "USD"} loading={historyLoading} error={historyError} /></div>
-              {currency === "USD" && <div className="volume-legend" aria-label="Volume legend">
-                <span className="volume-legend__buy">Recorded buys: {recordedVolume ? `${recordedVolume.buy} BTC` : "—"}</span><span className="volume-legend__sell">Recorded sells: {recordedVolume ? `${recordedVolume.sell} BTC` : "—"}</span><span className="volume-legend__unknown">Unclassified</span>
-                <p>BTC volume by initiating side on Coinbase. Grey volume has no recorded split; older intervals and gaps may be incomplete. <a href="/methodology">How it works</a></p>
-              </div>}
+                {currency === "USD" && <div className="volume-legend" aria-label="Volume legend">
+                  <span className="volume-legend__buy">Recorded buys: {recordedVolume ? `${recordedVolume.buy} BTC` : "—"}</span><span className="volume-legend__sell">Recorded sells: {recordedVolume ? `${recordedVolume.sell} BTC` : "—"}</span><span className="volume-legend__unknown">Unclassified</span>
+                  <p>BTC volume by initiating side on Coinbase. Grey volume has no recorded split; older intervals and gaps may be incomplete. <a href="/methodology">How it works</a></p>
+                </div>}
                 {historyError && points.length > 0 && <p className="public-notice" role="status">History updates delayed.</p>}
                 <div className="history-summary"><span>{range.toUpperCase()} WINDOW</span><span>High <strong>{telemetry ? formatPrice(String(telemetry.high), currency) : "—"}</strong></span><span>Low <strong>{telemetry ? formatPrice(String(telemetry.low), currency) : "—"}</strong></span><span>Change <strong>{telemetry?.changePercent == null ? "—" : formatPercent(telemetry.changePercent)}</strong></span></div>
                 <details className="feed-details"><summary>About this price</summary><p>{feedDetailsExplanation}{isIndexMode && <> Full rules: <a href="/methodology">How we price</a>.</>}</p><dl><div><dt>Connection</dt><dd>{connectionState}</dd></div><div><dt>Market update</dt><dd>{formatUtcTime(price?.marketTimestamp ?? null)}</dd></div><div><dt>Received</dt><dd>{formatUtcTime(price?.receivedAt ?? null)}</dd></div><div><dt>FX updated</dt><dd>{currency === "USD" ? "Direct USD price" : formatUtcDate(price?.fxUpdatedAt ?? null)}</dd></div></dl></details>
               </div>
-            </div>
+            </section>
             <aside id="bid-top-slot" aria-label="Sponsor space"></aside>
           </div>
         </div>

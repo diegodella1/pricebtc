@@ -138,7 +138,7 @@ test("homepage contains extreme fiat values across mobile and desktop", async ({
 
   const mobileGeometry = await page.evaluate(() => {
     const visiblePanels = [...document.querySelectorAll<HTMLElement>(
-      ".price-primary, .market-history, .demo-stage, .demo-export",
+      ".instrument, .market-history, .demo-stage, .demo-export",
     )];
     return {
       overflowX: document.documentElement.scrollWidth - window.innerWidth,
