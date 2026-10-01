@@ -173,7 +173,7 @@ test("homepage contains extreme fiat values across mobile and desktop", async ({
 });
 
 test("studio keeps preview and exported URL in sync", async ({ page }) => {
-  await page.goto("/studio?mode=embed");
+  await page.goto("/studio?mode=embed&tab=preview");
 
   const brandBox = await page.locator(".studio-header .brand").boundingBox();
   const titleBox = await page.locator(".studio-header__title").boundingBox();
@@ -181,7 +181,8 @@ test("studio keeps preview and exported URL in sync", async ({ page }) => {
   expect(titleBox).not.toBeNull();
   expect((brandBox?.x ?? 0) + (brandBox?.width ?? 0)).toBeLessThan(titleBox?.x ?? Number.POSITIVE_INFINITY);
 
-  await page.getByRole("tab", { name: "OBS" }).click();
+  // Change to OBS mode using Target selector
+  await page.getByLabel("Target").selectOption("overlay");
   await page.locator("#studio-currency").selectOption("EUR");
   await page.getByRole("button", { name: "Ticker bar" }).click();
 
@@ -190,27 +191,31 @@ test("studio keeps preview and exported URL in sync", async ({ page }) => {
 });
 
 test("studio keeps independent drafts, deep-links state, and exposes layout capabilities", async ({ page }) => {
-  await page.goto("/studio?mode=embed&currency=JPY&layout=ticker&scale=150");
+  await page.goto("/studio?mode=embed&currency=JPY&layout=ticker&scale=150&tab=preview");
 
   await expect(page.locator("#studio-currency")).toHaveValue("JPY");
   await expect(page.getByRole("button", { name: "Ticker bar" })).toHaveAttribute("aria-pressed", "true");
 
   await page.locator("#studio-currency").selectOption("EUR");
   await page.getByRole("button", { name: "Corner bug" }).click();
-  await page.getByRole("tab", { name: "OBS" }).click();
   
-  // OBS mode should have different defaults - check the Target select
+  // Change to OBS mode using Target selector
+  await page.getByLabel("Target").selectOption("overlay");
   await expect(page.getByLabel("Target")).toHaveValue("overlay");
   
-  await page.getByRole("button", { name: "Lower third" }).toHaveAttribute("aria-pressed", "true");
+  // Should now have lower-third as default overlay layout
+  await expect(page.getByRole("button", { name: "Lower third" })).toHaveAttribute("aria-pressed", "true");
 
   await page.locator("#studio-currency").selectOption("ARS");
   await page.getByRole("button", { name: "Price only" }).click();
-  await page.getByRole("tab", { name: "Embed" }).click();
+  
+  // Switch back to embed mode
+  await page.getByLabel("Target").selectOption("embed");
   await expect(page.locator("#studio-currency")).toHaveValue("EUR");
   await expect(page.getByRole("button", { name: "Corner bug" })).toHaveAttribute("aria-pressed", "true");
 
   await page.reload();
+  // After reload, should remember the embed mode settings
   await expect(page.locator("#studio-currency")).toHaveValue("EUR");
   await expect(page.getByRole("button", { name: "Corner bug" })).toHaveAttribute("aria-pressed", "true");
 });
