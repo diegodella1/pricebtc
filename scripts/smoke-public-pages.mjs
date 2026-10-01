@@ -94,7 +94,10 @@ export async function verifyPublicPages(base, { offline = false } = {}) {
         await expect(page.getByRole("link", { name: /Open Widget Studio →/ })).toBeVisible();
       }
       if (path === "/studio") {
-        await expect(page.getByText("Includes PRICEB.TC mark · Pro removes it", { exact: true })).toBeVisible();
+        await expect(page.getByRole('complementary', { name: /Configure widget/i })).toBeVisible();
+        await expect(page.getByRole('button', { name: /Copy OBS URL|Copy embed URL/i })).toBeVisible();
+        await expect(page.getByText(/Primary export always visible in rail/i)).toBeVisible();
+        await expect(page.locator('.preview-well')).toBeVisible();
       }
       console.log(`Browser OK: ${path} — ${await title.textContent()}`);
     }
