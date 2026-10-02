@@ -79,7 +79,7 @@ export function PriceHistoryPage() {
   }, [candles, range, fromDate, toDate]);
 
   const chartData = useMemo(() => {
-    if (!filteredCandles.length) return { high: [], low: [], close: [] };
+    if (!filteredCandles.length) return { high: [], low: [], close: [], dates: [] };
 
     return {
       high: filteredCandles.map((c) => Number(c.high)),
