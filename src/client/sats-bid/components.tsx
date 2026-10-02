@@ -212,9 +212,12 @@ export function SponsorStrip({
 }) {
   if (!sponsor) {
     return (
-      <a href="/sponsors#claim" className="sponsor-strip sponsor-strip--empty">
-        <span className="sponsor-strip__text"><strong style={{ color: "var(--text)" }}>#02</strong> open · under chart</span>
-        <span className="sponsor-strip__cta">Open →</span>
+      <a href="/sponsors#claim" className="sponsor-strip sponsor-strip--empty slot-02">
+        <div className="slot-02__meta">
+          <span className="rank">SPOT #02 · OPEN</span>
+          <span className="title">Be #02 · beside chart</span>
+        </div>
+        <span className="cta">Open →</span>
       </a>
     );
   }
@@ -224,7 +227,7 @@ export function SponsorStrip({
       href={sponsor.url}
       target="_blank"
       rel="sponsored ugc noopener noreferrer"
-      className="sponsor-strip"
+      className="sponsor-strip slot-02"
       onClick={() => recordEvent("strip_sponsor_clicked")}
     >
       <div className="sponsor-strip__identity">
