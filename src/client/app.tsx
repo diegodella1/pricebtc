@@ -6,6 +6,7 @@ import { StatusPage } from "./pages/status-page.js";
 import { ApiPage } from "./pages/api-page.js";
 import { PricingPage } from "./pages/pricing-page.js";
 import { MethodologyPage } from "./pages/methodology-page.js";
+import { PriceHistoryPage } from "./pages/price-history-page.js";
 
 import { lazy, Suspense } from "react";
 import { IS_STATIC_BUILD } from "./lib/api.js";
@@ -30,6 +31,7 @@ export function App() {
   }
   if (path === "/") return <HomePage />;
   if (path === "/api") return <ApiPage />;
+  if (path === "/price-history") return <PriceHistoryPage />;
   if (path === "/studio") return <Suspense fallback={<main aria-busy="true">Loading Widget Studio…</main>}><StudioPage /></Suspense>;
   if (path === "/embed") return <RendererPage mode="embed" />;
   if (path === "/overlay") return <RendererPage mode="overlay" />;
