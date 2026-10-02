@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { readFileSync, existsSync, rmSync, mkdirSync } from "node:fs";
+import { readFileSync, existsSync, rmSync } from "node:fs";
 import { join } from "node:path";
 
 import { DailyHistoryService } from "../src/server/services/daily-history-service.js";
