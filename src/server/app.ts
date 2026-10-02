@@ -49,12 +49,28 @@ interface HistoryReader {
   ): Promise<Omit<HistoryPayload, "currency">>;
 }
 
+interface DailyHistoryReader {
+  getDailyHistory(fromDate?: string, toDate?: string): Promise<Array<{
+    date: string;
+    open: string;
+    high: string;
+    low: string;
+    close: string;
+    avg: string | null;
+    source: string;
+    method: string;
+    degraded: boolean;
+    currency: string;
+  }>>;
+}
+
 interface BuildAppOptions {
   bidding?: { service: BidService; pool: Pool; getBtcPrice: () => Promise<number>; stop: () => void } | null;
   stripe?: StripeRuntime | null;
   market: MarketReader;
   fx: FxReader;
   history: HistoryReader;
+  dailyHistory: DailyHistoryReader;
   streams: StreamRegistry;
   plausible: PlausibleService;
   serveFrontend?: boolean;
@@ -201,6 +217,69 @@ function registerApplicationRoutes(app: FastifyInstance, options: BuildAppOption
     const currency = parseCurrency(query, options.fx, reply);
     if (!currency) return;
 
+    const granularity = typeof query.granularity === "string" ? query.granularity : null;
+
+    if (granularity === "1d") {
+      const from = typeof query.from === "string" ? query.from : undefined;
+      const to = typeof query.to === "string" ? query.to : undefined;
+      const since = typeof query.since === "string" ? query.since : undefined;
+
+      if (since === "launch") {
+        const dailyCandles = await options.dailyHistory.getDailyHistory();
+        return {
+          currency,
+          granularity: "1d",
+          points: dailyCandles.map((candle) => ({
+            date: candle.date,
+            open: currency === "USD" ? candle.open : options.fx.convertUsd(candle.open, currency),
+            high: currency === "USD" ? candle.high : options.fx.convertUsd(candle.high, currency),
+            low: currency === "USD" ? candle.low : options.fx.convertUsd(candle.low, currency),
+            close: currency === "USD" ? candle.close : options.fx.convertUsd(candle.close, currency),
+            avg: candle.avg
+              ? currency === "USD"
+                ? candle.avg
+                : options.fx.convertUsd(candle.avg, currency)
+              : null,
+            source: candle.source,
+            method: candle.method,
+            degraded: candle.degraded,
+          })),
+          source: "coinbase",
+          cachedAt: new Date().toISOString(),
+        };
+      }
+
+      if (from || to) {
+        const dailyCandles = await options.dailyHistory.getDailyHistory(from, to);
+        return {
+          currency,
+          granularity: "1d",
+          points: dailyCandles.map((candle) => ({
+            date: candle.date,
+            open: currency === "USD" ? candle.open : options.fx.convertUsd(candle.open, currency),
+            high: currency === "USD" ? candle.high : options.fx.convertUsd(candle.high, currency),
+            low: currency === "USD" ? candle.low : options.fx.convertUsd(candle.low, currency),
+            close: currency === "USD" ? candle.close : options.fx.convertUsd(candle.close, currency),
+            avg: candle.avg
+              ? currency === "USD"
+                ? candle.avg
+                : options.fx.convertUsd(candle.avg, currency)
+              : null,
+            source: candle.source,
+            method: candle.method,
+            degraded: candle.degraded,
+          })),
+          source: "coinbase",
+          cachedAt: new Date().toISOString(),
+        };
+      }
+
+      return reply.code(400).send({
+        code: "MISSING_PARAMS",
+        message: "Daily granularity requires from/to or since=launch",
+      });
+    }
+
     const parsedRange = RANGE_SCHEMA.safeParse(query.range);
     if (!parsedRange.success) {
       return reply.code(400).send({ code: "INVALID_RANGE", message: "Unsupported history range" });
@@ -339,6 +418,7 @@ function registerFrontend(app: FastifyInstance, options: BuildAppOptions): void 
     ["/sponsors", "sponsors/index.html"],
     ["/leaderboard", "leaderboard/index.html"],
     ["/history", "history/index.html"],
+    ["/price-history", "price-history/index.html"],
     ["/rules", "rules/index.html"],
     ["/admin", "admin/index.html"],
     ["/pricing", "pricing/index.html"],

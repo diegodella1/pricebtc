@@ -3,6 +3,7 @@ export const WIDGET_THEMES = ["dark", "light", "custom"] as const;
 export const WIDGET_FONTS = ["display", "sans", "mono"] as const;
 export const WIDGET_BACKGROUNDS = ["solid", "transparent"] as const;
 export const HISTORY_RANGES = ["1h", "24h", "7d"] as const;
+export const HISTORY_GRANULARITIES = ["1h", "24h", "7d", "1d"] as const;
 export const MOTION_LEVELS = ["full", "reduced", "none"] as const;
 
 export type WidgetLayout = (typeof WIDGET_LAYOUTS)[number];
@@ -10,6 +11,7 @@ export type WidgetTheme = (typeof WIDGET_THEMES)[number];
 export type WidgetFont = (typeof WIDGET_FONTS)[number];
 export type WidgetBackground = (typeof WIDGET_BACKGROUNDS)[number];
 export type HistoryRange = (typeof HISTORY_RANGES)[number];
+export type HistoryGranularity = (typeof HISTORY_GRANULARITIES)[number];
 export type MotionLevel = (typeof MOTION_LEVELS)[number];
 export type WidgetMode = "embed" | "overlay";
 

@@ -30,6 +30,7 @@ async function frontend(snapshot: MarketSnapshot | null, state: "live" | "degrad
     market: { getSnapshot: () => snapshot, getState: () => state },
     fx: { supportsCurrency: () => true, convertUsd: p => p, getCurrencies: () => [], getStatus: () => ({ state: "live", updatedAt: null }) },
     history: { getHistory: async range => ({ range, points: [], cachedAt: "", source: "coinbase", high24h: null, low24h: null, volume24h: null }) },
+    dailyHistory: { getDailyHistory: async () => [] },
     streams: { open: () => undefined, getClientCount: () => 0 }, logger: false,
   });
   cleanup.push(() => app.close());

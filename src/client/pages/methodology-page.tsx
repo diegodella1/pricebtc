@@ -156,9 +156,23 @@ export function MethodologyPage() {
           <section id="history">
             <h2>Price history</h2>
             <p>
-              The chart and history endpoints remain <strong>Coinbase BTC-USD labeled</strong> (
-              <code>source: "coinbase"</code>) until a dedicated multi-venue history series exists. Past candles are{" "}
+              The short-range chart and history endpoints (1h, 24h, 7d) remain <strong>Coinbase BTC-USD labeled</strong>{" "}
+              (<code>source: "coinbase"</code>) until a dedicated multi-venue history series exists. Past candles are{" "}
               <strong>not</strong> relabeled as the index.
+            </p>
+            <p>
+              <strong>Daily history since launch</strong> (<a href="/price-history">/price-history</a>):{" "}
+              PRICEB.TC stores daily OHLC candles from launch (2026-08-25 UTC) forward. The backfill for historical days uses{" "}
+              <strong>Coinbase daily candles only</strong> (<code>source: "coinbase"</code>,{" "}
+              <code>method: "daily-backfill"</code>). This is <strong>not</strong> a historical multi-venue VWAP index —{" "}
+              it is Coinbase BTC-USD daily data. The live PRICE_INDEX (vwap) applies only to the current observation,{" "}
+              not to this backfilled historical series.
+            </p>
+            <p>
+              <strong>Ongoing daily rollup</strong>: After launch, PRICEB.TC stores its own daily candles rolled up from{" "}
+              the live feed or snapshot pipeline (<code>method: "daily-rollup"</code>). These candles include{" "}
+              <code>date</code>, <code>open</code>, <code>high</code>, <code>low</code>, <code>close</code>, optional{" "}
+              <code>avg</code>, plus <code>source</code>, <code>method</code>, and <code>degraded</code> fields for transparency.
             </p>
           </section>
 

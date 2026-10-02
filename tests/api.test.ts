@@ -52,8 +52,11 @@ function createTestApp(serveFrontend = false): FastifyInstance {
       source: "coinbase" as const,
     }),
   };
+  const dailyHistory = {
+    getDailyHistory: async () => [],
+  };
   const streams = { open: () => undefined, getClientCount: () => 3 };
-  const app = buildApp({ market, fx, history, streams, plausible: new PlausibleService(), serveFrontend, logger: false });
+  const app = buildApp({ market, fx, history, dailyHistory, streams, plausible: new PlausibleService(), serveFrontend, logger: false });
   apps.push(app);
   return app;
 }
