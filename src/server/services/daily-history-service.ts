@@ -132,30 +132,45 @@ export class DailyHistoryService {
       throw new Error("Invalid daily candle payload");
     }
 
-    return parsed.data
-      .map((candle) => {
-        const dateObj = new Date(candle[0] * 1_000);
-        const date = dateObj.toISOString().split("T")[0];
-        const open = String(candle[1]);
-        const high = String(candle[2]);
-        const low = String(candle[3]);
-        const close = String(candle[4]);
-        const avg = String((Number(high) + Number(low)) / 2);
+    const candles = parsed.data.map((candle) => {
+      const dateObj = new Date(candle[0] * 1_000);
+      const date = dateObj.toISOString().split("T")[0];
+      const low = String(candle[1]);
+      const high = String(candle[2]);
+      const open = String(candle[3]);
+      const close = String(candle[4]);
+      const avg = String((Number(high) + Number(low)) / 2);
 
-        return {
-          date,
-          open,
-          high,
-          low,
-          close,
-          avg,
-          source: "coinbase",
-          method: "daily-backfill",
-          degraded: false,
-          currency: "USD",
-        };
-      })
-      .sort((a, b) => a.date.localeCompare(b.date));
+      const lowNum = Number(low);
+      const highNum = Number(high);
+      const openNum = Number(open);
+      const closeNum = Number(close);
+
+      if (lowNum > highNum) {
+        throw new Error(`Invalid OHLC: low ${low} > high ${high} for ${date}`);
+      }
+      if (!(lowNum <= openNum && openNum <= highNum)) {
+        throw new Error(`Invalid OHLC: open ${open} outside [${low}, ${high}] for ${date}`);
+      }
+      if (!(lowNum <= closeNum && closeNum <= highNum)) {
+        throw new Error(`Invalid OHLC: close ${close} outside [${low}, ${high}] for ${date}`);
+      }
+
+      return {
+        date,
+        open,
+        high,
+        low,
+        close,
+        avg,
+        source: "coinbase",
+        method: "daily-backfill",
+        degraded: false,
+        currency: "USD",
+      };
+    });
+
+    return candles.sort((a, b) => a.date.localeCompare(b.date));
   }
 
   async getDailyHistory(fromDate?: string, toDate?: string): Promise<DailyCandle[]> {
