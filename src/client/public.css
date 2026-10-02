@@ -571,3 +571,76 @@ body:has(.studio-shell)::before, body:has(.studio-shell)::after, body:has(.publi
 .pricing-faq summary { cursor: pointer; font: 600 16px var(--font-body); color: var(--text); min-height: 44px; display: flex; align-items: center; }
 .pricing-faq details p { margin: 12px 0 0; color: var(--text-muted); line-height: 1.6; }
 .pricing-faq details a { color: var(--link); }
+
+/* Price History Page Styles */
+.price-history-page { padding-bottom: 40px; }
+.price-history-page .shell { max-width: var(--content-max); margin: 0 auto; padding: 16px 20px; }
+
+.home-hint { font-size: 12px; color: var(--text-muted); margin: 0 0 14px; }
+.home-hint a { color: var(--text-muted); text-decoration: underline; text-underline-offset: 3px; }
+.home-hint a:hover { color: var(--accent); }
+
+.history-link-row { display: flex; justify-content: flex-end; gap: 12px; margin: 8px 0; padding-top: 8px; }
+.history-link-row .quiet { font-size: 12px; color: var(--text-muted); text-decoration: underline; text-underline-offset: 3px; }
+.history-link-row .quiet:hover { color: var(--accent); }
+
+.page-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px 20px; margin-bottom: 14px; }
+.page-head h1 { font: 700 22px/1.2 var(--font-display); margin: 0; }
+.page-sub { font-size: 13px; color: var(--text-muted); margin: 6px 0 0; line-height: 1.4; max-width: 62ch; }
+.page-sub strong { color: var(--text); font-weight: 600; }
+
+.chip-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.disclose { display: inline-flex; align-items: center; gap: 6px; font: 500 10px var(--font-mono); color: var(--text-muted); padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface-2); }
+.disclose .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+
+.panel { background: var(--surface-glass); backdrop-filter: blur(20px); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; }
+.panel-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.panel-bar h2 { font: 600 13px var(--font-d); margin: 0; }
+.panel-meta { font: 400 10px var(--font-mono); color: var(--text-muted); }
+
+.pills { display: flex; gap: 4px; }
+.pills button { font: 500 10px var(--font-mono); padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface-2); color: var(--text-muted); cursor: pointer; transition: all 150ms ease; }
+.pills button[aria-pressed="true"] { background: #fff; color: var(--on-accent); border-color: #fff; }
+.pills button:hover { border-color: rgba(247, 147, 26, 0.45); color: var(--text); }
+
+.chart { height: 220px; border-radius: 8px; background: linear-gradient(180deg, rgba(247, 147, 26, 0.06), transparent 50%), var(--surface); border: 1px solid var(--line-soft); overflow: hidden; position: relative; display: flex; align-items: center; justify-content: center; }
+.chart svg.price-chart-svg { width: 100%; height: 100%; display: block; }
+.chart-loading, .chart-error, .chart-empty { text-align: center; color: var(--text-muted); font-size: 13px; }
+
+.chart-legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; font: 400 10px var(--font-mono); color: var(--text-muted); }
+.chart-legend i { display: inline-block; width: 12px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 4px; }
+.chart-legend .legend-band { height: 8px; background: rgba(247, 147, 26, 0.22); border: 1px solid rgba(247, 147, 26, 0.35); }
+.chart-legend .legend-close { background: var(--accent); }
+
+.search-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 14px; }
+.search-row label { display: flex; flex-direction: column; gap: 4px; font: 500 10px var(--font-mono); color: var(--text-muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.search-row input[type="date"] { font: 500 12px var(--font-mono); color: var(--text); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; color-scheme: dark; min-width: 148px; }
+.search-row input[type="date"]:focus { outline: 1px solid var(--accent); border-color: var(--accent); }
+.btn-search { font: 600 12px var(--font-body); padding: 8px 14px; border-radius: 8px; border: 1px solid var(--accent); background: transparent; color: var(--accent); cursor: pointer; transition: background 150ms ease; }
+.btn-search:hover { background: var(--accent-soft); }
+.search-hint { font-size: 11px; color: var(--text-muted); margin: 0; }
+
+.table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--line-soft); }
+.price-history-page table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.price-history-page thead th { font: 500 10px var(--font-mono); color: var(--text-muted); letter-spacing: 0.05em; text-transform: uppercase; text-align: left; padding: 8px 12px; background: var(--surface-2); border-bottom: 1px solid var(--line); }
+.price-history-page tbody td { font: 500 12px var(--font-mono); padding: 8px 12px; border-bottom: 1px solid var(--line-soft); color: var(--text); }
+.price-history-page tbody tr:last-child td { border-bottom: 0; }
+.price-history-page tbody tr:hover td { background: rgba(247, 147, 26, 0.04); }
+.price-history-page td.num, .price-history-page th.num { text-align: right; }
+.table-foot { font: 400 10px var(--font-mono); color: var(--text-muted); margin: 8px 0 0; }
+
+.callout { padding: 12px 14px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--line); border-left: 3px solid var(--accent); margin-bottom: 12px; }
+.callout h2 { font: 600 13px var(--font-display); margin: 0 0 6px; }
+.callout p { font-size: 12px; color: var(--text-muted); line-height: 1.45; margin: 0 0 6px; }
+.callout p:last-child { margin-bottom: 0; }
+.callout strong { color: var(--text); font-weight: 600; }
+.callout em { font-style: italic; }
+.callout a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+.callout a:hover { color: var(--accent-hover); }
+.callout code { font-family: var(--font-mono); font-size: 11px; color: var(--accent); background: var(--surface); padding: 2px 6px; border-radius: 4px; }
+
+@media(max-width: 720px) {
+  .page-head h1 { font-size: 18px; }
+  .chart { height: 180px; }
+  .price-sponsor-grid { grid-template-columns: 1fr; }
+}

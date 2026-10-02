@@ -330,6 +330,7 @@ const pages = [
     ["privacy", "Privacy Policy", "How PRICEB.TC handles information."],
     ["status", "Service Status", "Current Bitcoin market feed and service health."],
     ["pricing", "Pricing", "Bitcoin price tools that scale with your business."],
+    ["price-history", "Price History Since Launch", "Daily BTC/USD OHLC from 2026-08-25 UTC. Search any date range; chart + table from PRICEB.TC-owned daily candles."],
   ].map(([route, title, description]) => ({
     filename: `${route}/index.html`,
     metadata: {

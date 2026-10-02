@@ -2,6 +2,7 @@ import { buildApp } from "./app.js";
 import { parseEnvironment } from "./config.js";
 import { FxService } from "./services/fx-service.js";
 import { HistoryService } from "./services/history-service.js";
+import { DailyHistoryService } from "./services/daily-history-service.js";
 import { TradeVolumeService } from "./services/trade-volume.js";
 import { MarketService } from "./services/market-service.js";
 import { CoinbaseFeed } from "./services/coinbase-feed.js";
@@ -58,6 +59,10 @@ if (environment.PRICE_INDEX === "vwap") {
 
 const tradeVolume = new TradeVolumeService({ dataDir: environment.PRICEBTC_DATA_DIR, apiUrl: environment.COINBASE_API_URL });
 const history = new HistoryService({ apiUrl: environment.COINBASE_API_URL, tradeVolume });
+const dailyHistory = new DailyHistoryService({ 
+  dataDir: environment.PRICEBTC_DATA_DIR, 
+  apiUrl: environment.COINBASE_API_URL 
+});
 const streams = new SseHub({
   market,
   fx,
@@ -86,6 +91,7 @@ const app = buildApp({
   market, 
   fx, 
   history, 
+  dailyHistory,
   streams, 
   plausible,
   bidding,
@@ -123,6 +129,20 @@ async function main(): Promise<void> {
   marketStarts.push(market.start());
 
   await Promise.all([fx.start(), ...marketStarts, tradeVolume.start()]);
+  
+  try {
+    await dailyHistory.backfillFromCoinbase();
+    app.log.info("Daily history backfill complete");
+  } catch (error) {
+    app.log.warn({ error }, "Daily history backfill failed");
+  }
+  
+  setInterval(() => {
+    void dailyHistory.rollupLatestDay().catch((error) => {
+      app.log.warn({ error }, "Daily history rollup failed");
+    });
+  }, 60 * 60 * 1000);
+  
   streams.start();
   await app.listen({ host: environment.HOST, port: environment.PORT });
 }
