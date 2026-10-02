@@ -187,7 +187,10 @@ export function HomePage() {
                 <details className="feed-details"><summary>About this price</summary><p>{feedDetailsExplanation}{isIndexMode && <> Full rules: <a href="/methodology">How we price</a>.</>}</p><dl><div><dt>Connection</dt><dd>{connectionState}</dd></div><div><dt>Market update</dt><dd>{formatUtcTime(price?.marketTimestamp ?? null)}</dd></div><div><dt>Received</dt><dd>{formatUtcTime(price?.receivedAt ?? null)}</dd></div><div><dt>FX updated</dt><dd>{currency === "USD" ? "Direct USD price" : formatUtcDate(price?.fxUpdatedAt ?? null)}</dd></div></dl></details>
               </div>
             </section>
-            <aside id="bid-top-slot" aria-label="Sponsor space"></aside>
+            <aside className="right-rail" aria-label="Sponsor inventory">
+              <div id="bid-top-slot" aria-label="Sponsor space"></div>
+              <div id="bid-strip-slot" aria-label="Sponsor space #2"></div>
+            </aside>
           </div>
         </div>
         <section className="free-util" aria-label="Free Bitcoin overlay and embed">
@@ -201,7 +204,6 @@ export function HomePage() {
             <a className="quiet" href="/bitcoin-price-widget">or embed widget</a>
           </div>
         </section>
-        <aside id="bid-strip-slot" aria-label="Sponsor space #2"></aside>
         <div id="bid-logo-rail" className="bid-logo-rail" role="list" aria-label="Sponsor logo rail ranks 3 to 7"></div>
         <p className="observation-description">{observationDesc} <a href="/api">Bitcoin Price API</a> · <a href="/methodology">Price source and methodology</a></p>
         <div className="market-ctas">

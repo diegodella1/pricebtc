@@ -70,6 +70,11 @@ body:has(.studio-shell)::before, body:has(.studio-shell)::after, body:has(.publi
 
 /* Single instrument panel — terminal density */
 .instrument { background: var(--surface-glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px 10px; display: flex; flex-direction: column; gap: 8px; min-height: 100%; min-width: 0; overflow: hidden; container-type: inline-size; }
+
+/* RIGHT RAIL — stack #01 over #02 */
+.right-rail { display: flex; flex-direction: column; gap: 8px; min-height: 100%; min-width: 0; }
+
+#bid-top-slot { min-width: 0; display: flex; align-items: stretch; flex: 1; }
 .inst-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; min-width: 0; }
 .inst-top > div:first-child { min-width: 0; flex: 1; }
 .inst-top h1 { font: 700 15px/1.2 var(--font-display); margin: 0; letter-spacing: -.02em; }
@@ -91,7 +96,6 @@ body:has(.studio-shell)::before, body:has(.studio-shell)::after, body:has(.publi
 .public-site .currency-field select { width: 100%; min-height: 44px; background: var(--surface); color: var(--text); border: 1px solid var(--line); border-radius: 8px; font-size: 14px; padding: 8px 28px 8px 12px; }
 .market-source { color: var(--text-muted); font-size: 12px; margin: 12px 0 0; }
 .public-notice { padding: 16px; border: 1px solid var(--line); border-radius: 10px; color: var(--text-muted); }
-#bid-top-slot { min-width: 0; min-height: 100%; display: flex; align-items: stretch; }
 .public-site .bid-top { min-height: 100%; height: 100%; padding: 14px 16px; background: var(--surface-glass); color: var(--text); border: 1px solid var(--line-white-8); border-radius: 12px; display: flex; flex-direction: column; justify-content: space-between; gap: 12px; box-shadow: 0 0 0 1px rgba(244, 246, 251, 0.06), 0 8px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255, 255, 255, 0.04); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); transition: border-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 160ms cubic-bezier(0.2, 0.8, 0.2, 1), background 160ms cubic-bezier(0.2, 0.8, 0.2, 1); }
 .public-site .bid-top.has-leader { border-color: var(--accent-border); box-shadow: 0 0 0 1px rgba(244, 246, 251, 0.06), 0 8px 32px rgba(0,0,0,0.45), 0 0 40px -12px var(--accent-glow), inset 0 1px 0 rgba(255, 255, 255, 0.04); }
 .public-site .bid-top:hover { border-color: rgba(247, 147, 26, 0.55); box-shadow: 0 0 28px var(--accent-soft), inset 0 1px 0 rgba(255, 255, 255, 0.04); }
@@ -125,7 +129,17 @@ body:has(.studio-shell)::before, body:has(.studio-shell)::after, body:has(.publi
 .free-util__links .btn-loop:hover { background: var(--accent-soft); }
 .free-util__links a.quiet { font-weight: 500; color: var(--text-muted); padding: 7px 4px; border: 0; border-radius: 0; text-decoration: underline; text-underline-offset: 3px; }
 .free-util__links a.quiet:hover { color: var(--accent); background: transparent; }
-#bid-strip-slot { display: block; min-height: 52px; height: 52px; margin: 8px 0 0; }
+
+/* Slot #02 — below #01 in rail · strip style · quieter · Open → only */
+#bid-strip-slot { display: flex; min-width: 0; flex-shrink: 0; }
+.slot-02 { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 12px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--line); flex-shrink: 0; min-width: 0; text-decoration: none; color: var(--text); transition: border-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+.slot-02:hover { border-color: rgba(247, 147, 26, 0.28); }
+.slot-02 .slot-02__meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.slot-02 .rank { font: 500 10px var(--font-mono); color: var(--text-muted); letter-spacing: .05em; margin: 0; text-transform: uppercase; }
+.slot-02 .title { font: 600 12px/1.25 var(--font-display); color: var(--text); margin: 0; letter-spacing: -.02em; }
+.slot-02 .cta { font: 500 12px var(--font-body); color: var(--text-muted); white-space: nowrap; flex-shrink: 0; }
+.slot-02:hover .cta { color: var(--accent); }
+
 #bid-logo-rail { margin: 6px 0 0; gap: 6px; }
 .market-stats-24h { display: flex; gap: 24px; flex-wrap: wrap; margin: 16px 0; color: var(--text-muted); font: 12px var(--font-mono); }
 .market-stats-24h strong { color: var(--accent); font-weight: 400; font-size: 16px; }
@@ -241,7 +255,8 @@ body:has(.studio-shell)::before, body:has(.studio-shell)::after, body:has(.publi
   .price-module { padding: 0; display: flex; flex-direction: column; }
   .price-sponsor-grid { display: contents; }
   .instrument { order: 1; }
-  #bid-top-slot { order: 2; margin-top: 20px; min-height: 280px; }
+  .right-rail { order: 2; margin-top: 20px; min-height: 0; }
+  #bid-top-slot { min-height: 280px; }
   .free-util { order: 3; margin-top: 10px; }
   .chart-bar { flex-direction: column; align-items: stretch; gap: 6px; }
   .chart-bar > span { text-align: left; }
