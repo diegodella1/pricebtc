@@ -49,7 +49,15 @@ export async function verifyPublicPages(base, { offline = false } = {}) {
         stripBox.y >= topSlotBox.y + topSlotBox.height - 1,
         `Sponsor strip must sit below hero #01 at ${width}px`,
       );
+      assert.ok(
+        rightRailBox && stripBox && Math.abs(stripBox.width - rightRailBox.width) <= 2,
+        `Sponsor strip must span full right rail width at ${width}px`,
+      );
       if (width >= desktopMinWidth) {
+        assert.ok(
+          topSlotBox && Math.abs(stripBox.width - topSlotBox.width) <= 2,
+          `Sponsor strip must match hero #01 column width at desktop ${width}px`,
+        );
         assert.ok(rightRailBox && chartBox, `Right rail beside instrument at ${width}px`);
         assert.ok(
           stripBox.x >= rightRailBox.x - 1 && stripBox.x + stripBox.width <= rightRailBox.x + rightRailBox.width + 1,
