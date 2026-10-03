@@ -32,14 +32,45 @@ export async function verifyPublicPages(base, { offline = false } = {}) {
       await expect(emptyHero).toContainText('Claim Be #01');
       await expect(emptyHero.getByRole('link')).toHaveAttribute('href', /^\/sponsors#(claim|waitlist)$/);
     }
+    const desktopMinWidth = 851;
     for (const width of [1440, 768, 360]) {
       await page.setViewportSize({ width, height: 1000 });
       await expect(strip).toBeVisible();
       await expect(rail).toBeVisible();
-      const chartBox = await page.locator('.hero__chart').boundingBox();
+      assert.equal(await page.locator(".sponsor-strip").count(), 1, `Single home sponsor strip at ${width}px`);
+      const chartBox = await page.locator(".hero__chart").boundingBox();
       const stripBox = await strip.boundingBox();
       const railBox = await rail.boundingBox();
-      assert.ok(chartBox && stripBox && stripBox.y >= chartBox.y + chartBox.height - 1, `Sponsor strip must be below chart at ${width}px`);
+      const topSlotBox = await page.locator("#bid-top-slot").boundingBox();
+      const rightRailBox = await page.locator(".right-rail").boundingBox();
+      const freeUtilBox = await page.locator(".free-util").boundingBox();
+      assert.ok(topSlotBox && stripBox, `Sponsor strip and hero slot layout at ${width}px`);
+      assert.ok(
+        stripBox.y >= topSlotBox.y + topSlotBox.height - 1,
+        `Sponsor strip must sit below hero #01 at ${width}px`,
+      );
+      if (width >= desktopMinWidth) {
+        assert.ok(rightRailBox && chartBox, `Right rail beside instrument at ${width}px`);
+        assert.ok(
+          stripBox.x >= rightRailBox.x - 1 && stripBox.x + stripBox.width <= rightRailBox.x + rightRailBox.width + 1,
+          `Sponsor strip must stay inside right rail at ${width}px`,
+        );
+        assert.ok(
+          stripBox.y < chartBox.y + chartBox.height - 1,
+          `Sponsor strip must stay beside chart (not under it) at desktop ${width}px`,
+        );
+        if (freeUtilBox) {
+          assert.ok(
+            stripBox.y + stripBox.height <= freeUtilBox.y + 1,
+            `Sponsor strip must not be clipped by free utility at ${width}px`,
+          );
+        }
+      } else {
+        assert.ok(
+          chartBox && stripBox && stripBox.y >= chartBox.y + chartBox.height - 1,
+          `Sponsor strip must be below chart at ${width}px`,
+        );
+      }
       assert.ok(stripBox && railBox && railBox.y >= stripBox.y + stripBox.height - 1, `Logo rail must be below strip at ${width}px`);
       await expect.poll(() => page.evaluate(() => globalThis.document.documentElement.scrollWidth - globalThis.innerWidth), {
         message: `Horizontal overflow at ${width}px`,
@@ -51,7 +82,7 @@ export async function verifyPublicPages(base, { offline = false } = {}) {
     assert.match(csp, /script-src[^;]*https:\/\/www\.googletagmanager\.com/, "GA4 script CSP");
     assert.match(csp, /connect-src[^;]*https:\/\/www\.google-analytics\.com/, "GA4 collection CSP");
     assert.equal(await page.evaluate(() => (globalThis.dataLayer ?? []).some(entry => entry[0] === "config" && entry[1] === "G-T9E3ZF3J0T")), true, "GA4 initialized");
-    console.log("Browser OK: home — hero, strip below chart, logo rail below strip (5 cells), Be #01 / Pay BTC·USDT·USDC, responsive layout, GA4 configuration/CSP");
+    console.log("Browser OK: home — hero, single strip in right rail (#02 under #01 at desktop), logo rail below strip (5 cells), Be #01 / Pay BTC·USDT·USDC, responsive layout, GA4 configuration/CSP");
     for (const [path, heading] of [
       ["/terms", "Terms of Service"], ["/privacy", "Privacy Policy"],
       ["/status", "Service Health"], ["/pricing", "Free API. Sponsor-supported."],
