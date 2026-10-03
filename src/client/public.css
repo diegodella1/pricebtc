@@ -66,15 +66,16 @@ body:has(.studio-shell)::before, body:has(.studio-shell)::after, body:has(.publi
 .feed-state i { width: 7px; height: 7px; background: currentColor; border-radius: 50%; }
 .public-site .is-positive, .public-site .is-live { color: var(--positive); }
 .public-site .is-negative { color: var(--negative); }
-.price-sponsor-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 10px; margin-top: 10px; align-items: stretch; }
+.price-sponsor-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 10px; margin-top: 10px; align-items: start; }
 
 /* Single instrument panel — terminal density */
 .instrument { background: var(--surface-glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px 10px; display: flex; flex-direction: column; gap: 8px; min-height: 100%; min-width: 0; overflow: hidden; container-type: inline-size; }
 
 /* RIGHT RAIL — stack #01 over #02 */
-.right-rail { display: flex; flex-direction: column; gap: 8px; min-height: 100%; min-width: 0; }
+.right-rail { display: flex; flex-direction: column; gap: 8px; align-self: start; height: auto; min-height: 0; min-width: 0; overflow: visible; }
 
-#bid-top-slot { min-width: 0; display: flex; align-items: stretch; flex: 1; }
+#bid-top-slot { min-width: 0; display: flex; align-items: stretch; flex: 0 0 auto; width: 100%; }
+#bid-top-slot .bid-top { width: 100%; }
 .inst-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; min-width: 0; }
 .inst-top > div:first-child { min-width: 0; flex: 1; }
 .inst-top h1 { font: 700 15px/1.2 var(--font-display); margin: 0; letter-spacing: -.02em; }
@@ -96,7 +97,7 @@ body:has(.studio-shell)::before, body:has(.studio-shell)::after, body:has(.publi
 .public-site .currency-field select { width: 100%; min-height: 44px; background: var(--surface); color: var(--text); border: 1px solid var(--line); border-radius: 8px; font-size: 14px; padding: 8px 28px 8px 12px; }
 .market-source { color: var(--text-muted); font-size: 12px; margin: 12px 0 0; }
 .public-notice { padding: 16px; border: 1px solid var(--line); border-radius: 10px; color: var(--text-muted); }
-.public-site .bid-top { min-height: 100%; height: 100%; padding: 14px 16px; background: var(--surface-glass); color: var(--text); border: 1px solid var(--line-white-8); border-radius: 12px; display: flex; flex-direction: column; justify-content: space-between; gap: 12px; box-shadow: 0 0 0 1px rgba(244, 246, 251, 0.06), 0 8px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255, 255, 255, 0.04); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); transition: border-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 160ms cubic-bezier(0.2, 0.8, 0.2, 1), background 160ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+.public-site .bid-top { flex: 0 0 auto; height: auto; padding: 14px 16px; background: var(--surface-glass); color: var(--text); border: 1px solid var(--line-white-8); border-radius: 12px; display: flex; flex-direction: column; justify-content: flex-start; gap: 12px; box-shadow: 0 0 0 1px rgba(244, 246, 251, 0.06), 0 8px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255, 255, 255, 0.04); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); transition: border-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 160ms cubic-bezier(0.2, 0.8, 0.2, 1), background 160ms cubic-bezier(0.2, 0.8, 0.2, 1); }
 .public-site .bid-top.has-leader { border-color: var(--accent-border); box-shadow: 0 0 0 1px rgba(244, 246, 251, 0.06), 0 8px 32px rgba(0,0,0,0.45), 0 0 40px -12px var(--accent-glow), inset 0 1px 0 rgba(255, 255, 255, 0.04); }
 .public-site .bid-top:hover { border-color: rgba(247, 147, 26, 0.55); box-shadow: 0 0 28px var(--accent-soft), inset 0 1px 0 rgba(255, 255, 255, 0.04); }
 .public-site .bid-top header { display: flex; justify-content: space-between; gap: 10px; color: var(--accent); font: 500 10px var(--font-mono); letter-spacing: .06em; margin: 0 0 4px; }
@@ -131,8 +132,8 @@ body:has(.studio-shell)::before, body:has(.studio-shell)::after, body:has(.publi
 .free-util__links a.quiet:hover { color: var(--accent); background: transparent; }
 
 /* Slot #02 — below #01 in rail · strip style · quieter · Open → only */
-#bid-strip-slot { display: flex; min-width: 0; flex-shrink: 0; }
-.slot-02 { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 12px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--line); flex-shrink: 0; min-width: 0; text-decoration: none; color: var(--text); transition: border-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+#bid-strip-slot { display: flex; min-width: 0; flex: 0 0 auto; overflow: visible; }
+.slot-02 { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 12px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--line); flex: 0 0 auto; overflow: visible; min-width: 0; text-decoration: none; color: var(--text); transition: border-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1); }
 .slot-02:hover { border-color: rgba(247, 147, 26, 0.28); }
 .slot-02 .slot-02__meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
 .slot-02 .rank { font: 500 10px var(--font-mono); color: var(--text-muted); letter-spacing: .05em; margin: 0; text-transform: uppercase; }
@@ -395,7 +396,7 @@ body:has(.studio-shell)::before, body:has(.studio-shell)::after, body:has(.publi
 .sponsor-empty-cta { display: block; padding: 32px; background: var(--surface-glass); border: 1px solid var(--line-white-8); border-radius: 20px; text-align: center; text-decoration: none; min-height: 300px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); transition: border-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 160ms cubic-bezier(0.2, 0.8, 0.2, 1), background 160ms cubic-bezier(0.2, 0.8, 0.2, 1); box-shadow: 0 0 0 1px rgba(244, 246, 251, 0.06), 0 8px 32px rgba(0,0,0,0.45); }
 .sponsor-empty-cta:hover { border-color: var(--accent-border); background: rgba(15, 19, 27, 0.85); box-shadow: 0 0 0 1px rgba(244, 246, 251, 0.06), 0 8px 32px rgba(0,0,0,0.45), 0 0 28px var(--accent-glow); }
 .sponsor-empty-cta:focus-visible { outline: none; border-color: var(--accent-border); background: rgba(15, 19, 27, 0.85); box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--accent-soft), 0 0 28px var(--accent-glow); }
-.public-site .bid-top.sponsor-empty-cta { align-items: stretch; text-align: left; justify-content: space-between; padding: 14px 16px; }
+.public-site .bid-top.sponsor-empty-cta { align-items: stretch; text-align: left; justify-content: flex-start; min-height: 0; padding: 14px 16px; border-radius: 12px; box-shadow: 0 0 0 1px rgba(244, 246, 251, 0.06), 0 8px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255, 255, 255, 0.04); }
 .sponsor-empty-cta__title { font: 600 28px var(--font-display); color: var(--text); margin: 0; letter-spacing: -0.03em; }
 .sponsor-empty-cta__desc { font-size: 14px; color: var(--text-muted); margin: 0; line-height: 1.5; max-width: 28ch; }
 .sponsor-empty-cta__button { display: inline-flex; padding: 10px 22px; border: 1px solid var(--accent); border-radius: 12px; color: var(--accent); font: 600 14px var(--font-body); text-decoration: none; margin-top: 8px; transition: all 160ms cubic-bezier(0.2, 0.8, 0.2, 1); }
