@@ -129,6 +129,8 @@ describe("generated SEO documents", () => {
     expect(navLinks).toContain("Price");
     expect(navLinks).toContain("Sponsors");
     expect(navLinks).toContain("API");
+    expect(navLinks).toContain("Studio");
+    expect(document.querySelector('header nav a.header-nav-studio[href="/studio"]')?.textContent).toBe("Studio");
     for (const phrase of ["30 seconds", "24-hour volume", "VWAP", "Binance", "BTCUSDT", "USDT", "Coinbase Exchange", "two-venue index", "not a global average", "2%", "outlier", "fallback", "degraded"]) {
       expect(document.body.textContent, `methodology must contain "${phrase}"`).toContain(phrase);
     }
@@ -141,7 +143,8 @@ describe("generated SEO documents", () => {
       const html = await readFile(join(root, path.slice(1) + "/index.html"), "utf8");
       const document = new DOMParser().parseFromString(html, "text/html");
       const navLinks = [...document.querySelectorAll('header nav a')].map(a => a.textContent);
-      expect(navLinks, `${path} header nav must have Price, Sponsors, API`).toEqual(["Price", "Sponsors", "API"]);
+      expect(navLinks, `${path} header nav must have Price, Sponsors, API, Studio`).toEqual(["Price", "Sponsors", "API", "Studio"]);
+      expect(document.querySelector('header nav a.header-nav-studio[href="/studio"]')?.textContent, `${path} Studio must be accent nav button`).toBe("Studio");
       expect(document.querySelector('header a.header-quiet[href="/sponsors#claim"]')?.textContent, `${path} header must have quiet Claim CTA`).toBe("Claim");
       expect(document.querySelector('main a.action-link[href="/sponsors#claim"]')?.textContent, `${path} must have primary claim CTA`).toContain("Claim a Top 21 sponsor slot");
       expect(document.querySelector('main a[href="/rules"]'), `${path} must link to sponsor rules`).not.toBeNull();
