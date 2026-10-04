@@ -113,7 +113,7 @@ export async function verifyPublicPages(base, { offline = false } = {}) {
         await expect(header.getByRole("navigation").getByRole("link", { name: "Price" })).toBeVisible();
         await expect(header.getByRole("navigation").getByRole("link", { name: "Sponsors" })).toBeVisible();
         await expect(header.getByRole("navigation").getByRole("link", { name: "API" })).toBeVisible();
-        await expect(header.getByRole("navigation").getByRole("link", { name: "Studio" })).toBeVisible();
+        await expect(header.getByRole("navigation").getByRole("link", { name: "Studio" })).toHaveClass(/header-nav-studio/);
         await expect(page.getByRole("link", { name: /Claim a Top 21 sponsor slot →/ })).toBeVisible();
         const observation = page.waitForResponse(response => response.url().includes("/api/price?currency=ARS"));
         await page.getByRole("tab", { name: "ARS", exact: true }).click();
@@ -130,7 +130,7 @@ export async function verifyPublicPages(base, { offline = false } = {}) {
         await expect(header.getByRole("navigation").getByRole("link", { name: "Price" })).toBeVisible();
         await expect(header.getByRole("navigation").getByRole("link", { name: "Sponsors" })).toBeVisible();
         await expect(header.getByRole("navigation").getByRole("link", { name: "API" })).toBeVisible();
-        await expect(header.getByRole("navigation").getByRole("link", { name: "Studio" })).toBeVisible();
+        await expect(header.getByRole("navigation").getByRole("link", { name: "Studio" })).toHaveClass(/header-nav-studio/);
         await expect(page.getByRole("link", { name: /Claim a Top 21 sponsor slot →/ })).toBeVisible();
         await expect(page.getByRole("link", { name: /Open Widget Studio →/ })).toBeVisible();
       }
