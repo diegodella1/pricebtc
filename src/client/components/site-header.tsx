@@ -8,6 +8,7 @@ export function SiteHeader() {
         <a href="/#market">Price</a>
         <a href="/sponsors#claim">Sponsors</a>
         <a href="/api">API</a>
+        <a href="/studio">Studio</a>
       </nav>
       <a className="header-quiet" href="/sponsors#claim">Claim</a>
     </div>
