@@ -68,13 +68,13 @@ body:has(.studio-shell)::before, body:has(.studio-shell)::after, body:has(.publi
 .feed-state i { width: 7px; height: 7px; background: currentColor; border-radius: 50%; }
 .public-site .is-positive, .public-site .is-live { color: var(--positive); }
 .public-site .is-negative { color: var(--negative); }
-.price-sponsor-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 10px; margin-top: 10px; align-items: start; }
+.price-sponsor-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 10px; margin-top: 10px; align-items: stretch; }
 
 /* Single instrument panel — terminal density */
 .instrument { background: var(--surface-glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px 10px; display: flex; flex-direction: column; gap: 8px; min-height: 100%; min-width: 0; overflow: hidden; container-type: inline-size; }
 
-/* RIGHT RAIL — stack #01 over #02 */
-.right-rail { display: flex; flex-direction: column; gap: 8px; align-self: start; height: auto; min-height: 0; min-width: 0; overflow: visible; }
+/* RIGHT RAIL — stack #01 over #02; rail stretches to instrument height, #02 fills remainder */
+.right-rail { display: flex; flex-direction: column; gap: 8px; align-self: stretch; height: 100%; min-height: 0; min-width: 0; overflow: visible; }
 
 #bid-top-slot { min-width: 0; display: flex; align-items: stretch; flex: 0 0 auto; width: 100%; }
 #bid-top-slot .bid-top { width: 100%; }
@@ -133,17 +133,22 @@ body:has(.studio-shell)::before, body:has(.studio-shell)::after, body:has(.publi
 .free-util__links a.quiet { font-weight: 500; color: var(--text-muted); padding: 7px 4px; border: 0; border-radius: 0; text-decoration: underline; text-underline-offset: 3px; }
 .free-util__links a.quiet:hover { color: var(--accent); background: transparent; }
 
-/* Slot #02 — below #01 in rail · full column width · quieter · Open → only */
-#bid-strip-slot { display: flex; flex-direction: column; align-items: stretch; width: 100%; min-width: 0; flex: 0 0 auto; overflow: visible; }
-#bid-strip-slot .sponsor-strip,
-#bid-strip-slot .slot-02 { width: 100%; max-width: 100%; align-self: stretch; box-sizing: border-box; }
-.slot-02 { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 12px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--line); flex: 0 0 auto; overflow: visible; min-width: 0; text-decoration: none; color: var(--text); transition: border-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1); }
-.slot-02:hover { border-color: rgba(247, 147, 26, 0.28); }
-.slot-02 .slot-02__meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
-.slot-02 .rank { font: 500 10px var(--font-mono); color: var(--text-muted); letter-spacing: .05em; margin: 0; text-transform: uppercase; }
-.slot-02 .title { font: 600 12px/1.25 var(--font-display); color: var(--text); margin: 0; letter-spacing: -.02em; }
-.slot-02 .cta { font: 500 12px var(--font-body); color: var(--text-muted); white-space: nowrap; flex-shrink: 0; }
-.slot-02:hover .cta { color: var(--accent); }
+/* Slot #02 — large glass card below #01; flex-grows on desktop */
+#bid-strip-slot { display: flex; flex-direction: column; align-items: stretch; width: 100%; min-width: 0; flex: 1 1 0; min-height: 0; overflow: visible; }
+#bid-strip-slot .slot-02-card { width: 100%; max-width: 100%; align-self: stretch; box-sizing: border-box; flex: 1 1 auto; min-height: 0; }
+.slot-02-card { display: flex; flex-direction: column; justify-content: flex-start; gap: 12px; padding: 14px 16px; border-radius: 12px; background: var(--surface-glass); border: 1px solid var(--line); text-decoration: none; color: var(--text); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 0 0 1px rgba(244, 246, 251, 0.06), 0 8px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255, 255, 255, 0.04); transition: border-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 160ms cubic-bezier(0.2, 0.8, 0.2, 1), background 160ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+.slot-02-card--empty { border-style: dashed; }
+.slot-02-card:hover { border-color: rgba(247, 147, 26, 0.28); }
+.slot-02-card:focus-visible { outline: none; border-color: rgba(247, 147, 26, 0.45); box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--accent-soft); }
+.slot-02-card__body { display: flex; flex-direction: column; gap: 8px; min-width: 0; flex: 1 1 auto; }
+.slot-02-card__body.sponsor-strip__identity { flex-direction: row; align-items: center; gap: 12px; }
+.slot-02-card--filled { justify-content: space-between; }
+.slot-02-card header { margin: 0; }
+.slot-02-card__rank { font: 500 10px var(--font-mono); color: var(--text-muted); letter-spacing: .06em; text-transform: uppercase; }
+.slot-02-card__copy { font: 600 15px/1.35 var(--font-display); color: var(--text); margin: 0; letter-spacing: -.02em; }
+.public-site .btn-outline-claim { display: inline-flex; align-items: center; justify-content: center; align-self: flex-start; padding: 10px 16px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--text-muted); font: 600 14px var(--font-body); text-decoration: none; transition: border-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1), color 160ms cubic-bezier(0.2, 0.8, 0.2, 1), background 160ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+.public-site .btn-outline-claim:hover { border-color: rgba(247, 147, 26, 0.45); color: var(--accent); background: var(--accent-soft); }
+.public-site .btn-outline-claim:focus-visible { outline: none; border-color: var(--accent); color: var(--accent); box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--accent-soft); }
 
 #bid-logo-rail { margin: 6px 0 0; gap: 6px; }
 .market-stats-24h { display: flex; gap: 24px; flex-wrap: wrap; margin: 16px 0; color: var(--text-muted); font: 12px var(--font-mono); }
@@ -156,6 +161,8 @@ body:has(.studio-shell)::before, body:has(.studio-shell)::after, body:has(.publi
 .public-site .price-chart__volume { fill: var(--text-muted); opacity: 0.4; }
 .public-site .price-chart--with-volume .price-chart__volume { opacity: 0.5; }
 .sponsor-strip { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; height: 52px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); text-decoration: none; color: var(--text); transition: border-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 160ms cubic-bezier(0.2, 0.8, 0.2, 1), background 160ms cubic-bezier(0.2, 0.8, 0.2, 1); box-shadow: 0 0 0 1px rgba(244, 246, 251, 0.06); }
+#bid-strip-slot .sponsor-strip { height: auto; padding: 0; border: 0; box-shadow: none; background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; }
+#bid-strip-slot .slot-02-card.sponsor-strip { padding: 14px 16px; border: 1px solid var(--line); background: var(--surface-glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 0 0 1px rgba(244, 246, 251, 0.06), 0 8px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255, 255, 255, 0.04); }
 .sponsor-strip:hover { border-color: var(--accent); border-style: solid; background: rgba(15, 19, 27, 0.85); box-shadow: 0 0 16px var(--accent-glow); }
 .sponsor-strip:focus-visible { outline: none; border-color: var(--accent); border-style: solid; background: rgba(15, 19, 27, 0.85); box-shadow: 0 0 16px var(--accent-glow); }
 .sponsor-strip--empty { border-style: dashed; background: var(--surface-glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
@@ -260,7 +267,9 @@ body:has(.studio-shell)::before, body:has(.studio-shell)::after, body:has(.publi
   .price-module { padding: 0; display: flex; flex-direction: column; }
   .price-sponsor-grid { display: contents; }
   .instrument { order: 1; }
-  .right-rail { order: 2; margin-top: 20px; min-height: 0; }
+  .right-rail { order: 2; margin-top: 20px; min-height: 0; height: auto; align-self: auto; }
+  #bid-strip-slot { flex: 0 0 auto; }
+  #bid-strip-slot .slot-02-card { flex: 0 0 auto; min-height: 180px; }
   #bid-top-slot { min-height: 280px; }
   .free-util { order: 3; margin-top: 10px; }
   .chart-bar { flex-direction: column; align-items: stretch; gap: 6px; }
