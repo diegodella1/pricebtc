@@ -145,10 +145,15 @@ body:has(.studio-shell)::before, body:has(.studio-shell)::after, body:has(.publi
 .slot-02-card--filled { justify-content: space-between; }
 .slot-02-card header { margin: 0; }
 .slot-02-card__rank { font: 500 10px var(--font-mono); color: var(--text-muted); letter-spacing: .06em; text-transform: uppercase; }
-.slot-02-card__copy { font: 600 15px/1.35 var(--font-display); color: var(--text); margin: 0; letter-spacing: -.02em; }
-.public-site .btn-outline-claim { display: inline-flex; align-items: center; justify-content: center; align-self: flex-start; padding: 10px 16px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--text-muted); font: 600 14px var(--font-body); text-decoration: none; transition: border-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1), color 160ms cubic-bezier(0.2, 0.8, 0.2, 1), background 160ms cubic-bezier(0.2, 0.8, 0.2, 1); }
-.public-site .btn-outline-claim:hover { border-color: rgba(247, 147, 26, 0.45); color: var(--accent); background: var(--accent-soft); }
-.public-site .btn-outline-claim:focus-visible { outline: none; border-color: var(--accent); color: var(--accent); box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--accent-soft); }
+.slot-02-card__title { font: 700 18px/1.2 var(--font-display); color: var(--text); margin: 0; letter-spacing: -.03em; }
+.slot-02-card__desc { color: var(--text-muted); font-size: 12px; line-height: 1.45; margin: 0; }
+.slot-02-card__desc em { font-style: normal; color: var(--text); font-weight: 500; }
+.slot-02-card__desc strong { color: var(--text); font-weight: 600; }
+.slot-02-card__desc--sideline { font-size: 11px; line-height: 1.4; }
+.slot-02-card--empty .btn-outline-claim { margin-top: auto; }
+.public-site .btn-outline-claim { display: inline-flex; align-items: center; justify-content: center; align-self: flex-start; padding: 10px 18px; border-radius: 999px; border: 1.5px solid rgba(244, 246, 251, 0.35); background: rgba(244, 246, 251, 0.04); color: var(--text); font: 700 14px var(--font-body); text-decoration: none; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25); transition: border-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1), color 160ms cubic-bezier(0.2, 0.8, 0.2, 1), background 160ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 160ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+.public-site .btn-outline-claim:hover { border-color: rgba(247, 147, 26, 0.55); color: var(--text); background: rgba(247, 147, 26, 0.12); box-shadow: 0 0 12px rgba(247, 147, 26, 0.15); }
+.public-site .btn-outline-claim:focus-visible { outline: none; border-color: rgba(247, 147, 26, 0.65); color: var(--text); background: rgba(247, 147, 26, 0.12); box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--accent-soft); }
 
 #bid-logo-rail { margin: 6px 0 0; gap: 6px; }
 .market-stats-24h { display: flex; gap: 24px; flex-wrap: wrap; margin: 16px 0; color: var(--text-muted); font: 12px var(--font-mono); }

@@ -32,6 +32,8 @@ export async function verifyPublicPages(base, { offline = false } = {}) {
       await expect(emptyHero).toContainText('Claim Be #01');
       await expect(emptyHero.getByRole('link')).toHaveAttribute('href', /^\/sponsors#(claim|waitlist)$/);
       await expect(strip).toContainText('Spot #02 · Open');
+      await expect(strip).toContainText('Be #02 · beside the chart · from $10');
+      await expect(strip).toContainText('Pay BTC · USDT · USDC');
       await expect(strip.getByRole('link', { name: 'Claim #02 →' })).toHaveAttribute('href', '/sponsors#claim');
     }
     const desktopMinWidth = 851;

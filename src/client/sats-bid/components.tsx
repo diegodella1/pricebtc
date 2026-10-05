@@ -217,7 +217,15 @@ export function SponsorStrip({
           <header>
             <span className="slot-02-card__rank">Spot #02 · Open</span>
           </header>
-          <p className="slot-02-card__copy">Your logo beside the live chart · from $10</p>
+          <h2 className="slot-02-card__title">Be #02 · beside the chart · from $10</h2>
+          <p className="slot-02-card__desc">
+            Pay BTC · USDT · USDC. Cumulative USD ranks the Top 21. Your logo sits{" "}
+            <em>beside this live chart</em> in the home rail.
+          </p>
+          <p className="slot-02-card__desc slot-02-card__desc--sideline">
+            Same signal streamers and sites pull via the <strong>free</strong> BTC overlay &amp; embed — your spot
+            reaches that audience too.
+          </p>
         </div>
         <a href="/sponsors#claim" className="btn-outline-claim">Claim #02 →</a>
       </article>
