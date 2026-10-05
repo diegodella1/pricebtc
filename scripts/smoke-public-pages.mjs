@@ -31,6 +31,10 @@ export async function verifyPublicPages(base, { offline = false } = {}) {
       await expect(emptyHero).toContainText('Be #01');
       await expect(emptyHero).toContainText('Claim Be #01');
       await expect(emptyHero.getByRole('link')).toHaveAttribute('href', /^\/sponsors#(claim|waitlist)$/);
+      await expect(strip).toContainText('Spot #02 · Open');
+      await expect(strip).toContainText('Be #02 · beside the chart · from $10');
+      await expect(strip).toContainText('Pay BTC · USDT · USDC');
+      await expect(strip.getByRole('link', { name: 'Claim #02 →' })).toHaveAttribute('href', '/sponsors#claim');
     }
     const desktopMinWidth = 851;
     for (const width of [1440, 768, 360]) {
@@ -43,6 +47,7 @@ export async function verifyPublicPages(base, { offline = false } = {}) {
       const railBox = await rail.boundingBox();
       const topSlotBox = await page.locator("#bid-top-slot").boundingBox();
       const rightRailBox = await page.locator(".right-rail").boundingBox();
+      const instrumentBox = await page.locator(".instrument").boundingBox();
       const freeUtilBox = await page.locator(".free-util").boundingBox();
       assert.ok(topSlotBox && stripBox, `Sponsor strip and hero slot layout at ${width}px`);
       assert.ok(
@@ -58,7 +63,7 @@ export async function verifyPublicPages(base, { offline = false } = {}) {
           topSlotBox && Math.abs(stripBox.width - topSlotBox.width) <= 2,
           `Sponsor strip must match hero #01 column width at desktop ${width}px`,
         );
-        assert.ok(rightRailBox && chartBox, `Right rail beside instrument at ${width}px`);
+        assert.ok(rightRailBox && chartBox && instrumentBox, `Right rail beside instrument at ${width}px`);
         assert.ok(
           stripBox.x >= rightRailBox.x - 1 && stripBox.x + stripBox.width <= rightRailBox.x + rightRailBox.width + 1,
           `Sponsor strip must stay inside right rail at ${width}px`,
@@ -66,6 +71,15 @@ export async function verifyPublicPages(base, { offline = false } = {}) {
         assert.ok(
           stripBox.y < chartBox.y + chartBox.height - 1,
           `Sponsor strip must stay beside chart (not under it) at desktop ${width}px`,
+        );
+        assert.ok(
+          instrumentBox && rightRailBox &&
+            Math.abs(instrumentBox.y + instrumentBox.height - (rightRailBox.y + rightRailBox.height)) <= 2,
+          `Right rail bottom must align with price card at desktop ${width}px`,
+        );
+        assert.ok(
+          stripBox.height >= 120,
+          `#02 card must fill remaining rail height at desktop ${width}px (got ${stripBox?.height ?? 0}px)`,
         );
         if (freeUtilBox) {
           assert.ok(
@@ -90,7 +104,7 @@ export async function verifyPublicPages(base, { offline = false } = {}) {
     assert.match(csp, /script-src[^;]*https:\/\/www\.googletagmanager\.com/, "GA4 script CSP");
     assert.match(csp, /connect-src[^;]*https:\/\/www\.google-analytics\.com/, "GA4 collection CSP");
     assert.equal(await page.evaluate(() => (globalThis.dataLayer ?? []).some(entry => entry[0] === "config" && entry[1] === "G-T9E3ZF3J0T")), true, "GA4 initialized");
-    console.log("Browser OK: home — hero, single strip in right rail (#02 under #01 at desktop), logo rail below strip (5 cells), Be #01 / Pay BTC·USDT·USDC, responsive layout, GA4 configuration/CSP");
+    console.log("Browser OK: home — hero, large #02 card in right rail (flush with price card at desktop), logo rail below strip (5 cells), Be #01 / Claim #02, responsive layout, GA4 configuration/CSP");
     for (const [path, heading] of [
       ["/terms", "Terms of Service"], ["/privacy", "Privacy Policy"],
       ["/status", "Service Health"], ["/pricing", "Free API. Sponsor-supported."],
