@@ -50,6 +50,13 @@ function replaceHead(html, metadata) {
   next = replaceMeta(next, "property", "og:description", metadata.description);
   next = replaceMeta(next, "name", "twitter:title", metadata.title);
   next = replaceMeta(next, "name", "twitter:description", metadata.description);
+  if (metadata.ogImage) {
+    next = replaceMeta(next, "property", "og:image", metadata.ogImage);
+    next = replaceMeta(next, "name", "twitter:image", metadata.ogImage);
+  }
+  if (metadata.ogImageAlt) {
+    next = replaceMeta(next, "property", "og:image:alt", metadata.ogImageAlt);
+  }
 
   for (const [name, value] of [["google-site-verification", process.env.SEO_GOOGLE_SITE_VERIFICATION], ["msvalidate.01", process.env.SEO_BING_SITE_VERIFICATION]]) {
     if (value) next = next.replace("</head>", `<meta name="${name}" content="${escapeHtml(value)}" /></head>`);
@@ -261,8 +268,11 @@ const pages = [
   {
     filename: "sponsors/index.html",
     metadata: {
-      title: "Claim a Top 21 Sponsor Slot — Bitcoin Price | PRICEB.TC",
-      description: "Support PRICEB.TC and rank in the Top 21 by cumulative crypto contributions. Pay with BTC, USDT, or USDC. Anyone can outbid you anytime.",
+      title: "Sponsor slots from $10 | PRICEB.TC",
+      description:
+        "Put your logo beside the live Bitcoin chart. Soft-OPEN Top 21 sponsorship — rank by cumulative crypto contributions. Claim with BTC, USDT, or USDC.",
+      ogImage: `${origin}/og-sponsors.png`,
+      ogImageAlt: "PRICEB.TC — Top 21 sponsor slots beside the live Bitcoin chart",
       canonical: `${origin}/sponsors`,
       robots: "index,follow,max-image-preview:large",
       structuredData: {

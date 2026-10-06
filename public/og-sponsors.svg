@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">PRICEB.TC sponsor slots</title>
+  <desc id="desc">Top 21 sponsorship beside the live Bitcoin chart without live price digits.</desc>
+  <defs>
+    <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1a1f24" stop-opacity="0.92"/>
+      <stop offset="1" stop-color="#0d1012" stop-opacity="0.98"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ffb66b"/>
+      <stop offset="1" stop-color="#f7931a"/>
+    </linearGradient>
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="1200" height="630" fill="#0d1012"/>
+  <rect x="48" y="40" width="1104" height="550" rx="24" fill="url(#glass)" stroke="#2a3238" stroke-width="2"/>
+  <circle cx="96" cy="96" r="8" fill="url(#gold)"/>
+  <text x="116" y="104" fill="#e8e9eb" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="600" letter-spacing="3">PRICEB.TC</text>
+  <text x="96" y="220" fill="#e8e9eb" font-family="system-ui, -apple-system, sans-serif" font-size="64" font-weight="700" letter-spacing="-2">Top 21 sponsor slots</text>
+  <text x="96" y="290" fill="#9ca3af" font-family="system-ui, -apple-system, sans-serif" font-size="28">Your logo beside the live BTC chart</text>
+  <text x="96" y="340" fill="#ffb66b" font-family="system-ui, -apple-system, sans-serif" font-size="26" font-weight="600">Soft-OPEN - from $10 - BTC - USDT - USDC</text>
+  <g transform="translate(96 400)">
+    <rect width="520" height="120" rx="14" fill="#151a1e" stroke="#3d454c"/>
+    <text x="24" y="42" fill="#6b7280" font-family="monospace" font-size="14" letter-spacing="2">LIVE CHART</text>
+    <path d="M24 88 L120 72 L200 92 L280 58 L360 78 L440 48 L496 62" fill="none" stroke="url(#gold)" stroke-width="4" filter="url(#softGlow)"/>
+    <rect x="560" y="20" width="88" height="88" rx="12" fill="#1f262b" stroke="#ffb66b" stroke-width="2" stroke-dasharray="6 4"/>
+    <text x="604" y="72" fill="#ffb66b" font-family="system-ui" font-size="14" text-anchor="middle">LOGO</text>
+  </g>
+  <text x="96" y="580" fill="#6b7280" font-family="monospace" font-size="16">priceb.tc/sponsors - Claim your spot</text>
+</svg>
