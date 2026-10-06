@@ -23,6 +23,22 @@ describe("generated SEO documents", () => {
       expect(document.querySelector("h1")?.textContent, route).toBeTruthy();
     }
   });
+  it("serves static sponsor Open Graph tags without live Bitcoin price copy", async () => {
+    const html = await readFile(join(root, "sponsors/index.html"), "utf8");
+    const document = new DOMParser().parseFromString(html, "text/html");
+    const ogTitle = document.querySelector('meta[property="og:title"]')?.getAttribute("content");
+    const ogDescription = document.querySelector('meta[property="og:description"]')?.getAttribute("content");
+    const ogImage = document.querySelector('meta[property="og:image"]')?.getAttribute("content");
+    expect(ogTitle).toBe("Sponsor slots from $10 | PRICEB.TC");
+    expect(ogDescription).toContain("live Bitcoin chart");
+    expect(ogDescription).not.toMatch(/\$[\d,]+/);
+    expect(ogImage).toBe("https://priceb.tc/og-sponsors.png");
+    expect(document.querySelector('meta[name="twitter:image"]')?.getAttribute("content")).toBe(ogImage);
+    expect(html).not.toContain("og-image.png?");
+    expect(ogImage).not.toContain("og-bitcoin-price");
+    const homeHtml = await readFile(join(root, "index.html"), "utf8");
+    expect(homeHtml).toContain("og-bitcoin-price.png");
+  });
   it("matches all visible FAQ answers to its structured data and makes the page discoverable", async () => {
     const html = await readFile(join(root, "faq/index.html"), "utf8");
     const document = new DOMParser().parseFromString(html, "text/html");
