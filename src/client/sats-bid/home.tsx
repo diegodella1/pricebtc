@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { TopSpot, EmptySponsorCTA, SponsorStrip, LogoRail } from "./components.js";
 import { bidApi } from "./api.js";
+import { cryptoConfigEnabled } from "./crypto-config.js";
 import "./sats-bid.css";
 
-interface CryptoLeader {
+export interface CryptoLeader {
   id: string;
   name: string;
   description: string;
@@ -15,80 +15,74 @@ interface CryptoLeader {
   position: number;
 }
 
-interface AssetConfig {
-  type: string;
-  address: string;
-  label: string;
-  network: string;
-  minUsd: number;
-  confirmations: number;
-  warningMessage: string;
+interface BidInventory {
+  leader: CryptoLeader | null;
+  rank2: CryptoLeader | null;
+  railSponsors: (CryptoLeader | null)[];
+  cryptoEnabled: boolean;
+  loading: boolean;
 }
 
-interface CryptoConfig {
-  enabled: boolean;
-  assets: AssetConfig[];
-}
+const emptyInventory: BidInventory = {
+  leader: null,
+  rank2: null,
+  railSponsors: [null, null, null, null, null],
+  cryptoEnabled: false,
+  loading: true,
+};
 
-export default function BidHome() {
-  const [leader, setLeader] = useState<CryptoLeader | null>(null);
-  const [rank2, setRank2] = useState<CryptoLeader | null>(null);
-  const [railSponsors, setRailSponsors] = useState<(CryptoLeader | null)[]>([]);
-  const [cryptoEnabled, setCryptoEnabled] = useState(false);
-  const [loading, setLoading] = useState(true);
-  
+const BidInventoryContext = createContext<BidInventory>(emptyInventory);
+
+export function BidInventoryProvider({ children }: { children: ReactNode }) {
+  const [inventory, setInventory] = useState<BidInventory>(emptyInventory);
+
   useEffect(() => {
     async function load() {
       try {
         const [config, leaderboard] = await Promise.all([
-          bidApi<CryptoConfig>("/crypto-sponsors/config", { method: "GET" }),
-          bidApi<{ participants: CryptoLeader[] }>("/crypto-sponsors/leaderboard", { method: "GET" }),
+          bidApi<{ enabled?: boolean; assets?: unknown }>("/crypto-sponsors/config", { method: "GET" }),
+          bidApi<{ participants?: CryptoLeader[] }>("/crypto-sponsors/leaderboard", { method: "GET" }),
         ]);
-        setCryptoEnabled(config.enabled && config.assets.length > 0);
-        setLeader(leaderboard.participants?.[0] ?? null);
-        setRank2(leaderboard.participants?.[1] ?? null);
-        setRailSponsors([
-          leaderboard.participants?.[2] ?? null,
-          leaderboard.participants?.[3] ?? null,
-          leaderboard.participants?.[4] ?? null,
-          leaderboard.participants?.[5] ?? null,
-          leaderboard.participants?.[6] ?? null,
-        ]);
+        const participants = Array.isArray(leaderboard.participants) ? leaderboard.participants : [];
+        setInventory({
+          cryptoEnabled: cryptoConfigEnabled(config),
+          leader: participants[0] ?? null,
+          rank2: participants[1] ?? null,
+          railSponsors: [
+            participants[2] ?? null,
+            participants[3] ?? null,
+            participants[4] ?? null,
+            participants[5] ?? null,
+            participants[6] ?? null,
+          ],
+          loading: false,
+        });
       } catch {
-        setCryptoEnabled(false);
-        setLeader(null);
-        setRank2(null);
-        setRailSponsors([null, null, null, null, null]);
-      } finally {
-        setLoading(false);
+        setInventory({ ...emptyInventory, loading: false });
       }
     }
     void load();
   }, []);
-  
-  const slot = document.getElementById("bid-top-slot");
-  const stripSlot = document.getElementById("bid-strip-slot");
-  const railSlot = document.getElementById("bid-logo-rail");
-  
-  if (loading) {
-    return (
-      <>
-        {slot && createPortal(<EmptySponsorCTA />, slot)}
-        {stripSlot && createPortal(<SponsorStrip sponsor={null} cryptoEnabled={cryptoEnabled} />, stripSlot)}
-        {railSlot && createPortal(<LogoRail sponsors={[]} cryptoEnabled={cryptoEnabled} loading={true} />, railSlot)}
-      </>
-    );
-  }
-  
-  const content = leader ? <TopSpot leader={leader} /> : <EmptySponsorCTA />;
-  const stripContent = <SponsorStrip sponsor={rank2} cryptoEnabled={cryptoEnabled} />;
-  const railContent = <LogoRail sponsors={railSponsors} cryptoEnabled={cryptoEnabled} />;
-  
-  return (
-    <>
-      {slot && createPortal(content, slot)}
-      {stripSlot && createPortal(stripContent, stripSlot)}
-      {railSlot && createPortal(railContent, railSlot)}
-    </>
-  );
+
+  const value = useMemo(() => inventory, [inventory]);
+  return <BidInventoryContext.Provider value={value}>{children}</BidInventoryContext.Provider>;
+}
+
+function useBidInventory(): BidInventory {
+  return useContext(BidInventoryContext);
+}
+
+export function BidTopSlot() {
+  const { leader } = useBidInventory();
+  return leader ? <TopSpot leader={leader} /> : <EmptySponsorCTA />;
+}
+
+export function BidStripSlot() {
+  const { rank2, cryptoEnabled } = useBidInventory();
+  return <SponsorStrip sponsor={rank2} cryptoEnabled={cryptoEnabled} />;
+}
+
+export function BidRailSlot() {
+  const { railSponsors, cryptoEnabled, loading } = useBidInventory();
+  return <LogoRail sponsors={railSponsors} cryptoEnabled={cryptoEnabled} loading={loading} />;
 }
