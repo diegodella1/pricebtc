@@ -38,4 +38,20 @@ describe("sponsor claim copy", () => {
     expect(rewritten).toContain("Select BTC (SegWit)");
     expect(rewritten).toContain("Claim with BTC");
   });
+
+  it("does not rewrite module scripts when applied to a full HTML document", () => {
+    const html = `<!doctype html><html><head>
+<script type="module" crossorigin src="/assets/index-home.js"></script>
+<script id="structured-data" type="application/ld+json">{"acceptedPaymentMethod":["USDT","USDC"]}</script>
+<script>window.dataLayer = window.dataLayer || [];</script>
+</head><body>
+<p><!--claim-pay-with-->Pay with crypto<!--/claim-pay-with--></p>
+</body></html>`;
+    const rewritten = rewriteSponsorsClaimCopy(html, ["BTC"]);
+    expect(rewritten).toContain('<script type="module" crossorigin src="/assets/index-home.js"></script>');
+    expect(rewritten).toContain("window.dataLayer = window.dataLayer || [];");
+    expect(rewritten).toContain('"acceptedPaymentMethod":["Bitcoin"]');
+    expect(rewritten).toContain("Pay with BTC");
+    expect(rewritten).not.toContain("Pay with crypto");
+  });
 });

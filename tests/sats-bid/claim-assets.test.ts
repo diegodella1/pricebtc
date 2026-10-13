@@ -85,6 +85,38 @@ describe("crypto-sponsors config endpoint", () => {
     await app.close();
   });
 
+  it("offers every addressed asset when SPONSOR_CLAIM_ASSETS is unset", async () => {
+    const app = Fastify();
+    const btcOnly = bidConfig({
+      APP_ENV: "test",
+      SPONSOR_ADDR_BTC: addresses.SPONSOR_ADDR_BTC,
+    });
+    await registerCryptoRoutes(
+      app,
+      { query: async () => ({ rowCount: 0, rows: [] }) } as unknown as pg.Pool,
+      btcOnly,
+      async () => "session",
+      async () => undefined,
+      () => undefined,
+      () => new Date(),
+      async () => 100_000,
+    );
+    await app.ready();
+    const response = await app.inject("/api/sats-bid/crypto-sponsors/config");
+    expect(response.statusCode).toBe(200);
+    const body = response.json() as {
+      enabled: boolean;
+      btcPriceUsd: string;
+      assets: { type: string; minUsd: number; label: string }[];
+    };
+    expect(body.enabled).toBe(true);
+    expect(body.btcPriceUsd).toBe("100000.00");
+    expect(body.assets).toEqual([
+      expect.objectContaining({ type: "BTC", label: "BTC", minUsd: 10 }),
+    ]);
+    await app.close();
+  });
+
   it("offers only claimable assets", async () => {
     await registerCryptoRoutes(
       app,

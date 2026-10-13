@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { SiteHeader } from "../components/site-header.js";
 import { CurrencyChips } from "../components/currency-chips.js";
 import { PriceChart } from "../components/price-chart.js";
@@ -6,12 +6,18 @@ import { useCurrencies, useLivePrice, usePriceHistory } from "../hooks/use-marke
 import { useAnalytics } from "../hooks/use-analytics.js";
 import { IS_STATIC_BUILD } from "../lib/api.js";
 import { bidApi } from "../sats-bid/api.js";
+import { cryptoConfigEnabled } from "../sats-bid/crypto-config.js";
+import {
+  BidInventoryProvider,
+  BidRailSlot,
+  BidStripSlot,
+  BidTopSlot,
+} from "../sats-bid/home.js";
 import { formatPercent, formatPrice, formatPriceVariants, formatRelativeTime, formatVolume } from "../lib/format.js";
 import { formatUtcDate, formatUtcTime, getMarketTelemetry } from "../lib/market-telemetry.js";
 import { HISTORY_RANGES, type HistoryRange } from "../../shared/widget-config.js";
 import siteContent from "../../shared/site-content.json";
 
-const BidHome = lazy(() => import("../sats-bid/home.js"));
 const CURRENCY_STORAGE_KEY = "pricebtc:preferences:v1";
 
 function getInitialCurrency(): string {
@@ -107,18 +113,19 @@ export function HomePage() {
     if (IS_STATIC_BUILD) return;
     async function checkCryptoConfig() {
       try {
-        const config = await bidApi<{ enabled: boolean; assets: { type: string }[] }>(
+        const config = await bidApi<{ enabled?: boolean; assets?: { type: string }[] }>(
           "/crypto-sponsors/config",
           { method: "GET" }
         );
-        setCryptoEnabled(config.enabled && config.assets.length > 0);
+        setCryptoEnabled(cryptoConfigEnabled(config));
       } catch {
         setCryptoEnabled(false);
       }
     }
     void checkCryptoConfig();
   }, []);
-  return <div className="public-site">
+
+  const page = <div className="public-site">
     <a className="skip-link" href="#main-content">Skip to content</a>
     <SiteHeader />
     <main id="main-content" className="public-main">
@@ -188,8 +195,8 @@ export function HomePage() {
               </div>
             </section>
             <aside className="right-rail" aria-label="Sponsor inventory">
-              <div id="bid-top-slot" aria-label="Sponsor space"></div>
-              <div id="bid-strip-slot" aria-label="Sponsor space #2"></div>
+              <div id="bid-top-slot" aria-label="Sponsor space">{!IS_STATIC_BUILD && <BidTopSlot />}</div>
+              <div id="bid-strip-slot" aria-label="Sponsor space #2">{!IS_STATIC_BUILD && <BidStripSlot />}</div>
             </aside>
           </div>
         </div>
@@ -204,7 +211,7 @@ export function HomePage() {
             <a className="quiet" href="/bitcoin-price-widget">or embed widget</a>
           </div>
         </section>
-        <div id="bid-logo-rail" className="bid-logo-rail" role="list" aria-label="Sponsor logo rail ranks 3 to 7"></div>
+        <div id="bid-logo-rail" className="bid-logo-rail" role="list" aria-label="Sponsor logo rail ranks 3 to 7">{!IS_STATIC_BUILD && <BidRailSlot />}</div>
         <p className="observation-description">{observationDesc} <a href="/api">Bitcoin Price API</a> · <a href="/methodology">Price source and methodology</a></p>
         <div className="market-ctas">
           {cryptoEnabled && (
@@ -217,7 +224,6 @@ export function HomePage() {
           </a>
         </div>
       </section>
-      {!IS_STATIC_BUILD && <Suspense fallback={<div className="sponsor-presentation-loading" role="status">Loading sponsor space…</div>}><BidHome /></Suspense>}
       <section className="public-section faq-section" id="data" aria-labelledby="faq-title"><div className="section-intro"><div><p className="section-kicker">Good to know</p><h2 id="faq-title">Simple tools. Clear sources.</h2></div><p>Live Bitcoin prices for the people watching, building and broadcasting.</p></div>
         <details><summary>Is PRICEB.TC free?</summary><p>Yes. Create and publish widgets without an account. Sponsorship is optional and separate.</p></details>
         <details><summary>Does it work with OBS and Streamlabs?</summary><p>Use the overlay URL as a Browser Source with a transparent background. Customize it in the Studio.</p></details>
@@ -227,4 +233,6 @@ export function HomePage() {
     </main>
     <footer className="public-footer"><div><a href="/" className="footer-wordmark">PRICEB.TC</a><p>Bitcoin price infrastructure.</p>{stats && Number.isFinite(stats.visitors) && <p className="footer-stats">{stats.visitors.toLocaleString()} visitors last 30 days</p>}</div><nav aria-label="Footer navigation"><a href="/sponsors#claim">Sponsors</a><a href="/api">API</a><a href="/status">Status</a><a href="/terms">Terms</a><a href={`mailto:${siteContent.contactEmail}`}>Contact</a></nav><p>Indicative market data · Not financial advice · FX by <a href="https://www.exchangerate-api.com" target="_blank" rel="noreferrer">ExchangeRate-API</a></p></footer>
   </div>;
+
+  return IS_STATIC_BUILD ? page : <BidInventoryProvider>{page}</BidInventoryProvider>;
 }

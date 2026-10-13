@@ -86,7 +86,7 @@ const CLAIM_SPOT_FALLBACK =
 const CHOOSE_ASSET_FALLBACK =
   /Select (?:an available asset|BTC \(SegWit\)(?:, USDT \(TRC20\), or USDC \(Solana\)|, USDT \(TRC20\)|, USDC \(Solana\))|USDT \(TRC20\)(?:, or USDC \(Solana\))?|USDC \(Solana\))/g;
 
-export function rewriteSponsorsClaimCopy(html: string, assets: AssetType[]): string {
+function rewriteCopyChunk(html: string, assets: AssetType[]): string {
   const payWith = formatPayWithCopy(assets);
   const claimWith = formatClaimWithCopy(assets);
   const claimSpot = formatClaimYourSpotCopy(assets);
@@ -103,4 +103,17 @@ export function rewriteSponsorsClaimCopy(html: string, assets: AssetType[]): str
   next = next.replace(CHOOSE_ASSET_FALLBACK, choose);
   next = next.replace(/"acceptedPaymentMethod":\[[^\]]*\]/g, `"acceptedPaymentMethod":${methods}`);
   return next;
+}
+
+export function rewriteSponsorsClaimCopy(html: string, assets: AssetType[]): string {
+  return html.split(/(<script\b[^>]*>[\s\S]*?<\/script>)/gi).map((chunk) => {
+    const script = chunk.match(/^<script\b([^>]*)>([\s\S]*?)<\/script>$/i);
+    if (!script) return rewriteCopyChunk(chunk, assets);
+    const attrs = script[1] ?? "";
+    const body = script[2] ?? "";
+    if (/id=["']structured-data["']/i.test(attrs) || /type=["']application\/ld\+json["']/i.test(attrs)) {
+      return `<script${attrs}>${rewriteCopyChunk(body, assets)}</script>`;
+    }
+    return chunk;
+  }).join("");
 }
