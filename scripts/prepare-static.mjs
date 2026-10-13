@@ -31,6 +31,40 @@ function escapeHtml(value) {
     .replaceAll("'", "&#39;");
 }
 
+const SPONSOR_ASSET_DEFS = [
+  { type: "BTC", env: "SPONSOR_ADDR_BTC", pay: "BTC", schema: "Bitcoin", choice: "BTC (SegWit)" },
+  { type: "USDT_TRC20", env: "SPONSOR_ADDR_USDT_TRC20", pay: "USDT", schema: "USDT", choice: "USDT (TRC20)" },
+  { type: "USDC_SOL", env: "SPONSOR_ADDR_USDC_SOL", pay: "USDC", schema: "USDC", choice: "USDC (Solana)" },
+];
+
+function formatConjunction(items) {
+  if (items.length === 0) return "";
+  if (items.length === 1) return items[0];
+  if (items.length === 2) return `${items[0]} or ${items[1]}`;
+  return `${items.slice(0, -1).join(", ")}, or ${items[items.length - 1]}`;
+}
+
+function claimableSponsorAssets(env = process.env) {
+  const watched = SPONSOR_ASSET_DEFS.filter((asset) => env[asset.env]);
+  const raw = env.SPONSOR_CLAIM_ASSETS;
+  if (raw == null || String(raw).trim() === "") return watched;
+  const allow = new Set(String(raw).split(",").map((part) => part.trim().toUpperCase()).filter(Boolean));
+  return watched.filter((asset) => allow.has(asset.type));
+}
+
+function sponsorClaimCopy(env = process.env) {
+  const assets = claimableSponsorAssets(env);
+  const payList = formatConjunction(assets.map((asset) => asset.pay));
+  const choiceList = formatConjunction(assets.map((asset) => asset.choice));
+  return {
+    payWith: payList ? `Pay with ${payList}` : "Pay with crypto",
+    claimWith: payList ? `Claim with ${payList}` : "Claim with crypto",
+    claimSpotWith: payList ? `Claim your spot with ${payList}` : "Claim your spot with crypto",
+    chooseAsset: choiceList ? `Select ${choiceList}` : "Select an available asset",
+    acceptedPaymentMethod: assets.map((asset) => asset.schema),
+  };
+}
+
 function replaceMeta(html, attribute, key, value) {
   const pattern = new RegExp(`<meta\\b[^>]*\\b${attribute}=["']${key}["'][^>]*>`, "i");
   if (!pattern.test(html)) throw new Error(`Missing ${attribute} metadata: ${key}`);
@@ -220,6 +254,8 @@ const websiteSchema = {
 
 const rules = JSON.parse(await readFile(join(projectRoot, "src/shared/sponsor-rules.json"), "utf8"));
 const rulesSections = rules.map(section => `<section><h2>${escapeHtml(section.heading)}</h2>${section.paragraphs.map(p => `<p>${p.includes("contact@foreign.rodeo") ? escapeHtml(p.split("contact@foreign.rodeo")[0]) + `<a href="mailto:contact@foreign.rodeo">contact@foreign.rodeo</a>` + escapeHtml(p.split("contact@foreign.rodeo")[1] || "") : escapeHtml(p)}</p>`).join("")}</section>`).join("");
+const claimCopy = sponsorClaimCopy();
+
 const pages = [
   {
     filename: "faq/index.html", staticOnly: true,
@@ -270,7 +306,7 @@ const pages = [
     metadata: {
       title: "Sponsor slots from $10 | PRICEB.TC",
       description:
-        "Put your logo beside the live Bitcoin chart. Soft-OPEN Top 21 sponsorship — rank by cumulative crypto contributions. Claim with BTC, USDT, or USDC.",
+        `Put your logo beside the live Bitcoin chart. Soft-OPEN Top 21 sponsorship — rank by cumulative crypto contributions. ${claimCopy.claimWith}.`,
       ogImage: `${origin}/og-sponsors.png`,
       ogImageAlt: "PRICEB.TC — Top 21 sponsor slots beside the live Bitcoin chart",
       canonical: `${origin}/sponsors`,
@@ -284,7 +320,7 @@ const pages = [
             "@id": `${origin}/sponsors#webpage`,
             url: `${origin}/sponsors`,
             name: "Claim a Top 21 Sponsor Slot",
-            description: "Support PRICEB.TC and rank in the Top 21 by cumulative crypto contributions. Claim your spot with BTC, USDT, or USDC.",
+            description: `Support PRICEB.TC and rank in the Top 21 by cumulative crypto contributions. ${claimCopy.claimSpotWith}.`,
             inLanguage: "en",
             isPartOf: { "@id": `${origin}/#website` },
             publisher
@@ -296,7 +332,7 @@ const pages = [
             description: "Rank in the Top 21 sponsors by cumulative USD contributions. Your project appears beside the live Bitcoin price.",
             seller: publisher,
             url: `${origin}/sponsors`,
-            acceptedPaymentMethod: ["Bitcoin", "USDT", "USDC"],
+            acceptedPaymentMethod: claimCopy.acceptedPaymentMethod,
             itemOffered: {
               "@type": "Service",
               name: "Top 21 Sponsor Placement",
@@ -306,7 +342,7 @@ const pages = [
         ]
       }
     },
-    fallback: `<div class="public-site"><header class="public-header site-header">${brandMarkup()}<nav aria-label="Primary navigation"><a href="/#market">Price</a><a href="/sponsors#claim" aria-current="page">Sponsors</a><a href="/api">API</a><a class="header-nav-studio" href="/studio">Studio</a></nav><a class="header-quiet" href="/sponsors#claim">Claim</a></header><main class="public-main guide-content"><h1>Claim a Top 21 sponsor slot beside the live Bitcoin price</h1><p>Support PRICEB.TC and rank in the Top 21 by cumulative crypto contributions. Pay with BTC, USDT, or USDC. Anyone can outbid you anytime.</p><section><h2>How it works</h2><ol><li><strong>Choose your asset:</strong> Select BTC (SegWit), USDT (TRC20), or USDC (Solana) and see the payment address.</li><li><strong>Pay:</strong> Send crypto from your wallet. Every payment adds to your cumulative USD total.</li><li><strong>Watch for confirmation:</strong> Click "I've sent the payment". We watch the deposit address for confirmations (paste tx hash is Advanced only).</li><li><strong>Add your profile:</strong> After your first confirmed payment, submit your project name, logo, website, and description to appear on the leaderboard.</li></ol></section><section><h2>Where your project appears</h2><p>Five home placements: hero spot #1, strip #2, and logo rail ranks #3–7 below the chart, plus the full Top 21 leaderboard at <a href="/sponsors#board">/sponsors</a>. Rankings update as payments confirm.</p></section><a class="action-link" href="/sponsors#claim">Claim your spot →</a></main><footer class="public-footer"><a href="/">PRICEB.TC · Bitcoin, in view.</a><a href="/about">About</a><a href="/sponsors" aria-current="page">Sponsors</a><a href="/rules">Rules</a></footer></div>`,
+    fallback: `<div class="public-site"><header class="public-header site-header">${brandMarkup()}<nav aria-label="Primary navigation"><a href="/#market">Price</a><a href="/sponsors#claim" aria-current="page">Sponsors</a><a href="/api">API</a><a class="header-nav-studio" href="/studio">Studio</a></nav><a class="header-quiet" href="/sponsors#claim">Claim</a></header><main class="public-main guide-content"><h1>Claim a Top 21 sponsor slot beside the live Bitcoin price</h1><p>Support PRICEB.TC and rank in the Top 21 by cumulative crypto contributions. <!--claim-pay-with-->${claimCopy.payWith}<!--/claim-pay-with-->. Anyone can outbid you anytime.</p><section><h2>How it works</h2><ol><li><strong>Choose your asset:</strong> <!--claim-choose-asset-->${claimCopy.chooseAsset}<!--/claim-choose-asset--> and see the payment address.</li><li><strong>Pay:</strong> Send crypto from your wallet. Every payment adds to your cumulative USD total.</li><li><strong>Watch for confirmation:</strong> Click "I've sent the payment". We watch the deposit address for confirmations (paste tx hash is Advanced only).</li><li><strong>Add your profile:</strong> After your first confirmed payment, submit your project name, logo, website, and description to appear on the leaderboard.</li></ol></section><section><h2>Where your project appears</h2><p>Five home placements: hero spot #1, strip #2, and logo rail ranks #3–7 below the chart, plus the full Top 21 leaderboard at <a href="/sponsors#board">/sponsors</a>. Rankings update as payments confirm.</p></section><a class="action-link" href="/sponsors#claim">Claim your spot →</a></main><footer class="public-footer"><a href="/">PRICEB.TC · Bitcoin, in view.</a><a href="/about">About</a><a href="/sponsors" aria-current="page">Sponsors</a><a href="/rules">Rules</a></footer></div>`,
   },
   {
     filename: "methodology/index.html",

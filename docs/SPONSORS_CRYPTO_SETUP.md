@@ -26,7 +26,12 @@ SPONSOR_ADDR_BTC=          # Bitcoin address (e.g., bc1q... or 1... or 3...)
 
 **If all three are empty**: The Claim flow redirects to the waitlist with "Payments opening soon..."
 
-**If some are set**: Only those assets appear in the asset selection step.
+**If some are set**: Those assets are watched for deposits. Claim UI and `/crypto-sponsors/config` only offer assets listed in `SPONSOR_CLAIM_ASSETS` (comma-separated `BTC`, `USDT_TRC20`, `USDC_SOL`). When `SPONSOR_CLAIM_ASSETS` is unset, every asset that has an address is claimable.
+
+```bash
+# Example: keep watching USDT/USDC deposits, but only offer BTC on the claim form
+SPONSOR_CLAIM_ASSETS=BTC
+```
 
 ### Currently Configured Production Addresses
 

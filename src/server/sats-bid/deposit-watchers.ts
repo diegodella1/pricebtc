@@ -1,6 +1,65 @@
 import type pg from "pg";
 import type { BidConfig } from "./config.js";
 import type { AssetType } from "./crypto-sponsors.js";
+import { WATCHED_ASSET_TYPES } from "./sponsor-copy.js";
+
+export function isTransientDbError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  const code =
+    typeof error === "object" && error !== null && "code" in error
+      ? String((error as { code?: unknown }).code)
+      : "";
+  return (
+    /connection timeout/i.test(message) ||
+    /Connection terminated/i.test(message) ||
+    /recovery mode/i.test(message) ||
+    /ECONNRESET/i.test(message) ||
+    /connection lost/i.test(message) ||
+    /timeout expired/i.test(message) ||
+    code === "ETIMEDOUT" ||
+    code === "ECONNRESET" ||
+    code === "57P01" ||
+    code === "57P03" ||
+    code === "08006" ||
+    code === "08001" ||
+    code === "08003"
+  );
+}
+
+const defaultSleep = (ms: number) =>
+  new Promise<void>((resolve) => {
+    const timer = setTimeout(resolve, ms);
+    timer.unref?.();
+  });
+
+export async function withDbRetry<T>(
+  operation: () => Promise<T>,
+  {
+    attempts = 3,
+    delayMs = process.env.VITEST ? 0 : 100,
+    sleep = defaultSleep,
+  }: {
+    attempts?: number;
+    delayMs?: number;
+    sleep?: (ms: number) => Promise<void>;
+  } = {},
+): Promise<T> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    try {
+      return await operation();
+    } catch (error) {
+      lastError = error;
+      if (!isTransientDbError(error) || attempt === attempts - 1) throw error;
+      console.warn(
+        `Transient DB error (attempt ${attempt + 1}/${attempts}); retrying`,
+        error,
+      );
+      await sleep(delayMs * 2 ** attempt);
+    }
+  }
+  throw lastError;
+}
 
 interface DepositTransaction {
   txHash: string;
@@ -15,54 +74,99 @@ interface WatcherCursor {
   consecutive_errors: number;
 }
 
-async function getWatcherCursor(
+export async function getWatcherCursor(
   pool: pg.Pool,
   assetType: AssetType,
 ): Promise<WatcherCursor> {
-  const result = await pool.query(
-    "SELECT last_tx_hash, last_poll_at, consecutive_errors FROM deposit_watcher_cursors WHERE asset_type=$1",
-    [assetType],
-  );
+  return withDbRetry(async () => {
+    const result = await pool.query(
+      "SELECT last_tx_hash, last_poll_at, consecutive_errors FROM deposit_watcher_cursors WHERE asset_type=$1",
+      [assetType],
+    );
 
-  if (result.rowCount && result.rowCount > 0) {
+    if (result.rowCount && result.rowCount > 0) {
+      return {
+        asset_type: assetType,
+        last_tx_hash: result.rows[0].last_tx_hash,
+        last_poll_at: result.rows[0].last_poll_at,
+        consecutive_errors: result.rows[0].consecutive_errors,
+      };
+    }
+
+    await pool.query(
+      `INSERT INTO deposit_watcher_cursors (asset_type, last_tx_hash, last_poll_at, consecutive_errors)
+       VALUES ($1, NULL, now(), 0)`,
+      [assetType],
+    );
+
     return {
       asset_type: assetType,
-      last_tx_hash: result.rows[0].last_tx_hash,
-      last_poll_at: result.rows[0].last_poll_at,
-      consecutive_errors: result.rows[0].consecutive_errors,
+      last_tx_hash: null,
+      last_poll_at: new Date(),
+      consecutive_errors: 0,
     };
-  }
-
-  await pool.query(
-    `INSERT INTO deposit_watcher_cursors (asset_type, last_tx_hash, last_poll_at, consecutive_errors)
-     VALUES ($1, NULL, now(), 0)`,
-    [assetType],
-  );
-
-  return {
-    asset_type: assetType,
-    last_tx_hash: null,
-    last_poll_at: new Date(),
-    consecutive_errors: 0,
-  };
+  });
 }
 
-async function updateWatcherCursor(
+export async function updateWatcherCursor(
   pool: pg.Pool,
   assetType: AssetType,
   lastTxHash: string | null,
   error: boolean = false,
 ): Promise<void> {
-  if (error) {
-    await pool.query(
-      "UPDATE deposit_watcher_cursors SET last_poll_at=now(), consecutive_errors=consecutive_errors+1 WHERE asset_type=$1",
-      [assetType],
+  await withDbRetry(async () => {
+    if (error) {
+      await pool.query(
+        "UPDATE deposit_watcher_cursors SET last_poll_at=now(), consecutive_errors=consecutive_errors+1 WHERE asset_type=$1",
+        [assetType],
+      );
+    } else {
+      await pool.query(
+        "UPDATE deposit_watcher_cursors SET last_tx_hash=$2, last_poll_at=now(), consecutive_errors=0 WHERE asset_type=$1",
+        [assetType, lastTxHash],
+      );
+    }
+  });
+}
+
+export type WatcherHealth = {
+  lastPollAgeSec: number | null;
+  consecutiveErrors: number;
+};
+
+export async function getWatcherHealth(
+  pool: pg.Pool | null | undefined,
+  now: Date = new Date(),
+): Promise<Record<AssetType, WatcherHealth>> {
+  const empty = Object.fromEntries(
+    WATCHED_ASSET_TYPES.map((asset) => [
+      asset,
+      { lastPollAgeSec: null, consecutiveErrors: 0 },
+    ]),
+  ) as Record<AssetType, WatcherHealth>;
+
+  if (!pool) return empty;
+
+  try {
+    const result = await pool.query(
+      "SELECT asset_type, last_poll_at, consecutive_errors FROM deposit_watcher_cursors",
     );
-  } else {
-    await pool.query(
-      "UPDATE deposit_watcher_cursors SET last_tx_hash=$2, last_poll_at=now(), consecutive_errors=0 WHERE asset_type=$1",
-      [assetType, lastTxHash],
-    );
+    const watchers = { ...empty };
+    for (const row of result.rows) {
+      const asset = row.asset_type as AssetType;
+      if (!WATCHED_ASSET_TYPES.includes(asset)) continue;
+      const lastPoll = row.last_poll_at ? new Date(row.last_poll_at) : null;
+      watchers[asset] = {
+        lastPollAgeSec: lastPoll
+          ? Math.max(0, Math.round((now.getTime() - lastPoll.getTime()) / 1000))
+          : null,
+        consecutiveErrors: Number(row.consecutive_errors) || 0,
+      };
+    }
+    return watchers;
+  } catch (error) {
+    console.warn("Failed to read watcher health", error);
+    return empty;
   }
 }
 
@@ -294,8 +398,22 @@ export async function runDepositWatchers(
         await updateWatcherCursor(pool, watcher.asset, cursor.last_tx_hash);
       }
     } catch (error) {
+      if (isTransientDbError(error)) {
+        console.warn(
+          `Transient DB error for ${watcher.asset} watcher; not counting against consecutive_errors`,
+          error,
+        );
+        continue;
+      }
       console.error(`Deposit watcher error for ${watcher.asset}:`, error);
-      await updateWatcherCursor(pool, watcher.asset, null, true);
+      try {
+        await updateWatcherCursor(pool, watcher.asset, null, true);
+      } catch (cursorError) {
+        console.warn(
+          `Failed to record ${watcher.asset} watcher error without incrementing after a DB fault`,
+          cursorError,
+        );
+      }
     }
   }
 }

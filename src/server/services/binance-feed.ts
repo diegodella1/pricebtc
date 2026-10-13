@@ -58,6 +58,8 @@ export class BinanceFeed extends BaseVenueFeed {
   private fallbackTimer: NodeJS.Timeout | null = null;
   private volumeRefreshTimer: NodeJS.Timeout | null = null;
   private fallbackRequestActive = false;
+  private restRefreshFailures = 0;
+  private nextRefreshAt = 0;
 
   constructor(options: BinanceFeedOptions = {}) {
     super();
@@ -214,12 +216,21 @@ export class BinanceFeed extends BaseVenueFeed {
 
   private startVolumeRefresh(): void {
     if (this.volumeRefreshTimer) return;
-    this.volumeRefreshTimer = setInterval(() => this.refresh24hData(), 15_000);
+    this.volumeRefreshTimer = setInterval(() => {
+      void this.refresh24hData().catch((error: unknown) => {
+        this.logger.warn("Binance 24h data refresh failed", error);
+      });
+    }, 15_000);
     this.volumeRefreshTimer.unref();
+  }
+
+  private refreshBackoffMs(): number {
+    return Math.min(MAX_RECONNECT_DELAY_MS, 1_000 * 2 ** this.restRefreshFailures);
   }
 
   private async refresh24hData(): Promise<void> {
     if (this.fallbackRequestActive) return;
+    if (this.now() < this.nextRefreshAt) return;
     this.fallbackRequestActive = true;
 
     try {
@@ -245,6 +256,13 @@ export class BinanceFeed extends BaseVenueFeed {
         receivedAt,
       };
       this.emitPrice();
+      this.restRefreshFailures = 0;
+      this.nextRefreshAt = 0;
+    } catch (error) {
+      const delay = this.refreshBackoffMs();
+      this.restRefreshFailures += 1;
+      this.nextRefreshAt = this.now() + delay;
+      this.logger.warn("Binance 24h data refresh failed", error);
     } finally {
       this.fallbackRequestActive = false;
     }

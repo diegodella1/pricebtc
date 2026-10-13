@@ -9,8 +9,10 @@ export function createBidRuntime(getBtcPrice?: () => Promise<number>) {
   const config = bidConfig();
   if (!config.DATABASE_URL) return null;
   const pool = database(config.DATABASE_URL);
-  pool.on("error", () => {
-    process.stderr.write("Sats Bid database connection unavailable\n");
+  pool.on("error", (error) => {
+    process.stderr.write(
+      `Sats Bid database pool error: ${error.message}; reconnecting on demand\n`,
+    );
   });
   const provider =
     config.PAYMENT_PROVIDER === "mock"

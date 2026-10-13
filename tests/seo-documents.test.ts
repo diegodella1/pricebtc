@@ -23,6 +23,20 @@ describe("generated SEO documents", () => {
       expect(document.querySelector("h1")?.textContent, route).toBeTruthy();
     }
   });
+  it("does not hardcode Pay with BTC, USDT, or USDC on /sponsors", async () => {
+    const source = await readFile("scripts/prepare-static.mjs", "utf8");
+    expect(source).not.toContain("Pay with BTC, USDT, or USDC");
+    expect(source).not.toContain('acceptedPaymentMethod: ["Bitcoin", "USDT", "USDC"]');
+    const html = await readFile(join(root, "sponsors/index.html"), "utf8");
+    expect(html).toContain("<!--claim-pay-with-->");
+    expect(html).toContain("<!--claim-choose-asset-->");
+    expect(html).toContain('href="/sponsors#claim"');
+    expect(html).toContain("Claim your spot →");
+    const document = new DOMParser().parseFromString(html, "text/html");
+    const schema = JSON.parse(document.querySelector("#structured-data")!.textContent!);
+    const offer = schema["@graph"].find((node: { "@type": string }) => node["@type"] === "Offer");
+    expect(Array.isArray(offer.acceptedPaymentMethod)).toBe(true);
+  });
   it("serves static sponsor Open Graph tags without live Bitcoin price copy", async () => {
     const html = await readFile(join(root, "sponsors/index.html"), "utf8");
     const document = new DOMParser().parseFromString(html, "text/html");

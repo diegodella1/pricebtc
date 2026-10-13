@@ -1,5 +1,6 @@
 import { buildApp } from "./app.js";
 import { parseEnvironment } from "./config.js";
+import { installProcessErrorHandlers } from "./process-errors.js";
 import { FxService } from "./services/fx-service.js";
 import { HistoryService } from "./services/history-service.js";
 import { DailyHistoryService } from "./services/daily-history-service.js";
@@ -13,6 +14,8 @@ import { PlausibleService } from "./services/plausible.js";
 import { createBidRuntime } from "./sats-bid/runtime.js";
 import { createStripeRuntime } from "./services/stripe-runtime.js";
 import { bidConfig } from "./sats-bid/config.js";
+
+installProcessErrorHandlers();
 
 const environment = parseEnvironment();
 const fx = new FxService({ dataDir: environment.PRICEBTC_DATA_DIR, apiUrl: environment.FX_API_URL });
