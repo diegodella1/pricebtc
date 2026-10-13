@@ -22,6 +22,10 @@ import { createPricePayload } from "./services/pricing.js";
 import { StreamCapacityError, type StreamRegistry } from "./services/sse-hub.js";
 import type { BidService } from "./sats-bid/service.js";
 import { registerBidRoutes } from "./sats-bid/routes.js";
+import { bidConfig } from "./sats-bid/config.js";
+import { getClaimableAssets } from "./sats-bid/crypto-sponsors.js";
+import { getWatcherHealth } from "./sats-bid/deposit-watchers.js";
+import { rewriteSponsorsClaimCopy } from "./sats-bid/sponsor-copy.js";
 import { registerWaitlistRoutes } from "./waitlist.js";
 import { registerStripeRoutes } from "./stripe-routes.js";
 import type { PlausibleService } from "./services/plausible.js";
@@ -351,6 +355,7 @@ function registerApplicationRoutes(app: FastifyInstance, options: BuildAppOption
     const snapshot = options.market.getSnapshot();
     const fxStatus = options.fx.getStatus();
     const healthy = marketState === "live" && fxStatus.state !== "expired" && fxStatus.state !== "unavailable";
+    const watchers = await getWatcherHealth(options.bidding?.pool ?? null);
     return {
       status: healthy ? "ok" : "degraded",
       uptimeSeconds: Math.round(process.uptime()),
@@ -358,6 +363,7 @@ function registerApplicationRoutes(app: FastifyInstance, options: BuildAppOption
       market: { state: marketState, lastUpdateAt: snapshot?.receivedAt ?? null },
       fx: fxStatus,
       streams: options.streams.getClientCount(),
+      watchers,
     };
   });
 
@@ -449,6 +455,24 @@ function registerFrontend(app: FastifyInstance, options: BuildAppOptions): void 
       if (route === "/admin") reply.header("X-Robots-Tag", "noindex, nofollow");
       if (route === "/embed" || route === "/overlay") {
         reply.header("X-Robots-Tag", "noindex, follow, noarchive");
+      }
+      if (route === "/sponsors") {
+        let template = templates.get(filename);
+        if (!template) {
+          template = readFile(join(frontendRoot, filename), "utf8");
+          templates.set(filename, template);
+        }
+        let html = await template;
+        try {
+          html = rewriteSponsorsClaimCopy(
+            html,
+            getClaimableAssets(bidConfig()).map((asset) => asset.type),
+          );
+        } catch {
+          // Keep the built copy if bidding config cannot be parsed.
+        }
+        reply.type("text/html; charset=utf-8");
+        return html;
       }
       return reply.sendFile(filename, { cacheControl: false });
     });

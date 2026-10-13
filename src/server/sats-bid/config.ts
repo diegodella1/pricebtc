@@ -47,6 +47,7 @@ const schema = z.object({
   SPONSOR_ADDR_USDT_TRC20: z.string().default(""),
   SPONSOR_ADDR_USDC_SOL: z.string().default(""),
   SPONSOR_ADDR_BTC: z.string().default(""),
+  SPONSOR_CLAIM_ASSETS: z.string().default(""),
   SPONSOR_MIN_USD_USDT: z.coerce.number().positive().default(10),
   SPONSOR_MIN_USD_USDC: z.coerce.number().positive().default(10),
   SPONSOR_MIN_USD_BTC: z.coerce.number().positive().default(10),

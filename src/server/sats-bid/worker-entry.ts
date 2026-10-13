@@ -1,7 +1,10 @@
+import { installProcessErrorHandlers } from "../process-errors.js";
 import { createBidRuntime } from "./runtime.js";
 import { workerTick } from "./worker.js";
 import { auditTick } from "./audit-worker.js";
 import { exportEvents } from "./analytics-export.js";
+
+installProcessErrorHandlers();
 const runtime = createBidRuntime();
 if (!runtime) throw new Error("Worker requires DATABASE_URL");
 const { service, pool, stop } = runtime;

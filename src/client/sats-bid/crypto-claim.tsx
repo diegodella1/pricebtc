@@ -360,13 +360,24 @@ export function CryptoClaimFlow({ onComplete }: { onComplete?: () => void }) {
     );
   }
 
-  const getTrustStripData = () => [
-    { strong: "BTC · USDT · USDC", muted: "SegWit · TRC20 · Solana" },
-    { strong: "Min $10", muted: "Soft-OPEN deposit FINAL" },
-    { strong: "Cumulative USD", muted: "Every payment adds" },
-    { strong: "Outbid anytime", muted: "Rank is not locked" },
-    { strong: "After confirm", muted: "Profile → appear live" },
-  ];
+  const getTrustStripData = () => {
+    const labels = config.assets.map((asset) => asset.label).join(" · ") || "Crypto";
+    const networks = config.assets
+      .map((asset) => {
+        if (asset.type === "BTC") return "SegWit";
+        if (asset.type === "USDT_TRC20") return "TRC20";
+        if (asset.type === "USDC_SOL") return "Solana";
+        return asset.network;
+      })
+      .join(" · ");
+    return [
+      { strong: labels, muted: networks },
+      { strong: "Min $10", muted: "Soft-OPEN deposit FINAL" },
+      { strong: "Cumulative USD", muted: "Every payment adds" },
+      { strong: "Outbid anytime", muted: "Rank is not locked" },
+      { strong: "After confirm", muted: "Profile → appear live" },
+    ];
+  };
 
   const getWatchWindowLabel = (assetType: string): string => {
     if (assetType === "BTC") return "~30m";

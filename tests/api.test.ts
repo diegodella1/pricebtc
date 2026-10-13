@@ -160,7 +160,19 @@ describe("public API", () => {
     const response = await createTestApp().inject({ method: "GET", url: "/healthz" });
 
     expect(response.statusCode).toBe(200);
-    expect(response.json()).toMatchObject({ status: "ok", market: { state: "live" }, streams: 3 });
+    expect(response.json()).toMatchObject({
+      status: "ok",
+      market: { state: "live" },
+      streams: 3,
+      watchers: {
+        BTC: { lastPollAgeSec: null, consecutiveErrors: 0 },
+        USDT_TRC20: { lastPollAgeSec: null, consecutiveErrors: 0 },
+        USDC_SOL: { lastPollAgeSec: null, consecutiveErrors: 0 },
+      },
+    });
+    expect(response.json()).toHaveProperty("uptimeSeconds");
+    expect(response.json()).toHaveProperty("memoryRssMb");
+    expect(response.json()).toHaveProperty("fx");
   });
 
   it("only allows external framing for renderer routes", async () => {

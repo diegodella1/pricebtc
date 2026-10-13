@@ -6,7 +6,7 @@ import type { BidConfig } from "./config.js";
 import {
   createCryptoPayment,
   getCryptoPayment,
-  getAvailableAssets,
+  getClaimableAssets,
   type AssetType,
 } from "./crypto-sponsors.js";
 import { ensureCryptoParticipant } from "./crypto-validation-worker.js";
@@ -26,7 +26,7 @@ export async function registerCryptoRoutes(
   const prefix = "/api/sats-bid/crypto-sponsors";
 
   app.get(`${prefix}/config`, async () => {
-    const assets = getAvailableAssets(config);
+    const assets = getClaimableAssets(config);
     const btcPriceUsd = getBtcPrice ? await getBtcPrice() : 0;
     return {
       enabled: assets.length > 0,

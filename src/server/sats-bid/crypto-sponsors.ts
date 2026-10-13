@@ -3,6 +3,7 @@ import type pg from "pg";
 import { BidError } from "./domain.js";
 import type { BidConfig } from "./config.js";
 import { transaction } from "./db.js";
+import { parseClaimAssetList } from "./sponsor-copy.js";
 
 export type AssetType = "USDT_TRC20" | "USDC_SOL" | "BTC";
 
@@ -87,6 +88,18 @@ export function getAvailableAssets(config: BidConfig): AssetConfig[] {
   return assets;
 }
 
+export function getWatchedAssets(config: BidConfig): AssetConfig[] {
+  return getAvailableAssets(config);
+}
+
+export function getClaimableAssets(config: BidConfig): AssetConfig[] {
+  const watched = getAvailableAssets(config);
+  const claimed = parseClaimAssetList(config.SPONSOR_CLAIM_ASSETS);
+  if (claimed == null) return watched;
+  const allow = new Set(claimed);
+  return watched.filter((asset) => allow.has(asset.type));
+}
+
 export interface CryptoPaymentInput {
   name: string;
   description: string;
@@ -104,7 +117,7 @@ export async function createCryptoPayment(
   input: CryptoPaymentInput,
   clock: () => Date = () => new Date(),
 ): Promise<CryptoSponsor> {
-  const assets = getAvailableAssets(config);
+  const assets = getClaimableAssets(config);
   const asset = assets.find((a) => a.type === input.asset_type);
 
   if (!asset) {

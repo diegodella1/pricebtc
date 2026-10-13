@@ -123,4 +123,90 @@ describe("BinanceFeed", () => {
 
     feed.stop();
   });
+
+  it("swallows network errors from refresh24hData with backoff instead of rejecting", async () => {
+    const error = Object.assign(new TypeError("fetch failed"), {
+      cause: Object.assign(new Error("connect EHOSTUNREACH 65.8.205.120:443"), { code: "EHOSTUNREACH" }),
+    });
+    const mockFetch = vi.fn().mockRejectedValue(error);
+    const logger = { info: vi.fn(), warn: vi.fn(), error: vi.fn() };
+    let now = 1_000;
+
+    const feed = new BinanceFeed({
+      fetcher: mockFetch as unknown as typeof fetch,
+      socketFactory: () => {
+        const mockSocket = { on: vi.fn(), send: vi.fn(), readyState: 1, close: vi.fn(), terminate: vi.fn() };
+        return mockSocket as unknown as WebSocket;
+      },
+      now: () => now,
+      logger,
+    });
+
+    await expect(feed.start()).resolves.toBeUndefined();
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    expect(logger.warn).toHaveBeenCalledWith("Binance 24h data refresh failed", error);
+
+    now = 1_500;
+    await expect(
+      (feed as unknown as { refresh24hData: () => Promise<void> }).refresh24hData(),
+    ).resolves.toBeUndefined();
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+
+    feed.stop();
+  });
+
+  it("retries 24h refresh after exponential backoff and keeps the volume timer from rejecting", async () => {
+    vi.useFakeTimers();
+    try {
+      const error = Object.assign(new TypeError("fetch failed"), {
+        cause: Object.assign(new Error("read ECONNRESET"), { code: "ECONNRESET" }),
+      });
+      const mockFetch = vi.fn()
+        .mockRejectedValueOnce(error)
+        .mockRejectedValueOnce(error)
+        .mockResolvedValue({
+          ok: true,
+          json: async () => ({ symbol: "BTCUSDT", lastPrice: "100000", volume: "10" }),
+        });
+      const logger = { info: vi.fn(), warn: vi.fn(), error: vi.fn() };
+      let now = 0;
+      const mockSocket = {
+        on: vi.fn(),
+        send: vi.fn(),
+        readyState: 1,
+        close: vi.fn(),
+        terminate: vi.fn(),
+      };
+
+      const feed = new BinanceFeed({
+        fetcher: mockFetch as unknown as typeof fetch,
+        socketFactory: () => mockSocket as unknown as WebSocket,
+        now: () => now,
+        logger,
+      });
+
+      await feed.start();
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+
+      const openHandler = mockSocket.on.mock.calls.find((call) => call[0] === "open")?.[1];
+      openHandler?.();
+
+      now = 500;
+      await vi.advanceTimersByTimeAsync(15_000);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+
+      now = 2_000;
+      await vi.advanceTimersByTimeAsync(15_000);
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+
+      now = 6_000;
+      await vi.advanceTimersByTimeAsync(15_000);
+      expect(mockFetch).toHaveBeenCalledTimes(3);
+      expect(feed.getSnapshot()?.volume24h).toBe("10");
+
+      feed.stop();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });

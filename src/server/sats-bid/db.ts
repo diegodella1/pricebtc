@@ -10,9 +10,9 @@ export function database(url: string) {
     idleTimeoutMillis: 10000,
     statement_timeout: 5000,
   });
-  pool.on("error", () => {
+  pool.on("error", (error) => {
     process.stderr.write(
-      "Sats Bid database connection lost; reconnecting on demand\n",
+      `Sats Bid database pool error: ${error.message}; reconnecting on demand\n`,
     );
   });
   return pool;
