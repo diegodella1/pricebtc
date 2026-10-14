@@ -1,7 +1,15 @@
 import type pg from "pg";
-import type { BidConfig } from "./config.js";
+import { bidConfig, type BidConfig } from "./config.js";
 import type { AssetType } from "./crypto-sponsors.js";
 import { WATCHED_ASSET_TYPES } from "./sponsor-copy.js";
+import {
+  isWatcherCoolingDown,
+  watcherCooldownPolicyFromConfig,
+  watcherCooldownSeconds,
+  watcherHealthSnapshot,
+  type WatcherCooldownPolicy,
+  type WatcherHealthState,
+} from "./watcher-cooldown.js";
 
 export function isTransientDbError(error: unknown): boolean {
   const message = error instanceof Error ? error.message : String(error);
@@ -132,18 +140,25 @@ export async function updateWatcherCursor(
 export type WatcherHealth = {
   lastPollAgeSec: number | null;
   consecutiveErrors: number;
+  state: WatcherHealthState;
+  nextRetryInSec: number;
 };
+
+function emptyWatcherHealth(
+  policy: WatcherCooldownPolicy,
+  now: Date,
+): Record<AssetType, WatcherHealth> {
+  return Object.fromEntries(
+    WATCHED_ASSET_TYPES.map((asset) => [asset, watcherHealthSnapshot(null, 0, now, policy)]),
+  ) as Record<AssetType, WatcherHealth>;
+}
 
 export async function getWatcherHealth(
   pool: pg.Pool | null | undefined,
   now: Date = new Date(),
+  policy: WatcherCooldownPolicy = watcherCooldownPolicyFromConfig(bidConfig()),
 ): Promise<Record<AssetType, WatcherHealth>> {
-  const empty = Object.fromEntries(
-    WATCHED_ASSET_TYPES.map((asset) => [
-      asset,
-      { lastPollAgeSec: null, consecutiveErrors: 0 },
-    ]),
-  ) as Record<AssetType, WatcherHealth>;
+  const empty = emptyWatcherHealth(policy, now);
 
   if (!pool) return empty;
 
@@ -155,13 +170,12 @@ export async function getWatcherHealth(
     for (const row of result.rows) {
       const asset = row.asset_type as AssetType;
       if (!WATCHED_ASSET_TYPES.includes(asset)) continue;
-      const lastPoll = row.last_poll_at ? new Date(row.last_poll_at) : null;
-      watchers[asset] = {
-        lastPollAgeSec: lastPoll
-          ? Math.max(0, Math.round((now.getTime() - lastPoll.getTime()) / 1000))
-          : null,
-        consecutiveErrors: Number(row.consecutive_errors) || 0,
-      };
+      watchers[asset] = watcherHealthSnapshot(
+        row.last_poll_at,
+        Number(row.consecutive_errors) || 0,
+        now,
+        policy,
+      );
     }
     return watchers;
   } catch (error) {
@@ -365,56 +379,103 @@ export async function runDepositWatchers(
     });
   }
 
+  const policy = watcherCooldownPolicyFromConfig(config);
+  const now = clock();
+
   for (const watcher of watchers) {
-    try {
-      const cursor = await getWatcherCursor(pool, watcher.asset);
+    await pollWatchedAsset(pool, config, watcher, policy, now, clock);
+  }
+}
 
-      if (cursor.consecutive_errors >= 5) {
-        console.warn(`Skipping ${watcher.asset} watcher due to consecutive errors`);
-        continue;
-      }
+async function pollWatchedAsset(
+  pool: pg.Pool,
+  config: BidConfig,
+  watcher: {
+    asset: AssetType;
+    address: string;
+    fetcher: (
+      config: BidConfig,
+      address: string,
+      cursor: WatcherCursor,
+    ) => Promise<DepositTransaction[]>;
+  },
+  policy: WatcherCooldownPolicy,
+  now: Date,
+  clock: () => Date,
+) {
+  let cursor: WatcherCursor | undefined;
+  try {
+    cursor = await getWatcherCursor(pool, watcher.asset);
 
-      const deposits = await watcher.fetcher(config, watcher.address, cursor);
-
-      for (const deposit of deposits) {
-        const matched = await matchTransactionToIntent(
-          pool,
-          watcher.asset,
-          watcher.address,
-          deposit.txHash,
-          clock,
-        );
-
-        if (matched) {
-          console.log(
-            `Matched ${watcher.asset} tx ${deposit.txHash} to watching intent`,
-          );
-        }
-      }
-
-      if (deposits.length > 0) {
-        await updateWatcherCursor(pool, watcher.asset, deposits[deposits.length - 1].txHash);
-      } else {
-        await updateWatcherCursor(pool, watcher.asset, cursor.last_tx_hash);
-      }
-    } catch (error) {
-      if (isTransientDbError(error)) {
-        console.warn(
-          `Transient DB error for ${watcher.asset} watcher; not counting against consecutive_errors`,
-          error,
-        );
-        continue;
-      }
-      console.error(`Deposit watcher error for ${watcher.asset}:`, error);
-      try {
-        await updateWatcherCursor(pool, watcher.asset, null, true);
-      } catch (cursorError) {
-        console.warn(
-          `Failed to record ${watcher.asset} watcher error without incrementing after a DB fault`,
-          cursorError,
-        );
-      }
+    if (isWatcherCoolingDown(cursor.last_poll_at, cursor.consecutive_errors, now, policy)) {
+      return;
     }
+
+    const recovering = cursor.consecutive_errors >= policy.errorThreshold;
+    const deposits = await watcher.fetcher(config, watcher.address, cursor);
+    await matchDeposits(pool, watcher, deposits, clock);
+    await updateWatcherCursor(
+      pool,
+      watcher.asset,
+      deposits.length > 0 ? deposits[deposits.length - 1].txHash : cursor.last_tx_hash,
+    );
+    if (recovering) {
+      console.info(`${watcher.asset} watcher recovered after cooldown`);
+    }
+  } catch (error) {
+    await recordWatcherPollError(pool, watcher.asset, cursor, policy, error);
+  }
+}
+
+async function matchDeposits(
+  pool: pg.Pool,
+  watcher: { asset: AssetType; address: string },
+  deposits: DepositTransaction[],
+  clock: () => Date,
+) {
+  for (const deposit of deposits) {
+    const matched = await matchTransactionToIntent(
+      pool,
+      watcher.asset,
+      watcher.address,
+      deposit.txHash,
+      clock,
+    );
+    if (matched) {
+      console.log(`Matched ${watcher.asset} tx ${deposit.txHash} to watching intent`);
+    }
+  }
+}
+
+async function recordWatcherPollError(
+  pool: pg.Pool,
+  asset: AssetType,
+  cursor: WatcherCursor | undefined,
+  policy: WatcherCooldownPolicy,
+  error: unknown,
+) {
+  if (isTransientDbError(error)) {
+    console.warn(
+      `Transient DB error for ${asset} watcher; not counting against consecutive_errors`,
+      error,
+    );
+    return;
+  }
+  console.error(`Deposit watcher error for ${asset}:`, error);
+  try {
+    await updateWatcherCursor(pool, asset, null, true);
+    const nextErrors = (cursor?.consecutive_errors ?? 0) + 1;
+    if (nextErrors >= policy.errorThreshold) {
+      const cooldownSec = watcherCooldownSeconds(nextErrors, policy);
+      console.warn(
+        `${asset} watcher entered cooldown for ${cooldownSec}s after ${nextErrors} consecutive errors`,
+      );
+    }
+  } catch (cursorError) {
+    console.warn(
+      `Failed to record ${asset} watcher error without incrementing after a DB fault`,
+      cursorError,
+    );
   }
 }
 

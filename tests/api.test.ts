@@ -165,9 +165,9 @@ describe("public API", () => {
       market: { state: "live" },
       streams: 3,
       watchers: {
-        BTC: { lastPollAgeSec: null, consecutiveErrors: 0 },
-        USDT_TRC20: { lastPollAgeSec: null, consecutiveErrors: 0 },
-        USDC_SOL: { lastPollAgeSec: null, consecutiveErrors: 0 },
+        BTC: { lastPollAgeSec: null, consecutiveErrors: 0, state: "ok", nextRetryInSec: 0 },
+        USDT_TRC20: { lastPollAgeSec: null, consecutiveErrors: 0, state: "ok", nextRetryInSec: 0 },
+        USDC_SOL: { lastPollAgeSec: null, consecutiveErrors: 0, state: "ok", nextRetryInSec: 0 },
       },
     });
     expect(response.json()).toHaveProperty("uptimeSeconds");

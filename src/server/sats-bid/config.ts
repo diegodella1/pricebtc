@@ -59,6 +59,9 @@ const schema = z.object({
   SOLANA_RPC_URL: z.string().url().default("https://api.mainnet-beta.solana.com"),
   SOLANA_RPC_TOKEN: z.string().default(""),
   BITCOIN_EXPLORER_URL: z.string().url().default("https://mempool.space/api"),
+  WATCHER_ERROR_THRESHOLD: z.coerce.number().int().positive().default(5),
+  WATCHER_COOLDOWN_BASE_SECONDS: z.coerce.number().int().positive().default(60),
+  WATCHER_COOLDOWN_MAX_SECONDS: z.coerce.number().int().positive().default(1800),
 });
 export type BidConfig = z.infer<typeof schema>;
 export function bidConfig(env: NodeJS.ProcessEnv = process.env): BidConfig {
