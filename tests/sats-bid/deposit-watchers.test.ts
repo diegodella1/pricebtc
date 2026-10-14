@@ -10,6 +10,7 @@ import {
   runDepositWatchers,
   withDbRetry,
 } from "../../src/server/sats-bid/deposit-watchers.js";
+import { watcherCooldownSeconds } from "../../src/server/sats-bid/watcher-cooldown.js";
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -20,6 +21,65 @@ function mockPool(
   query: (sql: string, params?: unknown[]) => Promise<{ rowCount: number; rows: unknown[] }>,
 ) {
   return { query: vi.fn(query) } as unknown as pg.Pool;
+}
+
+const NOW = new Date("2026-10-14T12:00:00Z");
+const BTC_ADDR = "bc1qpcf3cludfwwu3jez7j7f406ck8psmne5cypkhf";
+const USDT_ADDR = "TLK41RcGbtQiFP8XnTyF3YKaqzNyVbbxm3";
+const USDC_ADDR = "6qRGFDj5ySnqYu5KDpDpUenqxzS2dtnyRLhmKtAGvoMs";
+
+function allAssetConfig() {
+  return bidConfig({
+    APP_ENV: "test",
+    SPONSOR_ADDR_BTC: BTC_ADDR,
+    SPONSOR_ADDR_USDT_TRC20: USDT_ADDR,
+    SPONSOR_ADDR_USDC_SOL: USDC_ADDR,
+  });
+}
+
+function cursorRows(
+  assets: Record<string, { last_poll_at: Date; consecutive_errors: number; last_tx_hash?: string | null }>,
+) {
+  return mockPool(async (sql, params) => {
+    if (sql.includes("SELECT last_tx_hash") && params?.[0]) {
+      const row = assets[String(params[0])];
+      return {
+        rowCount: 1,
+        rows: [
+          {
+            last_tx_hash: row?.last_tx_hash ?? null,
+            last_poll_at: row?.last_poll_at ?? NOW,
+            consecutive_errors: row?.consecutive_errors ?? 0,
+          },
+        ],
+      };
+    }
+    return { rowCount: 1, rows: [] };
+  });
+}
+
+function stubExplorerOk() {
+  const fetchMock = vi.fn(async (url: string, init?: { method?: string }) => {
+    if (init?.method === "POST") return { ok: true, json: async () => ({ result: [] }) };
+    if (String(url).includes("token_trc20")) return { ok: true, json: async () => ({ token_transfers: [] }) };
+    return { ok: true, json: async () => [] };
+  });
+  vi.stubGlobal("fetch", fetchMock);
+  return fetchMock;
+}
+
+function stubExplorerFail() {
+  const fetchMock = vi.fn(async () => ({ ok: false, status: 503, json: async () => ({}) }));
+  vi.stubGlobal("fetch", fetchMock);
+  return fetchMock;
+}
+
+function incrementCalls(pool: pg.Pool) {
+  return vi.mocked(pool.query).mock.calls.filter(([sql]) => String(sql).includes("consecutive_errors+1"));
+}
+
+function resetCalls(pool: pg.Pool) {
+  return vi.mocked(pool.query).mock.calls.filter(([sql]) => String(sql).includes("consecutive_errors=0"));
 }
 
 describe("deposit watcher DB resilience", () => {
@@ -141,10 +201,139 @@ describe("deposit watcher DB resilience", () => {
       ],
     }));
     const watchers = await getWatcherHealth(pool, now);
-    expect(watchers.BTC).toEqual({ lastPollAgeSec: 1, consecutiveErrors: 0 });
+    expect(watchers.BTC).toEqual({
+      lastPollAgeSec: 1,
+      consecutiveErrors: 0,
+      state: "ok",
+      nextRetryInSec: 0,
+    });
     expect(watchers.USDT_TRC20.consecutiveErrors).toBe(7);
+    expect(watchers.USDT_TRC20.state).toBe("cooldown");
+    expect(watchers.USDT_TRC20.nextRetryInSec).toBe(0);
     expect(watchers.USDT_TRC20.lastPollAgeSec).toBeGreaterThan(30 * 60 * 60);
     expect(watchers.USDC_SOL.consecutiveErrors).toBe(5);
+    expect(watchers.USDC_SOL.state).toBe("cooldown");
+    expect(watchers.USDC_SOL.nextRetryInSec).toBe(0);
     expect(watchers.USDC_SOL.lastPollAgeSec).toBeGreaterThan(5 * 24 * 60 * 60);
+  });
+});
+
+describe("deposit watcher cooldown", () => {
+  it("uses exponential cooldown 1, 2, 4 minutes up to 30 minutes", () => {
+    expect(watcherCooldownSeconds(4)).toBe(0);
+    expect(watcherCooldownSeconds(5)).toBe(60);
+    expect(watcherCooldownSeconds(6)).toBe(120);
+    expect(watcherCooldownSeconds(7)).toBe(240);
+    expect(watcherCooldownSeconds(8)).toBe(480);
+    expect(watcherCooldownSeconds(9)).toBe(960);
+    expect(watcherCooldownSeconds(10)).toBe(1800);
+    expect(watcherCooldownSeconds(20)).toBe(1800);
+  });
+
+  it("enters cooldown after the error threshold and skips later cycles", async () => {
+    const fetchMock = stubExplorerFail();
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const entering = cursorRows({ BTC: { last_poll_at: NOW, consecutive_errors: 4 } });
+
+    await runDepositWatchers(entering, bidConfig({ APP_ENV: "test", SPONSOR_ADDR_BTC: BTC_ADDR }), () => NOW);
+
+    expect(fetchMock).toHaveBeenCalled();
+    expect(incrementCalls(entering)).toHaveLength(1);
+    expect(warn.mock.calls.some(([message]) => String(message).includes("BTC watcher entered cooldown for 60s after 5 consecutive errors"))).toBe(true);
+
+    fetchMock.mockClear();
+    const cooling = cursorRows({ BTC: { last_poll_at: NOW, consecutive_errors: 5 } });
+    await runDepositWatchers(cooling, bidConfig({ APP_ENV: "test", SPONSOR_ADDR_BTC: BTC_ADDR }), () => NOW);
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(incrementCalls(cooling)).toHaveLength(0);
+  });
+
+  it("retries on its own after the cooldown elapses for every watched asset", async () => {
+    const fetchMock = stubExplorerOk();
+    vi.spyOn(console, "info").mockImplementation(() => undefined);
+    const lastPoll = new Date(NOW.getTime() - 61_000);
+    const pool = cursorRows({
+      BTC: { last_poll_at: lastPoll, consecutive_errors: 5 },
+      USDT_TRC20: { last_poll_at: lastPoll, consecutive_errors: 5 },
+      USDC_SOL: { last_poll_at: lastPoll, consecutive_errors: 5 },
+    });
+
+    await runDepositWatchers(pool, allAssetConfig(), () => NOW);
+
+    expect(fetchMock).toHaveBeenCalled();
+    expect(resetCalls(pool)).toHaveLength(3);
+  });
+
+  it("resets consecutive_errors and logs recovery after a successful poll", async () => {
+    stubExplorerOk();
+    const info = vi.spyOn(console, "info").mockImplementation(() => undefined);
+    const lastPoll = new Date(NOW.getTime() - 61_000);
+    const pool = cursorRows({ BTC: { last_poll_at: lastPoll, consecutive_errors: 5 } });
+
+    await runDepositWatchers(pool, bidConfig({ APP_ENV: "test", SPONSOR_ADDR_BTC: BTC_ADDR }), () => NOW);
+
+    expect(resetCalls(pool)).toHaveLength(1);
+    expect(incrementCalls(pool)).toHaveLength(0);
+    expect(info.mock.calls.some(([message]) => String(message).includes("BTC watcher recovered after cooldown"))).toBe(true);
+  });
+
+  it("honors configured error threshold and cooldown base", async () => {
+    const fetchMock = stubExplorerFail();
+    vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const config = bidConfig({
+      APP_ENV: "test",
+      SPONSOR_ADDR_BTC: BTC_ADDR,
+      WATCHER_ERROR_THRESHOLD: "2",
+      WATCHER_COOLDOWN_BASE_SECONDS: "10",
+      WATCHER_COOLDOWN_MAX_SECONDS: "40",
+    });
+
+    await runDepositWatchers(
+      cursorRows({ BTC: { last_poll_at: NOW, consecutive_errors: 2 } }),
+      config,
+      () => NOW,
+    );
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    await runDepositWatchers(
+      cursorRows({ BTC: { last_poll_at: new Date(NOW.getTime() - 11_000), consecutive_errors: 2 } }),
+      config,
+      () => NOW,
+    );
+    expect(fetchMock).toHaveBeenCalled();
+  });
+
+  it("exposes cooldown state and nextRetryInSec on watcher health", async () => {
+    const pool = mockPool(async () => ({
+      rowCount: 3,
+      rows: [
+        { asset_type: "BTC", last_poll_at: new Date(NOW.getTime() - 1000), consecutive_errors: 0 },
+        { asset_type: "USDT_TRC20", last_poll_at: new Date(NOW.getTime() - 30_000), consecutive_errors: 5 },
+        { asset_type: "USDC_SOL", last_poll_at: new Date(NOW.getTime() - 10_000), consecutive_errors: 6 },
+      ],
+    }));
+
+    const watchers = await getWatcherHealth(pool, NOW);
+
+    expect(watchers.BTC).toEqual({
+      lastPollAgeSec: 1,
+      consecutiveErrors: 0,
+      state: "ok",
+      nextRetryInSec: 0,
+    });
+    expect(watchers.USDT_TRC20).toEqual({
+      lastPollAgeSec: 30,
+      consecutiveErrors: 5,
+      state: "cooldown",
+      nextRetryInSec: 30,
+    });
+    expect(watchers.USDC_SOL).toEqual({
+      lastPollAgeSec: 10,
+      consecutiveErrors: 6,
+      state: "cooldown",
+      nextRetryInSec: 110,
+    });
   });
 });

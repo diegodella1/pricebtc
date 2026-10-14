@@ -74,6 +74,11 @@ SOLANA_RPC_TOKEN=              # Optional for private RPC
 
 # Bitcoin explorer for BTC validation (mempool.space API)
 BITCOIN_EXPLORER_URL=https://mempool.space/api
+
+# Deposit watcher cooldown after consecutive explorer/RPC errors
+WATCHER_ERROR_THRESHOLD=5
+WATCHER_COOLDOWN_BASE_SECONDS=60
+WATCHER_COOLDOWN_MAX_SECONDS=1800
 ```
 
 ## Database Schema
@@ -380,7 +385,12 @@ Explorer APIs have rate limits:
 - **Solana RPC**: ~100 req/s public (varies by provider)
 - **Mempool.space**: ~10 req/s public
 
-Watchers automatically skip assets after 5 consecutive errors. Check logs:
+After 5 consecutive errors (configurable via `WATCHER_ERROR_THRESHOLD`), a watcher
+pauses with exponential cooldown (1, 2, 4... minutes, capped at 30 minutes via
+`WATCHER_COOLDOWN_BASE_SECONDS` and `WATCHER_COOLDOWN_MAX_SECONDS`) and then retries
+on its own. A successful poll resets `consecutive_errors`. `/healthz` reports each
+watcher's `state` (`ok` or `cooldown`), `nextRetryInSec`, `lastPollAgeSec`, and
+`consecutiveErrors`. Check logs:
 
 ```bash
 # Look for watcher errors
