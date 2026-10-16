@@ -1,23 +1,44 @@
 import { buildApp } from "./app.js";
 import { parseEnvironment } from "./config.js";
+import { localHealthzUrl, startHttpSelfCheck } from "./http-self-check.js";
 import { installProcessErrorHandlers } from "./process-errors.js";
+import { createBidRuntime } from "./sats-bid/runtime.js";
+import { bidConfig } from "./sats-bid/config.js";
+import { BinanceFeed } from "./services/binance-feed.js";
+import { CoinbaseFeed } from "./services/coinbase-feed.js";
+import { DailyHistoryService } from "./services/daily-history-service.js";
 import { FxService } from "./services/fx-service.js";
 import { HistoryService } from "./services/history-service.js";
-import { DailyHistoryService } from "./services/daily-history-service.js";
-import { TradeVolumeService } from "./services/trade-volume.js";
 import { MarketService } from "./services/market-service.js";
-import { CoinbaseFeed } from "./services/coinbase-feed.js";
-import { BinanceFeed } from "./services/binance-feed.js";
+import { PlausibleService } from "./services/plausible.js";
 import { PriceAggregator } from "./services/price-aggregator.js";
 import { SseHub } from "./services/sse-hub.js";
-import { PlausibleService } from "./services/plausible.js";
-import { createBidRuntime } from "./sats-bid/runtime.js";
 import { createStripeRuntime } from "./services/stripe-runtime.js";
-import { bidConfig } from "./sats-bid/config.js";
+import { TradeVolumeService } from "./services/trade-volume.js";
+import { startBindTimeout } from "./startup-guard.js";
+import { logFatal, logStartup } from "./startup-log.js";
 
 installProcessErrorHandlers();
 
-const environment = parseEnvironment();
+let environment: ReturnType<typeof parseEnvironment>;
+try {
+  environment = parseEnvironment();
+} catch (error) {
+  logFatal("Invalid configuration", error);
+  process.exit(1);
+}
+
+logStartup("config loaded", {
+  host: environment.HOST,
+  port: environment.PORT,
+  bindTimeoutSeconds: environment.STARTUP_BIND_TIMEOUT_SECONDS,
+});
+
+const bindGuard = startBindTimeout({
+  host: environment.HOST,
+  port: environment.PORT,
+  timeoutMs: environment.STARTUP_BIND_TIMEOUT_SECONDS * 1_000,
+});
 const fx = new FxService({ dataDir: environment.PRICEBTC_DATA_DIR, apiUrl: environment.FX_API_URL });
 
 let market: MarketService | PriceAggregator;
@@ -80,8 +101,17 @@ try {
     return snapshot ? parseFloat(snapshot.priceUsd) : 0;
   };
   bidding = createBidRuntime(getBtcPrice);
+  if (bidding) {
+    logStartup("database connected");
+    logStartup("watchers started");
+  } else {
+    logStartup("database skipped");
+    logStartup("watchers skipped");
+  }
 } catch {
   process.stderr.write("Sats Bid disabled: invalid configuration\n");
+  logStartup("database skipped");
+  logStartup("watchers skipped");
 }
 let stripe: ReturnType<typeof createStripeRuntime> = null;
 try {
@@ -104,10 +134,13 @@ const app = buildApp({
 });
 
 let shuttingDown = false;
+let selfCheck: { stop: () => void } | null = null;
 
 async function shutdown(signal: string): Promise<void> {
   if (shuttingDown) return;
   shuttingDown = true;
+  bindGuard.clear();
+  selfCheck?.stop();
   app.log.info({ signal }, "Shutting down");
   streams.stop();
   market.stop();
@@ -132,29 +165,41 @@ async function main(): Promise<void> {
   marketStarts.push(market.start());
 
   await Promise.all([fx.start(), ...marketStarts, tradeVolume.start()]);
-  
+  logStartup("market services started");
+
   try {
     await dailyHistory.backfillFromCoinbase();
     app.log.info("Daily history backfill complete");
+    logStartup("daily history ready");
   } catch (error) {
     app.log.warn({ error }, "Daily history backfill failed");
+    logStartup("daily history backfill failed");
   }
-  
+
   setInterval(() => {
     void dailyHistory.rollupLatestDay().catch((error) => {
       app.log.warn({ error }, "Daily history rollup failed");
     });
   }, 60 * 60 * 1000);
-  
+
   streams.start();
   await app.listen({ host: environment.HOST, port: environment.PORT });
+  bindGuard.clear();
+  logStartup("HTTP listening", { host: environment.HOST, port: environment.PORT });
+  selfCheck = startHttpSelfCheck({
+    url: localHealthzUrl(environment.HOST, environment.PORT),
+    intervalMs: environment.HTTP_SELFCHECK_INTERVAL_SECONDS * 1_000,
+    failureThreshold: environment.HTTP_SELFCHECK_FAILURE_THRESHOLD,
+    shouldRun: () => !shuttingDown,
+  });
 }
 
 process.once("SIGTERM", () => void shutdown("SIGTERM"));
 process.once("SIGINT", () => void shutdown("SIGINT"));
 
 main().catch(async (error: unknown) => {
+  logFatal("Startup failed", error);
   app.log.fatal({ error }, "Startup failed");
   await shutdown("startup-error");
-  process.exitCode = 1;
+  process.exit(1);
 });

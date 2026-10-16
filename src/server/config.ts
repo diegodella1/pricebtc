@@ -23,6 +23,9 @@ const ENV_SCHEMA = z.object({
   STRIPE_PRICE_BUSINESS_MONTHLY: z.string().optional(),
   STRIPE_PRICE_BUSINESS_YEARLY: z.string().optional(),
   PUBLIC_SITE_URL: z.string().url().default("http://127.0.0.1:5173"),
+  STARTUP_BIND_TIMEOUT_SECONDS: z.coerce.number().int().positive().max(3_600).default(60),
+  HTTP_SELFCHECK_INTERVAL_SECONDS: z.coerce.number().int().positive().max(3_600).default(30),
+  HTTP_SELFCHECK_FAILURE_THRESHOLD: z.coerce.number().int().positive().max(100).default(3),
 });
 
 export function parseEnvironment(environment: NodeJS.ProcessEnv = process.env) {
