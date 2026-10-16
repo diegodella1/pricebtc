@@ -4,6 +4,7 @@ import {
   handleUncaughtException,
   handleUnhandledRejection,
   isTransientNetworkError,
+  writeProcessError,
 } from "../src/server/process-errors.js";
 
 describe("process error handlers", () => {
@@ -53,5 +54,21 @@ describe("process error handlers", () => {
     handleUncaughtException(error, logger, exit);
     expect(logger.error).toHaveBeenCalledWith("Uncaught exception", error);
     expect(exit).toHaveBeenCalledWith(1);
+  });
+
+  it("writes process-level errors to stderr so journald records them", () => {
+    const write = vi.spyOn(process.stderr, "write").mockReturnValue(true);
+    const exit = vi.fn() as unknown as (code: number) => never;
+    try {
+      writeProcessError("Uncaught exception", new Error("disk is full"));
+      handleUncaughtException(new Error("disk is full"), undefined, exit);
+      expect(write).toHaveBeenCalled();
+      const line = String(write.mock.calls.at(-1)?.[0]);
+      expect(line).toContain("Uncaught exception");
+      expect(line).toContain("disk is full");
+      expect(exit).toHaveBeenCalledWith(1);
+    } finally {
+      write.mockRestore();
+    }
   });
 });
